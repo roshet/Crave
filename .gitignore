@@ -1,0 +1,15 @@
+# Frontend
+fast-food-ui/node_modules
+fast-food-ui/dist
+fast-food-ui/.env
+fast-food-ui/.vercel
+
+# Python
+ingest/__pycache__/
+*.pyc
+.venv/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/

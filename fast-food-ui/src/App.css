@@ -1,0 +1,290 @@
+/* Layout */
+.page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+  display: flex;
+  justify-content: center;
+  padding: 3rem 1rem;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.container {
+  width: 100%;
+  max-width: 900px;
+}
+
+.title {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+
+.subtitle {
+  text-align: center;
+  margin: 0.65rem auto 2rem auto;
+  color: #475569;
+  max-width: 640px;
+}
+
+/* Cards */
+.card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+}
+
+.controlsCard {
+  padding: 2rem;
+  margin-bottom: 2rem;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.resultsCard {
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.resultsCard:first-of-type{
+  margin-top: 2rem;
+}
+
+.altMealCard{
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 1.25rem;
+  margin-top: 1rem;
+  transition: all 0.15s ease;
+}
+
+.altMealCard:hover {
+  background: #ffffff;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+}
+
+/* Form */
+.grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.actionButtons {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.label {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+  color: #1f2937;
+}
+
+.select,
+.input {
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #0f172a;
+  outline: none;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.select:focus,
+.input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  background: #fff;
+}
+
+.rangeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.range {
+  width: 100%;
+}
+
+.btn {
+  margin-top: 0;
+  padding: 0.85rem 1rem;
+  background: linear-gradient(135deg, #334155, #0f172a);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.25);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.secondaryBtn {
+  background: linear-gradient(135deg, #4f46e5, #4338ca);
+}
+
+.compactBtn {
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+}
+
+/* Messages */
+.msg {
+  margin: 0 0 1rem 0;
+  color: #334155;
+}
+
+.error {
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+/* Result content */
+.resultHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.resultTitle {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.badge {
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3730a3;
+  white-space: nowrap;
+}
+
+.meta {
+  margin: 0.35rem 0;
+  color: #1f2937;
+}
+
+.nutrition {
+  margin: 0.5rem 0;
+  color: #111827;
+}
+
+.summary {
+  margin: 0.35rem 0 0 0;
+  color: #475569;
+}
+
+.resultActions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.mealWhy {
+  margin-top: 1rem;
+}
+
+.alternativeSection {
+  margin-top: 1.5rem;
+}
+
+.alternativeTitle {
+  margin: 0;
+  color: #1e293b;
+}
+
+.deltaWrap {
+  margin-top: 0.5rem;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.deltaMetrics {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* Nutrition Bars */
+.bars {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.barRow {
+  display: flex;
+  flex-direction: column;
+}
+
+.barLabel {
+  font-size: 0.85rem;
+  margin-bottom: 0.25rem;
+}
+
+.barTrack {
+  width: 100%;
+  height: 10px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #6366f1);
+  border-radius: 999px;
+  transition: width 0.6s ease;
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding: 2rem 0.75rem;
+  }
+
+  .controlsCard,
+  .resultsCard {
+    padding: 1rem;
+  }
+
+  .grid,
+  .actionButtons {
+    grid-template-columns: 1fr;
+  }
+}
