@@ -38,6 +38,14 @@ else:
     chickfila_items = chickfila_raw
 
 ALL_ITEMS = mcdonalds_items + chickfila_items + wendys_items
+
+@app.get("/")
+def root():
+    return {
+        "message": "Crave API is live.",
+        "docs": "/docs",
+        "endpoints": ["/recommend", "/optimize_meal"],
+    }
     
 @app.get("/recommend")
 def recommend(
