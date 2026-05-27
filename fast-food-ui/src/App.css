@@ -54,11 +54,11 @@
   margin-bottom: 1.5rem;
 }
 
-.resultsCard:first-of-type{
+.resultsCard:first-of-type {
   margin-top: 2rem;
 }
 
-.altMealCard{
+.altMealCard {
   background: #f9fafb;
   border: 1px solid #e5e7eb;
   border-radius: 14px;
@@ -69,7 +69,39 @@
 
 .altMealCard:hover {
   background: #ffffff;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* Goal presets */
+.presetRow {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.presetBtn {
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  border: 1.5px solid #cbd5e1;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.presetBtn:hover {
+  border-color: #6366f1;
+  color: #4f46e5;
+  background: #eef2ff;
+}
+
+.presetActive {
+  background: #eef2ff;
+  border-color: #6366f1;
+  color: #4338ca;
 }
 
 /* Form */
@@ -273,6 +305,54 @@
   transition: width 0.6s ease;
 }
 
+/* Skeleton loading */
+@keyframes shimmer {
+  0%   { opacity: 1; }
+  50%  { opacity: 0.45; }
+  100% { opacity: 1; }
+}
+
+.skeletonCard {
+  pointer-events: none;
+}
+
+.skeletonTitle {
+  height: 1.2rem;
+  width: 55%;
+  background: #e2e8f0;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.skeletonLine {
+  height: 0.85rem;
+  width: 80%;
+  background: #e2e8f0;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.skeletonLine.short {
+  width: 45%;
+}
+
+.skeletonBars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.skeletonBar {
+  height: 10px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
   .page {
     padding: 2rem 0.75rem;
@@ -286,5 +366,93 @@
   .grid,
   .actionButtons {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .page {
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+  }
+
+  .card {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+  }
+
+  .card:hover {
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+  }
+
+  .controlsCard {
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  }
+
+  .altMealCard {
+    background: #0f172a;
+    border-color: #334155;
+  }
+
+  .altMealCard:hover {
+    background: #1e293b;
+  }
+
+  .title     { color: #f1f5f9; }
+  .subtitle  { color: #94a3b8; }
+  .label     { color: #e2e8f0; }
+  .meta      { color: #e2e8f0; }
+  .nutrition { color: #f1f5f9; }
+  .summary   { color: #94a3b8; }
+  .resultTitle { color: #f1f5f9; }
+  .alternativeTitle { color: #e2e8f0; }
+  .msg       { color: #94a3b8; }
+  .barLabel  { color: #cbd5e1; }
+
+  .select,
+  .input {
+    background: #0f172a;
+    border-color: #475569;
+    color: #f1f5f9;
+  }
+
+  .select:focus,
+  .input:focus {
+    background: #1e293b;
+    border-color: #818cf8;
+    box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
+  }
+
+  .badge {
+    background: #1e1b4b;
+    color: #a5b4fc;
+  }
+
+  .barTrack {
+    background: #334155;
+  }
+
+  .presetBtn {
+    background: #1e293b;
+    border-color: #475569;
+    color: #94a3b8;
+  }
+
+  .presetBtn:hover {
+    background: #1e1b4b;
+    border-color: #818cf8;
+    color: #a5b4fc;
+  }
+
+  .presetActive {
+    background: #1e1b4b;
+    border-color: #818cf8;
+    color: #a5b4fc;
+  }
+
+  .skeletonTitle,
+  .skeletonLine,
+  .skeletonBar {
+    background: #334155;
   }
 }

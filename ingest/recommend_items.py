@@ -14,7 +14,7 @@ GOAL_PROFILES  = {
         "carbs": 0.4,
         "sodium": 1.0,
         "calories": 0.8,
-    },           
+    },
     "low_sugar": {
         "protein": 1.0,
         "sugars": 2.0,
@@ -40,26 +40,30 @@ GOAL_CONSTRAINTS = {
 }
 
 def clamp(value, max_value):
+    if max_value == 0:
+        return 0.0
     return min(value / max_value, 1.0)
 
 def health_score(item, goal = "balanced", max_calories = 600):
     w = GOAL_PROFILES.get(goal, GOAL_PROFILES["balanced"])
-    
+
     protein = item.get("protein") or 0
     sugars = item.get("sugars") or 0
     fat = item.get("fat") or 0
     carbs = item.get("carbohydrate") or item.get("carbs") or 0
-    sodium = item.get("sodium") or 0
+    # sodium may be None for some restaurants (e.g. Wendy's) — treat as 0 (no penalty, no bonus)
+    sodium_raw = item.get("sodium")
+    sodium = sodium_raw if sodium_raw is not None else 0
     calories = item.get("calories") or 0
-    
+
     protein_score = clamp(protein, 30) * w["protein"]
-    
+
     sugar_penalty = clamp(sugars, 25) * w["sugars"]
     fat_penalty = clamp(fat, 40) * w["fat"]
     carb_penalty = clamp(carbs, 60) * w["carbs"]
     sodium_penalty = clamp(sodium, 2000) * w["sodium"]
     calorie_penalty = clamp(calories, max_calories) * w["calories"]
-    
+
     score = (
         protein_score
         - sugar_penalty
@@ -68,7 +72,7 @@ def health_score(item, goal = "balanced", max_calories = 600):
         - sodium_penalty
         - calorie_penalty
     )
-    
+
     return round(score, 3)
 
 def explain_item(item, goal):
@@ -76,39 +80,42 @@ def explain_item(item, goal):
     sugars = item.get("sugars") or 0
     fat = item.get("fat") or 0
     carbs = item.get("carbohydrate") or item.get("carbs") or 0
-    sodium = item.get("sodium") or 0
+    sodium_raw = item.get("sodium")
+    sodium = sodium_raw if sodium_raw is not None else 0
     calories = item.get("calories") or 0
-    
+
     reasons = []
-    
+
     if protein >= 20:
         reasons.append("high protein")
     elif protein >= 10:
         reasons.append("moderate protein")
-        
+
     if sugars <= 5:
         reasons.append("low sugar")
     elif sugars >= 15:
         reasons.append("high sugar")
-        
+
     if fat <= 10:
         reasons.append("low fat")
     elif fat >= 25:
         reasons.append("high fat")
-    
+
     if carbs <= 30:
         reasons.append("lower carbs")
     elif carbs >= 60:
         reasons.append("high carbs")
-        
-    if sodium <= 500:
+
+    if sodium_raw is None:
+        reasons.append("sodium data unavailable")
+    elif sodium <= 500:
         reasons.append("low sodium")
     elif sodium >= 1000:
         reasons.append("high sodium")
-        
+
     if calories <= 500:
         reasons.append("lower calorie option")
-        
+
     if goal == "high_protein":
         reasons.insert(0, "optimized for high protein")
     elif goal == "low_sugar":
@@ -117,15 +124,17 @@ def explain_item(item, goal):
         reasons.insert(0, "optimized for low fat")
     else:
         reasons.insert(0, "balanced nutrition profile")
-    
+
     return ", ".join(reasons)
 
 def humanize_items(items):
     human = []
-        
+
     for item in items:
         carbs = item.get("carbohydrate") or item.get("carbs") or 0
-        
+        sodium = item.get("sodium")
+        sodium_display = f"{sodium}mg sodium" if sodium is not None else "sodium N/A"
+
         human.append({
             "title": item["name"],
             "restaurant": item["restaurant"],
@@ -137,49 +146,50 @@ def humanize_items(items):
                 f'{item["sugars"]}g sugar · '
                 f'{item["fat"]}g fat · '
                 f'{carbs}g carbs · '
-                f'{item["sodium"]}mg sodium'
+                f'{sodium_display}'
             ),
-            
+
             "calories": item.get("calories", 0),
             "protein": item.get("protein", 0),
             "sugars": item.get("sugars", 0),
             "fat": item.get("fat", 0),
             "carbs": item.get("carbohydrate", 0) or item.get("carbs") or 0,
             "sodium": item.get("sodium", 0),
-            
+
             "score": item["health_score"],
         })
-            
+
     return human
 
 def get_recommendations(
-    items, 
-    max_calories = 600, 
-    top_n = 10, 
+    items,
+    max_calories = 600,
+    top_n = 10,
     goal = "balanced",
     category = None):
-    
+
     scored_items = []
-    
+    category_lower = category.lower() if category else None
+
     for item in items:
         if item.get("item_type") == "sauce":
             continue
-        
+
         if goal == "balanced" and item.get("item_type") == "drink":
             continue
-        
-        if category and item["category"] != category:
+
+        if category_lower and item["category"].lower() != category_lower:
             continue
-        
+
         calories = item.get("calories")
         protein = item.get("protein") or 0
-    
+
         if calories is None or calories > max_calories:
             continue
-        
+
         if goal == "balanced" and protein < 8:
             continue
-    
+
         score = health_score(item, goal, max_calories)
         item_copy = item.copy()
         item_copy["health_score"] = score
@@ -201,13 +211,16 @@ def build_optimal_meal(
     Build a meal: 1 entree + optional side + optional drink
     Objective: maximize total health_score under calorie constraint
     """
-    
+
     if category_filter:
         category_filter = category_filter.lower()
 
-    # Category mappings for each restaurant
-    entree_categories = {"burgers", "entrees", "salads", "nuggets_strips", "breakfast"}
-    side_categories = {"fries_sides", "sides", "desserts"}
+    entree_categories = {
+        "burgers", "entrees", "salads", "nuggets_strips", "breakfast",
+        "chicken", "chicken_fish", "wraps", "snack_wraps",
+        "kid_s_meals", "catering_entrees",
+    }
+    side_categories = {"fries_sides", "sides", "desserts", "proteins"}
 
     entrees = []
     sides = []
@@ -219,15 +232,15 @@ def build_optimal_meal(
 
         cat = (item.get("category") or "").lower()
         item_type = (item.get("item_type") or "").lower()
-        
-        if item_type == "drink" or cat in {"beverages", "drinks"}:
+
+        if item_type == "drink" or cat in {"beverages", "drinks", "mccafe_coffees"}:
             drinks.append(item)
             continue
-        
+
         if cat in side_categories:
             sides.append(item)
             continue
-        
+
         if cat in entree_categories:
             if category_filter and cat != category_filter:
                 continue
@@ -237,7 +250,12 @@ def build_optimal_meal(
     if not entrees:
         return None
 
-    # Optional slots
+    # Pre-compute health scores to avoid repeated calls inside the triple loop
+    score_cache = {
+        id(i): health_score(i, goal, max_calories)
+        for i in entrees + sides + drinks
+    }
+
     sides_list = [None] + sides if allow_side else [None]
     drinks_list = [None] + drinks if allow_drink else [None]
 
@@ -255,52 +273,47 @@ def build_optimal_meal(
                 total_calories = sum((i.get("calories") or 0) for i in meal_items)
                 if total_calories > max_calories:
                     continue
-                
+
                 total_protein = sum((i.get("protein") or 0) for i in meal_items)
                 total_sugar = sum((i.get("sugars") or 0) for i in meal_items)
                 total_fat = sum((i.get("fat") or 0) for i in meal_items)
-                
+
                 constraints = GOAL_CONSTRAINTS.get(goal, {})
-                
+
                 if "min_protein" in constraints and total_protein < constraints["min_protein"]:
                     continue
-                
+
                 if "max_sugar" in constraints and total_sugar > constraints["max_sugar"]:
                     continue
-                
+
                 if "max_fat" in constraints and total_fat > constraints["max_fat"]:
                     continue
 
-                total_score = sum(health_score(i, goal, max_calories) for i in meal_items)
-
+                total_score = sum(score_cache[id(i)] for i in meal_items)
                 top_meals.append((total_score, meal_items))
 
     if not top_meals:
         return None
-    
-    # Sort meals by score descending
+
     top_meals.sort(key=lambda x: x[0], reverse=True)
-    
-    # Keep top 3
     top_meals = top_meals[:3]
 
-    # Attach score + reason to each item for the UI
     ranked_results = []
-    
+
     for score, meal_items in top_meals:
         enriched = []
         for it in meal_items:
             it_copy = it.copy()
-            it_copy["health_score"] = health_score(it, goal, max_calories)
+            it_copy["health_score"] = score_cache[id(it)]
             it_copy["reason"] = explain_item(it, goal)
             enriched.append(it_copy)
-        
+
         ranked_results.append({
             "items": enriched,
             "total_score": round(score, 3),
             "total_calories": sum((i.get("calories") or 0) for i in enriched),
         })
-    
+
     return {
         "meals": ranked_results
     }

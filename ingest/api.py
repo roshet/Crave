@@ -2,40 +2,43 @@ from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 import json
 import os
+import sys
 from pathlib import Path
 
 from recommend_items import get_recommendations, humanize_items, build_optimal_meal
-import recommend_items
-print("USING recommend_items FROM:", recommend_items.__file__)
 
 app = FastAPI(title = "Fast Food Health Recommender")
 
-allowed_origins = [origin.strip() for origin in os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",") if origin.strip()]
+allowed_origins = [
+    origin.strip()
+    for origin in os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+    if origin.strip()
+]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET"],
+    allow_headers=["Content-Type"],
 )
 
 
 BASE_DIR = Path(__file__).resolve().parent
 
-with open(BASE_DIR / "mcdonalds_items.json", "r", encoding="utf-8") as f:
-    mcdonalds_items = json.load(f)
+def _load_json(path: Path):
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print(f"ERROR loading {path}: {e}", file=sys.stderr)
+        sys.exit(1)
 
-with open(BASE_DIR / "chickfila_items.json", "r", encoding="utf-8") as f:
-    chickfila_raw = json.load(f)
-    
-with open(BASE_DIR / "wendys_items.json", "r", encoding="utf-8") as f:
-    wendys_items = json.load(f)
+mcdonalds_items = _load_json(BASE_DIR / "mcdonalds_items.json")
 
-# Chick-fil-A comes in as a dict → normalize to list
-if isinstance(chickfila_raw, dict):
-    chickfila_items = list(chickfila_raw.values())
-else:
-    chickfila_items = chickfila_raw
+chickfila_raw = _load_json(BASE_DIR / "chickfila_items.json")
+chickfila_items = list(chickfila_raw.values()) if isinstance(chickfila_raw, dict) else chickfila_raw
+
+wendys_items = _load_json(BASE_DIR / "wendys_items.json")
 
 ALL_ITEMS = mcdonalds_items + chickfila_items + wendys_items
 
@@ -44,19 +47,13 @@ def root():
     return {
         "message": "Crave API is live.",
         "docs": "/docs",
-        "endpoints": ["/recommend", "/optimize_meal"],
+        "endpoints": ["/recommend", "/optimize_meal", "/categories"],
     }
-    
-@app.get("/recommend")
-def recommend(
-    restaurant: str = Query("mcdonalds", pattern = "^(mcdonalds|chickfila|wendys|all)$"),
-    max_calories: int = Query(600, ge=0),
-    top_n: int = Query(10, ge = 1, le = 50),
-    goal: str = Query("balanced", pattern = "^(balanced|high_protein|low_sugar|low_fat)$"),
-    category: str | None = Query(None),
-    format: str = Query("raw", pattern = "^(raw|human)$")
+
+@app.get("/categories")
+def categories(
+    restaurant: str = Query("all", pattern="^(mcdonalds|chickfila|wendys|all)$")
 ):
-    
     if restaurant == "mcdonalds":
         items = mcdonalds_items
     elif restaurant == "chickfila":
@@ -65,8 +62,28 @@ def recommend(
         items = wendys_items
     else:
         items = ALL_ITEMS
-        
-    
+
+    cats = sorted(set(item["category"] for item in items if item.get("category")))
+    return {"restaurant": restaurant, "categories": cats}
+
+@app.get("/recommend")
+def recommend(
+    restaurant: str = Query("mcdonalds", pattern = "^(mcdonalds|chickfila|wendys|all)$"),
+    max_calories: int = Query(600, ge=1),
+    top_n: int = Query(10, ge = 1, le = 50),
+    goal: str = Query("balanced", pattern = "^(balanced|high_protein|low_sugar|low_fat)$"),
+    category: str | None = Query(None),
+    format: str = Query("raw", pattern = "^(raw|human)$")
+):
+    if restaurant == "mcdonalds":
+        items = mcdonalds_items
+    elif restaurant == "chickfila":
+        items = chickfila_items
+    elif restaurant == "wendys":
+        items = wendys_items
+    else:
+        items = ALL_ITEMS
+
     results = get_recommendations(
         items,
         max_calories = max_calories,
@@ -74,14 +91,14 @@ def recommend(
         goal = goal,
         category = category
     )
-    
+
     if format == "human":
         return {
             "summary": f"Top {len(results)} {goal.replace('_',' ')} items"
                        + (f" in {category}" if category else ""),
             "results": humanize_items(results),
         }
-    
+
     return {
         "summary": f"Top {len(results)} {goal.replace('_',' ')} items from {restaurant}"
                    + (f" in {category}" if category else ""),
@@ -92,15 +109,13 @@ def recommend(
 @app.get("/optimize_meal")
 def optimize_meal(
     restaurant: str = Query("mcdonalds", pattern="^(mcdonalds|chickfila|wendys|all)$"),
-    max_calories: int = Query(800, ge=0),
+    max_calories: int = Query(800, ge=1),
     goal: str = Query("balanced", pattern="^(balanced|high_protein|low_sugar|low_fat)$"),
     category: str | None = Query(None),
     allow_side: bool = Query(True),
     allow_drink: bool = Query(True),
     format: str = Query("human", pattern="^(raw|human)$"),
 ):
-    print("CATEGORY RECEIVED:", category)
-    
     if restaurant == "mcdonalds":
         items = mcdonalds_items
     elif restaurant == "chickfila":

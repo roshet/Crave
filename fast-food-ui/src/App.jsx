@@ -8,10 +8,7 @@ function App() {
   const [category, setCategory] = useState("");
   const [restaurant, setRestaurant] = useState("mcdonalds");
   const [maxCalories, setMaxCalories] = useState(600);
-
-  // Keep as string so the input can be edited naturally (no “stuck 0” problem)
   const [topN, setTopN] = useState("10");
-
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("score");
   const [sortDir, setSortDir] = useState("desc");
@@ -21,20 +18,27 @@ function App() {
   const [hasSearched, setHasSearched] = useState(false);
   const [error, setError] = useState("");
 
-  // -----------------------------
-  // Meal Builder state
-  // -----------------------------
   const [meal, setMeal] = useState([]);
-  const [mealExplanation, setMealExplanation] = useState([]);
   const [alternativeMeals, setAlternativeMeals] = useState([]);
+  const [copySuccess, setCopySuccess] = useState(false);
+
+  const GOAL_PRESETS = [
+    { label: "Weight Loss", goal: "balanced", maxCalories: 500 },
+    { label: "Athlete", goal: "high_protein", maxCalories: 800 },
+    { label: "Low Carb", goal: "low_sugar", maxCalories: 600 },
+    { label: "Light Meal", goal: "low_fat", maxCalories: 400 },
+  ];
 
   const mcdCategories = [
     { value: "burgers", label: "Burgers" },
     { value: "breakfast", label: "Breakfast" },
     { value: "nuggets_strips", label: "Nuggets & Strips" },
+    { value: "chicken_fish", label: "Chicken & Fish" },
+    { value: "snack_wraps", label: "Snack Wraps" },
     { value: "fries_sides", label: "Fries & Sides" },
     { value: "desserts", label: "Desserts" },
     { value: "beverages", label: "Beverages" },
+    { value: "mccafe_coffees", label: "McCafe Coffees" },
   ];
 
   const chickfilaCategories = [
@@ -43,6 +47,7 @@ function App() {
     { value: "salads", label: "Salads" },
     { value: "sides", label: "Sides" },
     { value: "drinks", label: "Drinks" },
+    { value: "kid_s_meals", label: "Kid's Meals" },
   ];
 
   const wendysCategories = [
@@ -54,7 +59,6 @@ function App() {
   ];
 
   function getItemKey(item) {
-    // Use a real ID if you have it; otherwise build a stable-ish key
     return item.item_id ?? item.id ?? `${item.restaurant}-${item.category}-${item.title || item.name}`;
   }
 
@@ -66,7 +70,7 @@ function App() {
   function addToMeal(item) {
     const key = getItemKey(item);
     setMeal((prev) => {
-      if (prev.some((x) => getItemKey(x) === key)) return prev; // no duplicates
+      if (prev.some((x) => getItemKey(x) === key)) return prev;
       return [...prev, item];
     });
   }
@@ -78,21 +82,7 @@ function App() {
 
   function clearMeal() {
     setMeal([]);
-  }
-
-  function calcTotals(items) {
-    return (items || []).reduce(
-      (acc, item) => {
-        acc.calories += Number(item.calories ?? 0);
-        acc.protein += Number(item.protein ?? 0);
-        acc.sugars += Number(item.sugars ?? 0);
-        acc.fat += Number(item.fat ?? 0);
-        acc.carbs += Number(item.carbs ?? 0);
-        acc.sodium += Number(item.sodium ?? 0);
-        return acc;
-      },
-      { calories: 0, protein: 0, sugars: 0, fat: 0, carbs: 0, sodium: 0 }
-    );
+    setAlternativeMeals([]);
   }
 
   function formatDelta(n, unit = "") {
@@ -101,17 +91,13 @@ function App() {
     return `${sign}${value.toFixed(0)}${unit}`;
   }
 
-  // For coloring deltas: for some nutrients lower is better, for others higher is better.
-  // If higherIsBetter = true: positive is green, negative is red.
-  // If higherIsBetter = false: negative is green, positive is red.
   function deltaStyle(delta, higherIsBetter) {
     const d = Number(delta ?? 0);
     const good = higherIsBetter ? d > 0 : d < 0;
     const bad = higherIsBetter ? d < 0 : d > 0;
-
-    if (good) return { color: "#047857", fontWeight: 700 }; // green
-    if (bad) return { color: "#b91c1c", fontWeight: 700 }; // red
-    return { color: "#374151", fontWeight: 600 }; // neutral
+    if (good) return { color: "#047857", fontWeight: 700 };
+    if (bad) return { color: "#b91c1c", fontWeight: 700 };
+    return { color: "#374151", fontWeight: 600 };
   }
 
   const mealTotals = useMemo(() => {
@@ -130,23 +116,33 @@ function App() {
   }, [meal]);
 
   const alternativeMealsWithDeltas = useMemo(() => {
-  const base = mealTotals; // compare against currently selected meal
-  return (alternativeMeals || []).map((m) => {
-    const t = calcTotals(m.items);
-
-    return {
-      ...m,
-      totals: t,
-      deltas: {
-        calories: t.calories - base.calories,
-        protein: t.protein - base.protein,
-        sugars: t.sugars - base.sugars,
-        fat: t.fat - base.fat,
-        sodium: t.sodium - base.sodium,
-      },
-    };
-  });
-}, [alternativeMeals, mealTotals]);
+    const base = mealTotals;
+    return (alternativeMeals || []).map((m) => {
+      const t = m.items.reduce(
+        (acc, item) => {
+          acc.calories += Number(item.calories ?? 0);
+          acc.protein += Number(item.protein ?? 0);
+          acc.sugars += Number(item.sugars ?? 0);
+          acc.fat += Number(item.fat ?? 0);
+          acc.carbs += Number(item.carbs ?? 0);
+          acc.sodium += Number(item.sodium ?? 0);
+          return acc;
+        },
+        { calories: 0, protein: 0, sugars: 0, fat: 0, carbs: 0, sodium: 0 }
+      );
+      return {
+        ...m,
+        totals: t,
+        deltas: {
+          calories: t.calories - base.calories,
+          protein: t.protein - base.protein,
+          sugars: t.sugars - base.sugars,
+          fat: t.fat - base.fat,
+          sodium: t.sodium - base.sodium,
+        },
+      };
+    });
+  }, [alternativeMeals, mealTotals]);
 
   const remainingCalories = Math.max(0, maxCalories - mealTotals.calories);
   const overCalories = Math.max(0, mealTotals.calories - maxCalories);
@@ -157,6 +153,8 @@ function App() {
     setError("");
 
     const parsedTopN = Number(topN) || 10;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15000);
 
     try {
       let url = `${API_BASE_URL}/recommend?restaurant=${encodeURIComponent(
@@ -167,7 +165,7 @@ function App() {
 
       if (category) url += `&category=${encodeURIComponent(category)}`;
 
-      const response = await fetch(url);
+      const response = await fetch(url, { signal: controller.signal });
 
       if (!response.ok) {
         const text = await response.text();
@@ -178,17 +176,23 @@ function App() {
       setResults(data.results || []);
     } catch (e) {
       setResults([]);
-      setError(e.message || "Something went wrong.");
+      if (e.name === "AbortError") {
+        setError("Request timed out. Please try again.");
+      } else {
+        setError(e.message || "Something went wrong.");
+      }
     } finally {
+      clearTimeout(timer);
       setLoading(false);
     }
   }
 
   async function optimizeMeal() {
-    console.log("OPTIMIZE CLICKED - CATEGORY STATE:", category);
-
     setLoading(true);
     setError("");
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15000);
 
     try {
       let url = `${API_BASE_URL}/optimize_meal?restaurant=${encodeURIComponent(
@@ -197,11 +201,9 @@ function App() {
         maxCalories
       )}&format=human`;
 
-      url += `&category=${encodeURIComponent(category)}`;
+      if (category) url += `&category=${encodeURIComponent(category)}`;
 
-      console.log("OPTIMIZE URL:", url);
-
-      const response = await fetch(url);
+      const response = await fetch(url, { signal: controller.signal });
 
       if (!response.ok) {
         const text = await response.text();
@@ -210,24 +212,47 @@ function App() {
 
       const data = await response.json();
 
-      if (data.meals && data.meals.length > 0) {
-        // Best meal
-        setMeal(data.meals[0].items);
-        setMealExplanation([]);
-
-        // Remaining meals are alternatives
-        setAlternativeMeals(data.meals.slice(1));
-      } else {
+      if (!data?.meals?.length || !data.meals[0]?.items) {
         setError(data.message || "No meal found.");
+        return;
       }
+
+      setMeal(data.meals[0].items);
+      setAlternativeMeals(data.meals.slice(1));
     } catch (e) {
-      setError(e.message || "Something went wrong.");
+      if (e.name === "AbortError") {
+        setError("Request timed out. Please try again.");
+      } else {
+        setError(e.message || "Something went wrong.");
+      }
     } finally {
+      clearTimeout(timer);
       setLoading(false);
     }
   }
 
-  // Filter + Sort
+  async function exportMeal() {
+    const lines = [
+      `Crave Meal Summary — ${goal.replace(/_/g, " ")} goal`,
+      `Max calories: ${maxCalories}`,
+      "",
+      "Items:",
+      ...meal.map(
+        (m) =>
+          `  • ${m.title || m.name} — ${m.calories} kcal, ${m.protein}g protein, ${m.fat}g fat`
+      ),
+      "",
+      `Totals: ${mealTotals.calories.toFixed(0)} kcal | ${mealTotals.protein.toFixed(0)}g protein | ${mealTotals.fat.toFixed(0)}g fat | ${mealTotals.sugars.toFixed(0)}g sugar`,
+    ];
+    try {
+      await navigator.clipboard.writeText(lines.join("\n"));
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch {
+      setError("Could not copy to clipboard.");
+    }
+  }
+
   const displayedResults = useMemo(() => {
     return [...results]
       .filter((item) => {
@@ -237,24 +262,16 @@ function App() {
       })
       .sort((a, b) => {
         const dir = sortDir === "asc" ? 1 : -1;
-
         if (sortBy === "score") {
-          const av = Number(a.score ?? 0);
-          const bv = Number(b.score ?? 0);
-          return (av - bv) * dir;
+          return (Number(a.score ?? 0) - Number(b.score ?? 0)) * dir;
         }
-
-        const getNum = (obj, key) => Number(obj[key] ?? 0);
-        const av = getNum(a, sortBy);
-        const bv = getNum(b, sortBy);
-        return (av - bv) * dir;
+        return (Number(a[sortBy] ?? 0) - Number(b[sortBy] ?? 0)) * dir;
       });
   }, [results, search, sortBy, sortDir]);
 
   function NutritionBar({ label, value = 0, max = 100 }) {
     const safeValue = Number(value ?? 0);
     const percent = Math.min((safeValue / max) * 100, 100);
-
     return (
       <div className="barRow">
         <div className="barLabel">
@@ -262,6 +279,21 @@ function App() {
         </div>
         <div className="barTrack">
           <div className="barFill" style={{ width: `${percent}%` }} />
+        </div>
+      </div>
+    );
+  }
+
+  function SkeletonCard() {
+    return (
+      <div className="card resultsCard skeletonCard">
+        <div className="skeletonTitle" />
+        <div className="skeletonLine" />
+        <div className="skeletonLine short" />
+        <div className="skeletonBars">
+          <div className="skeletonBar" />
+          <div className="skeletonBar" />
+          <div className="skeletonBar" />
         </div>
       </div>
     );
@@ -275,6 +307,24 @@ function App() {
 
         {/* Controls */}
         <div className="card controlsCard">
+          {/* Goal presets */}
+          <div className="presetRow">
+            {GOAL_PRESETS.map((p) => (
+              <button
+                key={p.label}
+                className={`presetBtn${
+                  goal === p.goal && maxCalories === p.maxCalories ? " presetActive" : ""
+                }`}
+                onClick={() => {
+                  setGoal(p.goal);
+                  setMaxCalories(p.maxCalories);
+                }}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+
           <div className="grid">
             <div>
               <label className="label">Restaurant</label>
@@ -286,9 +336,9 @@ function App() {
                   setCategory("");
                 }}
               >
-                <option value="mcdonalds">McDonald's</option>
+                <option value="mcdonalds">McDonald&apos;s</option>
                 <option value="chickfila">Chick-fil-A</option>
-                <option value="wendys">Wendy's</option>
+                <option value="wendys">Wendy&apos;s</option>
                 <option value="all">All Restaurants</option>
               </select>
             </div>
@@ -353,7 +403,7 @@ function App() {
                 min="1"
                 max="50"
                 value={topN}
-                onChange={(e) => setTopN(e.target.value)} // keep string
+                onChange={(e) => setTopN(e.target.value)}
               />
             </div>
 
@@ -399,7 +449,6 @@ function App() {
               <button className="btn" onClick={fetchRecommendations} disabled={loading}>
                 {loading ? "Loading..." : "Get Recommendations"}
               </button>
-
               <button className="btn secondaryBtn" onClick={optimizeMeal} disabled={loading}>
                 {loading ? "Loading..." : "Auto Build Optimal Meal"}
               </button>
@@ -411,13 +460,20 @@ function App() {
         <div className="card resultsCard" style={{ marginBottom: "1.5rem" }}>
           <div className="resultHeader">
             <h3 className="resultTitle">Meal Builder</h3>
-            <button
-              className="btn compactBtn"
-              onClick={clearMeal}
-              disabled={meal.length === 0}
-            >
-              Clear
-            </button>
+            <div className="resultActions">
+              {meal.length > 0 && (
+                <button className="btn compactBtn" onClick={exportMeal}>
+                  {copySuccess ? "Copied!" : "Copy Summary"}
+                </button>
+              )}
+              <button
+                className="btn compactBtn"
+                onClick={clearMeal}
+                disabled={meal.length === 0}
+              >
+                Clear
+              </button>
+            </div>
           </div>
 
           {meal.length === 0 ? (
@@ -444,8 +500,8 @@ function App() {
 
               <p className="meta">
                 <strong>Total Protein:</strong> {mealTotals.protein.toFixed(0)}g
-                {goal === "high_protein" && (
-                  mealTotals.protein >= 35 ? (
+                {goal === "high_protein" &&
+                  (mealTotals.protein >= 35 ? (
                     <span style={{ color: "#047857", fontWeight: 700 }}>
                       {" "}✓ Meets High Protein Target
                     </span>
@@ -453,14 +509,13 @@ function App() {
                     <span style={{ color: "#b91c1c", fontWeight: 700 }}>
                       {" "}✗ Below 35g Target
                     </span>
-                  )
-                )}
+                  ))}
               </p>
 
               <p className="meta">
                 <strong>Total Sugar:</strong> {mealTotals.sugars.toFixed(0)}g
-                {goal === "low_sugar" && (
-                  mealTotals.sugars <= 20 ? (
+                {goal === "low_sugar" &&
+                  (mealTotals.sugars <= 20 ? (
                     <span style={{ color: "#047857", fontWeight: 700 }}>
                       {" "}✓ Within Low Sugar Target
                     </span>
@@ -468,14 +523,13 @@ function App() {
                     <span style={{ color: "#b91c1c", fontWeight: 700 }}>
                       {" "}✗ Exceeds 20g Limit
                     </span>
-                  )
-                )}
+                  ))}
               </p>
 
               <p className="meta">
                 <strong>Total Fat:</strong> {mealTotals.fat.toFixed(0)}g
-                {goal === "low_fat" && (
-                  mealTotals.fat <= 30 ? (
+                {goal === "low_fat" &&
+                  (mealTotals.fat <= 30 ? (
                     <span style={{ color: "#047857", fontWeight: 700 }}>
                       {" "}✓ Within Low Fat Target
                     </span>
@@ -483,8 +537,7 @@ function App() {
                     <span style={{ color: "#b91c1c", fontWeight: 700 }}>
                       {" "}✗ Exceeds 30g Limit
                     </span>
-                  )
-                )}
+                  ))}
               </p>
 
               <div className="bars">
@@ -494,31 +547,19 @@ function App() {
                 <NutritionBar label="Fat" value={mealTotals.fat} max={80} />
               </div>
 
-              {mealExplanation.length > 0 && (
-                <div className="mealWhy">
-                  <strong>Why this meal?</strong>
-                  <ul>
-                    {mealExplanation.map((line, idx) => (
-                      <li key = {idx}>{line}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
               {alternativeMeals.length > 0 && (
                 <div className="alternativeSection">
                   <h4 className="alternativeTitle">Alternative Optimized Meals</h4>
 
                   {alternativeMealsWithDeltas.map((mealOption, idx) => (
                     <div key={idx} className="altMealCard">
-                      <p><strong>Option {idx + 2}</strong></p>
-
                       <p>
-                        {mealOption.items.map((m) => m.title || m.name).join(", ")}
+                        <strong>Option {idx + 2}</strong>
                       </p>
-
+                      <p>{mealOption.items.map((m) => m.title || m.name).join(", ")}</p>
                       <p>
-                        Calories: {mealOption.total_calories} | Score: {mealOption.total_score}
+                        Calories: {mealOption.total_calories} | Score:{" "}
+                        {mealOption.total_score}
                       </p>
 
                       <div className="deltaWrap">
@@ -528,30 +569,23 @@ function App() {
                             Calories {formatDelta(mealOption.deltas.calories)}
                           </span>
                         </div>
-
                         <div className="deltaMetrics">
                           <span style={deltaStyle(mealOption.deltas.protein, true)}>
                             Protein {formatDelta(mealOption.deltas.protein, "g")}
                           </span>
-
                           <span style={deltaStyle(mealOption.deltas.sugars, false)}>
                             Sugar {formatDelta(mealOption.deltas.sugars, "g")}
                           </span>
-
-                          <span style={deltaStyle(mealOption.deltas.fat, goal !== "low_fat")}>
+                          <span style={deltaStyle(mealOption.deltas.fat, false)}>
                             Fat {formatDelta(mealOption.deltas.fat, "g")}
                           </span>
-
                           <span style={deltaStyle(mealOption.deltas.sodium, false)}>
                             Sodium {formatDelta(mealOption.deltas.sodium, "mg")}
                           </span>
                         </div>
                       </div>
 
-                      <button
-                        className="btn"
-                        onClick={() => setMeal(mealOption.items)}
-                      >
+                      <button className="btn" onClick={() => setMeal(mealOption.items)}>
                         Select This Meal
                       </button>
                     </div>
@@ -568,57 +602,61 @@ function App() {
           <p className="msg">No items matched your criteria.</p>
         )}
 
-        {hasSearched && !loading && !error && (
+        {hasSearched && !loading && !error && results.length > 0 && (
           <p className="msg">
             Showing {displayedResults.length} of {results.length} results
           </p>
         )}
 
-        {displayedResults.map((item, index) => {
-          const inMeal = isInMeal(item);
+        {loading && hasSearched && (
+          <>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </>
+        )}
 
-          return (
-            <div key={getItemKey(item)} className="card resultsCard">
-              <div className="resultHeader">
-                <h3 className="resultTitle">
-                  #{index + 1} — {item.title || item.name}
-                </h3>
-                <div className="resultActions">
-                  {typeof item.score !== "undefined" && (
-                    <span className="badge">Score: {item.score}</span>
-                  )}
-                  <button
-                    className="btn compactBtn"
-                    onClick={() => (inMeal ? removeFromMeal(item) : addToMeal(item))}
-                  >
-                    {inMeal ? "Remove" : "Add"}
-                  </button>
+        {!loading &&
+          displayedResults.map((item, index) => {
+            const inMeal = isInMeal(item);
+            return (
+              <div key={getItemKey(item)} className="card resultsCard">
+                <div className="resultHeader">
+                  <h3 className="resultTitle">
+                    #{index + 1} — {item.title || item.name}
+                  </h3>
+                  <div className="resultActions">
+                    {typeof item.score !== "undefined" && (
+                      <span className="badge">Score: {item.score}</span>
+                    )}
+                    <button
+                      className="btn compactBtn"
+                      onClick={() => (inMeal ? removeFromMeal(item) : addToMeal(item))}
+                    >
+                      {inMeal ? "Remove" : "Add"}
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              <p className="meta">
-                <strong>Category:</strong> {item.category}
-              </p>
-
-              {item.restaurant && (
                 <p className="meta">
-                  <strong>Restaurant:</strong> {item.restaurant}
+                  <strong>Category:</strong> {item.category}
                 </p>
-              )}
-
-              <p className="nutrition">{item.nutrition}</p>
-
-              <div className="bars">
-                <NutritionBar label="Calories" value={item.calories} max={1000} />
-                <NutritionBar label="Protein" value={item.protein} max={60} />
-                <NutritionBar label="Sugar" value={item.sugars} max={50} />
-                <NutritionBar label="Fat" value={item.fat} max={50} />
+                {item.restaurant && (
+                  <p className="meta">
+                    <strong>Restaurant:</strong> {item.restaurant}
+                  </p>
+                )}
+                <p className="nutrition">{item.nutrition}</p>
+                <div className="bars">
+                  <NutritionBar label="Calories" value={item.calories} max={1000} />
+                  <NutritionBar label="Protein" value={item.protein} max={60} />
+                  <NutritionBar label="Sugar" value={item.sugars} max={50} />
+                  <NutritionBar label="Fat" value={item.fat} max={50} />
+                </div>
+                <p className="summary">{item.summary}</p>
               </div>
-
-              <p className="summary">{item.summary}</p>
-            </div>
-          );
-        })}
+            );
+          })}
       </div>
     </div>
   );
