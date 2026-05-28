@@ -394,6 +394,10 @@
     border-color: #334155;
   }
 
+  .altMealCard p {
+    color: #cbd5e1;
+  }
+
   .altMealCard:hover {
     background: #1e293b;
   }

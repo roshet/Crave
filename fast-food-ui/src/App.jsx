@@ -97,7 +97,7 @@ function App() {
     const bad = higherIsBetter ? d < 0 : d > 0;
     if (good) return { color: "#047857", fontWeight: 700 };
     if (bad) return { color: "#b91c1c", fontWeight: 700 };
-    return { color: "#374151", fontWeight: 600 };
+    return { color: "#64748b", fontWeight: 600 };
   }
 
   const mealTotals = useMemo(() => {
