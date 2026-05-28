@@ -1,66 +1,137 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import "./App.css";
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000").replace(/\/+$/, "");
 
+const CATEGORY_EMOJI = {
+  burgers:        { emoji: "🍔", gradient: ["#dbeafe", "#3b82f6"] },
+  chicken:        { emoji: "🍗", gradient: ["#fde68a", "#f59e0b"] },
+  chicken_fish:   { emoji: "🐟", gradient: ["#cffafe", "#06b6d4"] },
+  nuggets_strips: { emoji: "🍗", gradient: ["#fde68a", "#f59e0b"] },
+  salads:         { emoji: "🥗", gradient: ["#bbf7d0", "#16a34a"] },
+  breakfast:      { emoji: "🥞", gradient: ["#fed7aa", "#f97316"] },
+  fries_sides:    { emoji: "🍟", gradient: ["#fef08a", "#eab308"] },
+  sides:          { emoji: "🥙", gradient: ["#e9d5ff", "#a855f7"] },
+  desserts:       { emoji: "🍦", gradient: ["#fce7f3", "#ec4899"] },
+  beverages:      { emoji: "🥤", gradient: ["#cffafe", "#06b6d4"] },
+  drinks:         { emoji: "🥤", gradient: ["#cffafe", "#06b6d4"] },
+  mccafe_coffees: { emoji: "☕", gradient: ["#d6d3d1", "#78716c"] },
+  entrees:        { emoji: "🍱", gradient: ["#bbf7d0", "#16a34a"] },
+  wraps:          { emoji: "🌯", gradient: ["#fef9c3", "#ca8a04"] },
+  snack_wraps:    { emoji: "🌯", gradient: ["#fef9c3", "#ca8a04"] },
+  kid_s_meals:    { emoji: "🎉", gradient: ["#fce7f3", "#ec4899"] },
+};
+const DEFAULT_EMOJI = { emoji: "🍽️", gradient: ["#f1f5f9", "#94a3b8"] };
+
+const MCD_CATEGORIES = [
+  { value: "burgers",        label: "Burgers" },
+  { value: "breakfast",      label: "Breakfast" },
+  { value: "nuggets_strips", label: "Nuggets & Strips" },
+  { value: "chicken_fish",   label: "Chicken & Fish" },
+  { value: "snack_wraps",    label: "Snack Wraps" },
+  { value: "fries_sides",    label: "Fries & Sides" },
+  { value: "desserts",       label: "Desserts" },
+  { value: "beverages",      label: "Beverages" },
+  { value: "mccafe_coffees", label: "McCafe Coffees" },
+];
+
+const CHICKFILA_CATEGORIES = [
+  { value: "breakfast",   label: "Breakfast" },
+  { value: "entrees",     label: "Entrees" },
+  { value: "salads",      label: "Salads" },
+  { value: "sides",       label: "Sides" },
+  { value: "drinks",      label: "Drinks" },
+  { value: "kid_s_meals", label: "Kid's Meals" },
+];
+
+const WENDYS_CATEGORIES = [
+  { value: "burgers", label: "Burgers" },
+  { value: "chicken", label: "Chicken" },
+  { value: "wraps",   label: "Wraps" },
+  { value: "salads",  label: "Salads" },
+  { value: "sides",   label: "Sides" },
+];
+
+const GOAL_PRESETS = [
+  { label: "Weight Loss", goal: "balanced",     maxCalories: 500 },
+  { label: "Athlete",     goal: "high_protein", maxCalories: 800 },
+  { label: "Low Carb",    goal: "low_sugar",    maxCalories: 600 },
+  { label: "Light Meal",  goal: "low_fat",      maxCalories: 400 },
+];
+
+function getThumbnail(item) {
+  return CATEGORY_EMOJI[(item.category || "").toLowerCase()] || DEFAULT_EMOJI;
+}
+
+function getItemKey(item) {
+  return item.item_id ?? item.id ?? `${item.restaurant}-${item.category}-${item.title || item.name}`;
+}
+
+function getItemTags(item) {
+  const tags = [];
+  if (Number(item.protein  ?? 0) >= 20) tags.push({ label: "high protein", type: "protein" });
+  if (Number(item.sugars   ?? 0) <= 5)  tags.push({ label: "low sugar",    type: "sugar-good" });
+  if (Number(item.fat      ?? 0) >= 20) tags.push({ label: "high fat",     type: "fat" });
+  else if (Number(item.fat ?? 0) <= 8)  tags.push({ label: "low fat",      type: "fat-good" });
+  if (Number(item.calories ?? 0) <= 200) tags.push({ label: "low cal",     type: "cal" });
+  return tags.slice(0, 3);
+}
+
+function formatDelta(n, unit = "") {
+  const v = Number(n ?? 0);
+  return `${v > 0 ? "+" : ""}${v.toFixed(0)}${unit}`;
+}
+
+function deltaStyle(delta, higherIsBetter) {
+  const d = Number(delta ?? 0);
+  if (higherIsBetter ? d > 0 : d < 0) return { color: "#047857", fontWeight: 700 };
+  if (higherIsBetter ? d < 0 : d > 0) return { color: "#b91c1c", fontWeight: 700 };
+  return { color: "#64748b", fontWeight: 600 };
+}
+
 function App() {
-  const [goal, setGoal] = useState("balanced");
-  const [category, setCategory] = useState("");
-  const [restaurant, setRestaurant] = useState("mcdonalds");
+  // Shared filter state (Browse + Optimize)
+  const [goal, setGoal]               = useState("balanced");
+  const [restaurant, setRestaurant]   = useState("mcdonalds");
   const [maxCalories, setMaxCalories] = useState(600);
-  const [topN, setTopN] = useState("10");
-  const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState("score");
-  const [sortDir, setSortDir] = useState("desc");
+  const [category, setCategory]       = useState("");
 
-  const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
+  // Navigation
+  const [activeTab, setActiveTab] = useState("browse");
+
+  // Browse
+  const [results, setResults]         = useState([]);
+  const [search, setSearch]           = useState("");
+  const [loading, setLoading]         = useState(false);
+  const [error, setError]             = useState("");
   const [hasSearched, setHasSearched] = useState(false);
-  const [error, setError] = useState("");
 
-  const [meal, setMeal] = useState([]);
+  // Modal
+  const [modalItem, setModalItem] = useState(null);
+
+  // Meal
+  const [meal, setMeal]                         = useState([]);
   const [alternativeMeals, setAlternativeMeals] = useState([]);
-  const [copySuccess, setCopySuccess] = useState(false);
+  const [copySuccess, setCopySuccess]           = useState(false);
 
-  const GOAL_PRESETS = [
-    { label: "Weight Loss", goal: "balanced", maxCalories: 500 },
-    { label: "Athlete", goal: "high_protein", maxCalories: 800 },
-    { label: "Low Carb", goal: "low_sugar", maxCalories: 600 },
-    { label: "Light Meal", goal: "low_fat", maxCalories: 400 },
-  ];
+  // Optimize
+  const [optimizedMealResults, setOptimizedMealResults] = useState([]);
+  const [optimizeLoading, setOptimizeLoading]           = useState(false);
+  const [optimizeError, setOptimizeError]               = useState("");
 
-  const mcdCategories = [
-    { value: "burgers", label: "Burgers" },
-    { value: "breakfast", label: "Breakfast" },
-    { value: "nuggets_strips", label: "Nuggets & Strips" },
-    { value: "chicken_fish", label: "Chicken & Fish" },
-    { value: "snack_wraps", label: "Snack Wraps" },
-    { value: "fries_sides", label: "Fries & Sides" },
-    { value: "desserts", label: "Desserts" },
-    { value: "beverages", label: "Beverages" },
-    { value: "mccafe_coffees", label: "McCafe Coffees" },
-  ];
+  // Auto-fetch Browse when tab is active and filters change
+  useEffect(() => {
+    if (activeTab === "browse") fetchBrowse();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, goal, restaurant, maxCalories, category]);
 
-  const chickfilaCategories = [
-    { value: "breakfast", label: "Breakfast" },
-    { value: "entrees", label: "Entrees" },
-    { value: "salads", label: "Salads" },
-    { value: "sides", label: "Sides" },
-    { value: "drinks", label: "Drinks" },
-    { value: "kid_s_meals", label: "Kid's Meals" },
-  ];
-
-  const wendysCategories = [
-    { value: "burgers", label: "Burgers" },
-    { value: "chicken", label: "Chicken" },
-    { value: "wraps", label: "Wraps" },
-    { value: "salads", label: "Salads" },
-    { value: "sides", label: "Sides" },
-  ];
-
-  function getItemKey(item) {
-    return item.item_id ?? item.id ?? `${item.restaurant}-${item.category}-${item.title || item.name}`;
-  }
+  // Escape closes modal
+  useEffect(() => {
+    if (!modalItem) return;
+    const onKey = (e) => { if (e.key === "Escape") setModalItem(null); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [modalItem]);
 
   function isInMeal(item) {
     const key = getItemKey(item);
@@ -69,10 +140,7 @@ function App() {
 
   function addToMeal(item) {
     const key = getItemKey(item);
-    setMeal((prev) => {
-      if (prev.some((x) => getItemKey(x) === key)) return prev;
-      return [...prev, item];
-    });
+    setMeal((prev) => prev.some((x) => getItemKey(x) === key) ? prev : [...prev, item]);
   }
 
   function removeFromMeal(item) {
@@ -83,104 +151,81 @@ function App() {
   function clearMeal() {
     setMeal([]);
     setAlternativeMeals([]);
+    setOptimizedMealResults([]);
   }
 
-  function formatDelta(n, unit = "") {
-    const value = Number(n ?? 0);
-    const sign = value > 0 ? "+" : "";
-    return `${sign}${value.toFixed(0)}${unit}`;
+  function sendToMealBuilder(idx) {
+    setMeal(optimizedMealResults[idx].items);
+    setAlternativeMeals(optimizedMealResults.filter((_, j) => j !== idx));
+    setActiveTab("meal");
   }
 
-  function deltaStyle(delta, higherIsBetter) {
-    const d = Number(delta ?? 0);
-    const good = higherIsBetter ? d > 0 : d < 0;
-    const bad = higherIsBetter ? d < 0 : d > 0;
-    if (good) return { color: "#047857", fontWeight: 700 };
-    if (bad) return { color: "#b91c1c", fontWeight: 700 };
-    return { color: "#64748b", fontWeight: 600 };
-  }
-
-  const mealTotals = useMemo(() => {
-    return meal.reduce(
+  const mealTotals = useMemo(() =>
+    meal.reduce(
       (acc, item) => {
         acc.calories += Number(item.calories ?? 0);
-        acc.protein += Number(item.protein ?? 0);
-        acc.sugars += Number(item.sugars ?? 0);
-        acc.fat += Number(item.fat ?? 0);
-        acc.carbs += Number(item.carbs ?? 0);
-        acc.sodium += Number(item.sodium ?? 0);
+        acc.protein  += Number(item.protein  ?? 0);
+        acc.sugars   += Number(item.sugars   ?? 0);
+        acc.fat      += Number(item.fat      ?? 0);
+        acc.carbs    += Number(item.carbs    ?? 0);
+        acc.sodium   += Number(item.sodium   ?? 0);
         return acc;
       },
       { calories: 0, protein: 0, sugars: 0, fat: 0, carbs: 0, sodium: 0 }
-    );
-  }, [meal]);
+    ),
+  [meal]);
 
   const alternativeMealsWithDeltas = useMemo(() => {
     const base = mealTotals;
-    return (alternativeMeals || []).map((m) => {
+    return alternativeMeals.map((m) => {
       const t = m.items.reduce(
         (acc, item) => {
           acc.calories += Number(item.calories ?? 0);
-          acc.protein += Number(item.protein ?? 0);
-          acc.sugars += Number(item.sugars ?? 0);
-          acc.fat += Number(item.fat ?? 0);
-          acc.carbs += Number(item.carbs ?? 0);
-          acc.sodium += Number(item.sodium ?? 0);
+          acc.protein  += Number(item.protein  ?? 0);
+          acc.sugars   += Number(item.sugars   ?? 0);
+          acc.fat      += Number(item.fat      ?? 0);
+          acc.sodium   += Number(item.sodium   ?? 0);
           return acc;
         },
-        { calories: 0, protein: 0, sugars: 0, fat: 0, carbs: 0, sodium: 0 }
+        { calories: 0, protein: 0, sugars: 0, fat: 0, sodium: 0 }
       );
       return {
         ...m,
         totals: t,
         deltas: {
           calories: t.calories - base.calories,
-          protein: t.protein - base.protein,
-          sugars: t.sugars - base.sugars,
-          fat: t.fat - base.fat,
-          sodium: t.sodium - base.sodium,
+          protein:  t.protein  - base.protein,
+          sugars:   t.sugars   - base.sugars,
+          fat:      t.fat      - base.fat,
+          sodium:   t.sodium   - base.sodium,
         },
       };
     });
   }, [alternativeMeals, mealTotals]);
 
-  const remainingCalories = Math.max(0, maxCalories - mealTotals.calories);
-  const overCalories = Math.max(0, mealTotals.calories - maxCalories);
+  const displayedResults = useMemo(() =>
+    results.filter((item) => {
+      if (!search.trim()) return true;
+      return (item.title || item.name || "").toLowerCase().includes(search.trim().toLowerCase());
+    }),
+  [results, search]);
 
-  async function fetchRecommendations() {
+  async function fetchBrowse() {
     setHasSearched(true);
     setLoading(true);
     setError("");
-
-    const parsedTopN = Number(topN) || 10;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 15000);
-
     try {
-      let url = `${API_BASE_URL}/recommend?restaurant=${encodeURIComponent(
-        restaurant
-      )}&goal=${encodeURIComponent(goal)}&max_calories=${encodeURIComponent(
-        maxCalories
-      )}&top_n=${encodeURIComponent(parsedTopN)}&format=human`;
-
+      let url = `${API_BASE_URL}/recommend?restaurant=${encodeURIComponent(restaurant)}&goal=${encodeURIComponent(goal)}&max_calories=${encodeURIComponent(maxCalories)}&top_n=20&format=human`;
       if (category) url += `&category=${encodeURIComponent(category)}`;
-
-      const response = await fetch(url, { signal: controller.signal });
-
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(`API error (${response.status}): ${text}`);
-      }
-
-      const data = await response.json();
+      const res = await fetch(url, { signal: controller.signal });
+      if (!res.ok) throw new Error(`API error (${res.status}): ${await res.text()}`);
+      const data = await res.json();
       setResults(data.results || []);
     } catch (e) {
       setResults([]);
-      if (e.name === "AbortError") {
-        setError("Request timed out. Please try again.");
-      } else {
-        setError(e.message || "Something went wrong.");
-      }
+      setError(e.name === "AbortError" ? "Request timed out. Please try again." : e.message || "Something went wrong.");
     } finally {
       clearTimeout(timer);
       setLoading(false);
@@ -188,46 +233,26 @@ function App() {
   }
 
   async function optimizeMeal() {
-    setLoading(true);
-    setError("");
-
+    setOptimizeLoading(true);
+    setOptimizeError("");
+    setOptimizedMealResults([]);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 15000);
-
     try {
-      let url = `${API_BASE_URL}/optimize_meal?restaurant=${encodeURIComponent(
-        restaurant
-      )}&goal=${encodeURIComponent(goal)}&max_calories=${encodeURIComponent(
-        maxCalories
-      )}&format=human`;
-
-      if (category) url += `&category=${encodeURIComponent(category)}`;
-
-      const response = await fetch(url, { signal: controller.signal });
-
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(`API error (${response.status}): ${text}`);
-      }
-
-      const data = await response.json();
-
+      const url = `${API_BASE_URL}/optimize_meal?restaurant=${encodeURIComponent(restaurant)}&goal=${encodeURIComponent(goal)}&max_calories=${encodeURIComponent(maxCalories)}&format=human`;
+      const res = await fetch(url, { signal: controller.signal });
+      if (!res.ok) throw new Error(`API error (${res.status}): ${await res.text()}`);
+      const data = await res.json();
       if (!data?.meals?.length || !data.meals[0]?.items) {
-        setError(data.message || "No meal found.");
+        setOptimizeError(data.message || "No meal found.");
         return;
       }
-
-      setMeal(data.meals[0].items);
-      setAlternativeMeals(data.meals.slice(1));
+      setOptimizedMealResults(data.meals);
     } catch (e) {
-      if (e.name === "AbortError") {
-        setError("Request timed out. Please try again.");
-      } else {
-        setError(e.message || "Something went wrong.");
-      }
+      setOptimizeError(e.name === "AbortError" ? "Request timed out. Please try again." : e.message || "Something went wrong.");
     } finally {
       clearTimeout(timer);
-      setLoading(false);
+      setOptimizeLoading(false);
     }
   }
 
@@ -237,10 +262,7 @@ function App() {
       `Max calories: ${maxCalories}`,
       "",
       "Items:",
-      ...meal.map(
-        (m) =>
-          `  • ${m.title || m.name} — ${m.calories} kcal, ${m.protein}g protein, ${m.fat}g fat`
-      ),
+      ...meal.map((m) => `  • ${m.title || m.name} — ${m.calories} kcal, ${m.protein}g protein, ${m.fat}g fat`),
       "",
       `Totals: ${mealTotals.calories.toFixed(0)} kcal | ${mealTotals.protein.toFixed(0)}g protein | ${mealTotals.fat.toFixed(0)}g fat | ${mealTotals.sugars.toFixed(0)}g sugar`,
     ];
@@ -253,47 +275,97 @@ function App() {
     }
   }
 
-  const displayedResults = useMemo(() => {
-    return [...results]
-      .filter((item) => {
-        if (!search.trim()) return true;
-        const text = (item.title || item.name || "").toLowerCase();
-        return text.includes(search.trim().toLowerCase());
-      })
-      .sort((a, b) => {
-        const dir = sortDir === "asc" ? 1 : -1;
-        if (sortBy === "score") {
-          return (Number(a.score ?? 0) - Number(b.score ?? 0)) * dir;
-        }
-        return (Number(a[sortBy] ?? 0) - Number(b[sortBy] ?? 0)) * dir;
-      });
-  }, [results, search, sortBy, sortDir]);
+  function getGoalBadges() {
+    const badges = [];
+    if (goal === "high_protein") {
+      badges.push(mealTotals.protein >= 35
+        ? { text: "✓ Meets High Protein Target", type: "success" }
+        : { text: "✗ Below 35g Protein Target",  type: "failure" });
+    }
+    if (goal === "low_sugar") {
+      badges.push(mealTotals.sugars <= 20
+        ? { text: "✓ Within Low Sugar Target", type: "success" }
+        : { text: "✗ Exceeds 20g Sugar Limit",  type: "failure" });
+    }
+    if (goal === "low_fat") {
+      badges.push(mealTotals.fat <= 30
+        ? { text: "✓ Within Low Fat Target", type: "success" }
+        : { text: "✗ Exceeds 30g Fat Limit",  type: "failure" });
+    }
+    if (meal.length > 0) {
+      badges.push(mealTotals.calories > maxCalories
+        ? { text: `✗ Over limit by ${(mealTotals.calories - maxCalories).toFixed(0)} cal`, type: "failure" }
+        : { text: `✓ Within ${maxCalories} cal limit`, type: "success" });
+    }
+    return badges;
+  }
 
-  function NutritionBar({ label, value = 0, max = 100 }) {
-    const safeValue = Number(value ?? 0);
-    const percent = Math.min((safeValue / max) * 100, 100);
+  function checkMealGoal(items) {
+    const t = items.reduce(
+      (acc, item) => {
+        acc.calories += Number(item.calories ?? 0);
+        acc.protein  += Number(item.protein  ?? 0);
+        acc.sugars   += Number(item.sugars   ?? 0);
+        acc.fat      += Number(item.fat      ?? 0);
+        return acc;
+      },
+      { calories: 0, protein: 0, sugars: 0, fat: 0 }
+    );
+    const checks = [];
+    if (goal === "high_protein") checks.push(t.protein >= 35 ? "✓ High Protein" : "✗ Low Protein");
+    if (goal === "low_sugar")    checks.push(t.sugars  <= 20 ? "✓ Low Sugar"    : "✗ High Sugar");
+    if (goal === "low_fat")      checks.push(t.fat     <= 30 ? "✓ Low Fat"      : "✗ High Fat");
+    checks.push(t.calories <= maxCalories ? "✓ Within Calories" : "✗ Over Calories");
+    return checks;
+  }
+
+  const currentCategories =
+    restaurant === "mcdonalds" ? MCD_CATEGORIES :
+    restaurant === "chickfila" ? CHICKFILA_CATEGORIES :
+    restaurant === "wendys"    ? WENDYS_CATEGORIES : [];
+
+  function FilterChips({ showCategory }) {
     return (
-      <div className="barRow">
-        <div className="barLabel">
-          {label}: {safeValue}
-        </div>
-        <div className="barTrack">
-          <div className="barFill" style={{ width: `${percent}%` }} />
-        </div>
+      <div className="filterChips">
+        <select className="chipSelect" value={restaurant} onChange={(e) => { setRestaurant(e.target.value); setCategory(""); }}>
+          <option value="mcdonalds">McDonald&#39;s</option>
+          <option value="chickfila">Chick-fil-A</option>
+          <option value="wendys">Wendy&#39;s</option>
+          <option value="all">All</option>
+        </select>
+        <select className="chipSelect" value={goal} onChange={(e) => setGoal(e.target.value)}>
+          <option value="balanced">Balanced</option>
+          <option value="high_protein">High Protein</option>
+          <option value="low_sugar">Low Sugar</option>
+          <option value="low_fat">Low Fat</option>
+        </select>
+        <select className="chipSelect" value={maxCalories} onChange={(e) => setMaxCalories(Number(e.target.value))}>
+          <option value={300}>300 cal</option>
+          <option value={400}>400 cal</option>
+          <option value={500}>500 cal</option>
+          <option value={600}>600 cal</option>
+          <option value={800}>800 cal</option>
+          <option value={1000}>1000 cal</option>
+        </select>
+        {showCategory && restaurant !== "all" && (
+          <select className="chipSelect" value={category} onChange={(e) => setCategory(e.target.value)}>
+            <option value="">All categories</option>
+            {currentCategories.map((c) => (
+              <option key={c.value} value={c.value}>{c.label}</option>
+            ))}
+          </select>
+        )}
       </div>
     );
   }
 
-  function SkeletonCard() {
+  function SkeletonRow() {
     return (
-      <div className="card resultsCard skeletonCard">
-        <div className="skeletonTitle" />
-        <div className="skeletonLine" />
-        <div className="skeletonLine short" />
-        <div className="skeletonBars">
-          <div className="skeletonBar" />
-          <div className="skeletonBar" />
-          <div className="skeletonBar" />
+      <div className="itemRow skeletonRow">
+        <div className="skeletonThumb" />
+        <div className="skeletonInfo">
+          <div className="skeletonText" style={{ width: "55%" }} />
+          <div className="skeletonText" style={{ width: "40%" }} />
         </div>
       </div>
     );
@@ -301,363 +373,301 @@ function App() {
 
   return (
     <div className="page">
-      <div className="container">
-        <h1 className="title">Fast Food Recommender</h1>
-        <p className="subtitle">Build healthier fast-food meals with smart nutrition ranking.</p>
 
-        {/* Controls */}
-        <div className="card controlsCard">
-          {/* Goal presets */}
-          <div className="presetRow">
-            {GOAL_PRESETS.map((p) => (
-              <button
-                key={p.label}
-                className={`presetBtn${
-                  goal === p.goal && maxCalories === p.maxCalories ? " presetActive" : ""
-                }`}
-                onClick={() => {
-                  setGoal(p.goal);
-                  setMaxCalories(p.maxCalories);
-                }}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
+      {/* Header */}
+      <header className="appHeader">
+        <div>
+          <h1 className="appWordmark">Crave</h1>
+          <p className="appTagline">Smart fast-food nutrition</p>
+        </div>
+        {meal.length > 0 && (
+          <button className="mealBadge" onClick={() => setActiveTab("meal")}>
+            🍽️ {meal.length} item{meal.length !== 1 ? "s" : ""}
+          </button>
+        )}
+      </header>
 
-          <div className="grid">
-            <div>
-              <label className="label">Restaurant</label>
-              <select
-                className="select"
-                value={restaurant}
-                onChange={(e) => {
-                  setRestaurant(e.target.value);
-                  setCategory("");
-                }}
-              >
-                <option value="mcdonalds">McDonald&apos;s</option>
-                <option value="chickfila">Chick-fil-A</option>
-                <option value="wendys">Wendy&apos;s</option>
-                <option value="all">All Restaurants</option>
-              </select>
-            </div>
+      {/* Tab bar */}
+      <nav className="tabBar">
+        {[
+          { id: "browse",   label: "Browse" },
+          { id: "meal",     label: meal.length > 0 ? `Meal Builder (${meal.length})` : "Meal Builder" },
+          { id: "optimize", label: "Optimize" },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            className={`tabBtn${activeTab === tab.id ? " tabActive" : ""}`}
+            onClick={() => setActiveTab(tab.id)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </nav>
 
-            <div>
-              <label className="label">Goal</label>
-              <select
-                className="select"
-                value={goal}
-                onChange={(e) => setGoal(e.target.value)}
-              >
-                <option value="balanced">Balanced</option>
-                <option value="high_protein">High Protein</option>
-                <option value="low_sugar">Low Sugar</option>
-                <option value="low_fat">Low Fat</option>
-              </select>
-            </div>
+      <div className="tabContent">
 
-            {restaurant !== "all" && (
-              <div>
-                <label className="label">Category</label>
-                <select
-                  className="select"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                >
-                  <option value="">All</option>
-                  {(restaurant === "mcdonalds"
-                    ? mcdCategories
-                    : restaurant === "chickfila"
-                    ? chickfilaCategories
-                    : restaurant === "wendys"
-                    ? wendysCategories
-                    : []
-                  ).map((cat) => (
-                    <option key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            <div>
-              <label className="label">Max Calories: {maxCalories}</label>
+        {/* ── BROWSE ── */}
+        {activeTab === "browse" && (
+          <div className="browseTab">
+            <FilterChips showCategory={true} />
+            <div className="searchBar">
+              <span className="searchIcon">🔍</span>
               <input
-                className="range"
-                type="range"
-                min="200"
-                max="1000"
-                step="50"
-                value={maxCalories}
-                onChange={(e) => setMaxCalories(Number(e.target.value))}
-              />
-            </div>
-
-            <div>
-              <label className="label">Top N</label>
-              <input
-                className="input"
-                type="number"
-                min="1"
-                max="50"
-                value={topN}
-                onChange={(e) => setTopN(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="label">Search</label>
-              <input
-                className="input"
+                className="searchInput"
                 type="text"
                 placeholder="Search items..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-
-            <div>
-              <label className="label">Sort By</label>
-              <select
-                className="select"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-              >
-                <option value="score">Health Score</option>
-                <option value="calories">Calories</option>
-                <option value="protein">Protein</option>
-                <option value="sugars">Sugars</option>
-                <option value="fat">Fat</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="label">Direction</label>
-              <select
-                className="select"
-                value={sortDir}
-                onChange={(e) => setSortDir(e.target.value)}
-              >
-                <option value="desc">High → Low</option>
-                <option value="asc">Low → High</option>
-              </select>
-            </div>
-
-            <div className="actionButtons">
-              <button className="btn" onClick={fetchRecommendations} disabled={loading}>
-                {loading ? "Loading..." : "Get Recommendations"}
-              </button>
-              <button className="btn secondaryBtn" onClick={optimizeMeal} disabled={loading}>
-                {loading ? "Loading..." : "Auto Build Optimal Meal"}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Meal Builder */}
-        <div className="card resultsCard" style={{ marginBottom: "1.5rem" }}>
-          <div className="resultHeader">
-            <h3 className="resultTitle">Meal Builder</h3>
-            <div className="resultActions">
-              {meal.length > 0 && (
-                <button className="btn compactBtn" onClick={exportMeal}>
-                  {copySuccess ? "Copied!" : "Copy Summary"}
-                </button>
+            {error && <p className="errorMsg">{error}</p>}
+            <div className="itemList">
+              {loading && [0,1,2,3,4].map((i) => <SkeletonRow key={i} />)}
+              {!loading && hasSearched && displayedResults.length === 0 && !error && (
+                <p className="emptyMsg">No items matched your criteria.</p>
               )}
-              <button
-                className="btn compactBtn"
-                onClick={clearMeal}
-                disabled={meal.length === 0}
-              >
-                Clear
-              </button>
-            </div>
-          </div>
-
-          {meal.length === 0 ? (
-            <p className="msg">Add items from the results to build a meal.</p>
-          ) : (
-            <>
-              <p className="meta">
-                <strong>Items:</strong>{" "}
-                {meal.map((m) => m.title || m.name).join(", ")}
-              </p>
-
-              <p className="meta">
-                <strong>Total Calories:</strong> {mealTotals.calories.toFixed(0)}{" "}
-                {overCalories > 0 ? (
-                  <span style={{ color: "#b91c1c", fontWeight: 700 }}>
-                    (Over by {overCalories.toFixed(0)})
-                  </span>
-                ) : (
-                  <span style={{ color: "#047857", fontWeight: 700 }}>
-                    (Remaining {remainingCalories.toFixed(0)})
-                  </span>
-                )}
-              </p>
-
-              <p className="meta">
-                <strong>Total Protein:</strong> {mealTotals.protein.toFixed(0)}g
-                {goal === "high_protein" &&
-                  (mealTotals.protein >= 35 ? (
-                    <span style={{ color: "#047857", fontWeight: 700 }}>
-                      {" "}✓ Meets High Protein Target
-                    </span>
-                  ) : (
-                    <span style={{ color: "#b91c1c", fontWeight: 700 }}>
-                      {" "}✗ Below 35g Target
-                    </span>
-                  ))}
-              </p>
-
-              <p className="meta">
-                <strong>Total Sugar:</strong> {mealTotals.sugars.toFixed(0)}g
-                {goal === "low_sugar" &&
-                  (mealTotals.sugars <= 20 ? (
-                    <span style={{ color: "#047857", fontWeight: 700 }}>
-                      {" "}✓ Within Low Sugar Target
-                    </span>
-                  ) : (
-                    <span style={{ color: "#b91c1c", fontWeight: 700 }}>
-                      {" "}✗ Exceeds 20g Limit
-                    </span>
-                  ))}
-              </p>
-
-              <p className="meta">
-                <strong>Total Fat:</strong> {mealTotals.fat.toFixed(0)}g
-                {goal === "low_fat" &&
-                  (mealTotals.fat <= 30 ? (
-                    <span style={{ color: "#047857", fontWeight: 700 }}>
-                      {" "}✓ Within Low Fat Target
-                    </span>
-                  ) : (
-                    <span style={{ color: "#b91c1c", fontWeight: 700 }}>
-                      {" "}✗ Exceeds 30g Limit
-                    </span>
-                  ))}
-              </p>
-
-              <div className="bars">
-                <NutritionBar label="Calories" value={mealTotals.calories} max={1000} />
-                <NutritionBar label="Protein" value={mealTotals.protein} max={120} />
-                <NutritionBar label="Sugar" value={mealTotals.sugars} max={80} />
-                <NutritionBar label="Fat" value={mealTotals.fat} max={80} />
-              </div>
-
-              {alternativeMeals.length > 0 && (
-                <div className="alternativeSection">
-                  <h4 className="alternativeTitle">Alternative Optimized Meals</h4>
-
-                  {alternativeMealsWithDeltas.map((mealOption, idx) => (
-                    <div key={idx} className="altMealCard">
-                      <p>
-                        <strong>Option {idx + 2}</strong>
-                      </p>
-                      <p>{mealOption.items.map((m) => m.title || m.name).join(", ")}</p>
-                      <p>
-                        Calories: {mealOption.total_calories} | Score:{" "}
-                        {mealOption.total_score}
-                      </p>
-
-                      <div className="deltaWrap">
-                        <div>
-                          <strong>Δ vs current:</strong>{" "}
-                          <span style={deltaStyle(mealOption.deltas.calories, false)}>
-                            Calories {formatDelta(mealOption.deltas.calories)}
-                          </span>
-                        </div>
-                        <div className="deltaMetrics">
-                          <span style={deltaStyle(mealOption.deltas.protein, true)}>
-                            Protein {formatDelta(mealOption.deltas.protein, "g")}
-                          </span>
-                          <span style={deltaStyle(mealOption.deltas.sugars, false)}>
-                            Sugar {formatDelta(mealOption.deltas.sugars, "g")}
-                          </span>
-                          <span style={deltaStyle(mealOption.deltas.fat, false)}>
-                            Fat {formatDelta(mealOption.deltas.fat, "g")}
-                          </span>
-                          <span style={deltaStyle(mealOption.deltas.sodium, false)}>
-                            Sodium {formatDelta(mealOption.deltas.sodium, "mg")}
-                          </span>
-                        </div>
-                      </div>
-
-                      <button className="btn" onClick={() => setMeal(mealOption.items)}>
-                        Select This Meal
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </>
-          )}
-        </div>
-
-        {error && <p className="msg error">{error}</p>}
-
-        {!loading && hasSearched && displayedResults.length === 0 && !error && (
-          <p className="msg">No items matched your criteria.</p>
-        )}
-
-        {hasSearched && !loading && !error && results.length > 0 && (
-          <p className="msg">
-            Showing {displayedResults.length} of {results.length} results
-          </p>
-        )}
-
-        {loading && hasSearched && (
-          <>
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-          </>
-        )}
-
-        {!loading &&
-          displayedResults.map((item, index) => {
-            const inMeal = isInMeal(item);
-            return (
-              <div key={getItemKey(item)} className="card resultsCard">
-                <div className="resultHeader">
-                  <h3 className="resultTitle">
-                    #{index + 1} — {item.title || item.name}
-                  </h3>
-                  <div className="resultActions">
-                    {typeof item.score !== "undefined" && (
-                      <span className="badge">Score: {item.score}</span>
-                    )}
-                    <button
-                      className="btn compactBtn"
-                      onClick={() => (inMeal ? removeFromMeal(item) : addToMeal(item))}
+              {!loading && displayedResults.map((item) => {
+                const { emoji, gradient } = getThumbnail(item);
+                const tags = getItemTags(item);
+                return (
+                  <div key={getItemKey(item)} className="itemRow" onClick={() => setModalItem(item)}>
+                    <div
+                      className="itemThumbnail"
+                      style={{ background: `linear-gradient(135deg, ${gradient[0]}, ${gradient[1]})` }}
                     >
-                      {inMeal ? "Remove" : "Add"}
+                      {emoji}
+                    </div>
+                    <div className="itemInfo">
+                      <div className="itemName">{item.title || item.name}</div>
+                      <div className="itemStats">
+                        {item.calories} kcal · {item.protein}g protein · {item.sugars}g sugar
+                      </div>
+                      {tags.length > 0 && (
+                        <div className="itemTags">
+                          {tags.map((tag) => (
+                            <span key={tag.label} className={`itemTag itemTag--${tag.type}`}>{tag.label}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="itemScore">{item.score}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ── MEAL BUILDER ── */}
+        {activeTab === "meal" && (
+          <div className="mealTab">
+            <div className="macroRingsCard">
+              {[
+                { label: "Calories", value: mealTotals.calories.toFixed(0), unit: "kcal", color: "#6366f1" },
+                { label: "Protein",  value: mealTotals.protein.toFixed(0),  unit: "g",    color: "#22c55e" },
+                { label: "Sugar",    value: mealTotals.sugars.toFixed(0),   unit: "g",    color: "#f59e0b" },
+                { label: "Fat",      value: mealTotals.fat.toFixed(0),      unit: "g",    color: "#ef4444" },
+              ].map((ring) => (
+                <div key={ring.label} className="macroRing">
+                  <div className="ringCircle" style={{ borderColor: meal.length > 0 ? ring.color : undefined }}>
+                    <span className="ringValueNum" style={{ color: meal.length > 0 ? ring.color : undefined }}>{ring.value}</span>
+                    <span className="ringValueUnit" style={{ color: meal.length > 0 ? ring.color : undefined }}>{ring.unit}</span>
+                  </div>
+                  <span className="ringLabel">{ring.label}</span>
+                </div>
+              ))}
+            </div>
+
+            {meal.length > 0 && (
+              <div className="goalBadges">
+                {getGoalBadges().map((b, i) => (
+                  <span key={i} className={`goalBadge goalBadge--${b.type}`}>{b.text}</span>
+                ))}
+              </div>
+            )}
+
+            {meal.length === 0 ? (
+              <div className="emptyState">
+                <p>Add items from Browse to build your meal.</p>
+              </div>
+            ) : (
+              <>
+                <div className="mealList">
+                  {meal.map((item) => {
+                    const { emoji, gradient } = getThumbnail(item);
+                    return (
+                      <div key={getItemKey(item)} className="mealItem">
+                        <div
+                          className="itemThumbnail itemThumbnail--sm"
+                          style={{ background: `linear-gradient(135deg, ${gradient[0]}, ${gradient[1]})` }}
+                        >
+                          {emoji}
+                        </div>
+                        <span className="mealItemName">{item.title || item.name}</span>
+                        <button className="mealItemRemove" onClick={() => removeFromMeal(item)} aria-label="Remove">✕</button>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="actionRow">
+                  <button className="btn btnDark" onClick={exportMeal}>
+                    {copySuccess ? "✓ Copied!" : "Copy Summary"}
+                  </button>
+                  <button className="btn btnOutline" onClick={clearMeal}>Clear</button>
+                </div>
+
+                {alternativeMeals.length > 0 && (
+                  <div className="altSection">
+                    <h4 className="altSectionTitle">Alternative Meals</h4>
+                    {alternativeMealsWithDeltas.map((mealOption, idx) => (
+                      <div key={idx} className="altCard">
+                        <p className="altCardItems">
+                          {mealOption.items.map((m) => m.title || m.name).join(", ")}
+                        </p>
+                        <p className="altCardStats">
+                          {mealOption.total_calories} kcal · Score: {mealOption.total_score}
+                        </p>
+                        <div className="deltaRow">
+                          <strong>Δ vs current:</strong>{" "}
+                          <span style={deltaStyle(mealOption.deltas.calories, false)}>Cal {formatDelta(mealOption.deltas.calories)}</span>
+                          {" · "}
+                          <span style={deltaStyle(mealOption.deltas.protein, true)}>Protein {formatDelta(mealOption.deltas.protein, "g")}</span>
+                          {" · "}
+                          <span style={deltaStyle(mealOption.deltas.sugars, false)}>Sugar {formatDelta(mealOption.deltas.sugars, "g")}</span>
+                          {" · "}
+                          <span style={deltaStyle(mealOption.deltas.fat, false)}>Fat {formatDelta(mealOption.deltas.fat, "g")}</span>
+                        </div>
+                        <button
+                          className="btn btnOutline btnSm"
+                          onClick={() => {
+                            setMeal(mealOption.items);
+                            setAlternativeMeals((prev) => prev.filter((_, j) => j !== idx));
+                          }}
+                        >
+                          Select This Meal
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        {/* ── OPTIMIZE ── */}
+        {activeTab === "optimize" && (
+          <div className="optimizeTab">
+            <FilterChips showCategory={false} />
+
+            <div className="presetGrid">
+              {GOAL_PRESETS.map((p) => {
+                const isActive = goal === p.goal && maxCalories === p.maxCalories;
+                return (
+                  <button
+                    key={p.label}
+                    className={`presetCard${isActive ? " presetCardActive" : ""}`}
+                    onClick={() => { setGoal(p.goal); setMaxCalories(p.maxCalories); }}
+                  >
+                    <span className="presetCardLabel">{p.label}</span>
+                    <span className="presetCardMeta">{p.goal.replace(/_/g, " ")} · {p.maxCalories} cal</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <button className="buildBtn" onClick={optimizeMeal} disabled={optimizeLoading}>
+              {optimizeLoading ? "Building..." : "⚡ Build Optimal Meal"}
+            </button>
+
+            {optimizeError && <p className="errorMsg">{optimizeError}</p>}
+
+            {optimizedMealResults.length > 0 && (
+              <div className="optimizeResults">
+                {optimizedMealResults.map((result, idx) => (
+                  <div key={idx} className="optimizeCard">
+                    <div className="optimizeCardHeader">
+                      <span className="optimizeRank">#{idx + 1}</span>
+                      <span className="optimizeScore">Score {result.total_score}</span>
+                    </div>
+                    <p className="optimizeItems">
+                      {result.items.map((m) => m.title || m.name).join(", ")}
+                    </p>
+                    <p className="optimizeStats">{result.total_calories} kcal total</p>
+                    <div className="optimizeGoalChecks">
+                      {checkMealGoal(result.items).map((check, ci) => (
+                        <span key={ci} className={`goalCheck ${check.startsWith("✓") ? "goalCheck--pass" : "goalCheck--fail"}`}>
+                          {check}
+                        </span>
+                      ))}
+                    </div>
+                    <button className="btn btnDark" onClick={() => sendToMealBuilder(idx)}>
+                      Send to Meal Builder →
                     </button>
                   </div>
-                </div>
-
-                <p className="meta">
-                  <strong>Category:</strong> {item.category}
-                </p>
-                {item.restaurant && (
-                  <p className="meta">
-                    <strong>Restaurant:</strong> {item.restaurant}
-                  </p>
-                )}
-                <p className="nutrition">{item.nutrition}</p>
-                <div className="bars">
-                  <NutritionBar label="Calories" value={item.calories} max={1000} />
-                  <NutritionBar label="Protein" value={item.protein} max={60} />
-                  <NutritionBar label="Sugar" value={item.sugars} max={50} />
-                  <NutritionBar label="Fat" value={item.fat} max={50} />
-                </div>
-                <p className="summary">{item.summary}</p>
+                ))}
               </div>
-            );
-          })}
+            )}
+          </div>
+        )}
       </div>
+
+      {/* ── ITEM DETAIL MODAL ── */}
+      {modalItem && (
+        <div className="modalBackdrop" onClick={() => setModalItem(null)}>
+          <div className="modalSheet" onClick={(e) => e.stopPropagation()}>
+            <div className="modalDragHandle" />
+
+            <div className="modalItemHeader">
+              {(() => {
+                const { emoji, gradient } = getThumbnail(modalItem);
+                return (
+                  <div className="modalThumb" style={{ background: `linear-gradient(135deg, ${gradient[0]}, ${gradient[1]})` }}>
+                    {emoji}
+                  </div>
+                );
+              })()}
+              <div className="modalItemMeta">
+                <h2 className="modalItemName">{modalItem.title || modalItem.name}</h2>
+                <p className="modalItemSub">{modalItem.restaurant} · {modalItem.category}</p>
+              </div>
+              {typeof modalItem.score !== "undefined" && (
+                <span className="modalScoreBadge">{modalItem.score}</span>
+              )}
+            </div>
+
+            <div className="nutritionGrid">
+              {[
+                { label: "Calories", value: String(modalItem.calories), color: "#6366f1" },
+                { label: "Protein",  value: `${modalItem.protein}g`,    color: "#22c55e" },
+                { label: "Sugar",    value: `${modalItem.sugars}g`,     color: "#f59e0b" },
+                { label: "Fat",      value: `${modalItem.fat}g`,        color: "#ef4444" },
+                { label: "Carbs",    value: `${modalItem.carbs}g`,      color: "#6366f1" },
+                { label: "Sodium",   value: `${modalItem.sodium}mg`,    color: "#64748b" },
+              ].map((n) => (
+                <div key={n.label} className="nutritionTile">
+                  <span className="nutritionValue" style={{ color: n.color }}>{n.value}</span>
+                  <span className="nutritionLabel">{n.label}</span>
+                </div>
+              ))}
+            </div>
+
+            {modalItem.summary && (
+              <div className="summaryBadge">✓ {modalItem.summary}</div>
+            )}
+
+            <button
+              className={`addToMealBtn${isInMeal(modalItem) ? " addToMealBtn--added" : ""}`}
+              disabled={isInMeal(modalItem)}
+              onClick={() => { addToMeal(modalItem); setModalItem(null); }}
+            >
+              {isInMeal(modalItem) ? "✓ Added" : "Add to Meal"}
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
