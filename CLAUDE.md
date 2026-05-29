@@ -58,15 +58,20 @@ Crave/
 
 ### Category Naming
 Each restaurant uses different category strings in the JSON data. The backend maps these via hardcoded sets in `build_optimal_meal()`:
-- Entree categories: `{"burgers", "entrees", "salads", "nuggets_strips", "breakfast"}`
-- Side categories: `{"fries_sides", "sides", "desserts"}`
-- Drink detection: `item_type == "drink"` OR category in `{"beverages", "drinks"}`
+- Entree categories: `{"burgers", "entrees", "salads", "nuggets_strips", "breakfast", "chicken", "chicken_fish", "wraps", "snack_wraps", "kid_s_meals", "catering_entrees"}`
+- Side categories: `{"fries_sides", "sides", "desserts", "proteins"}`
+- Drink detection: `item_type == "drink"` OR category in `{"beverages", "drinks", "mccafe_coffees"}`
 
 ### Frontend (`fast-food-ui/src/App.jsx`)
-Single-component React app. All state lives in `App`. Key state:
-- `results` — raw `/recommend` response items
-- `meal` — user-built or auto-optimized meal items
-- `alternativeMeals` — slots 2–3 from `/optimize_meal`, shown as alternatives with deltas vs current meal
+Single-component React app with three tabs (Browse / Meal Builder / Optimize). All state lives in `App`. Key state:
+- `activeTab` — controls which tab is visible (`"browse"` | `"meal"` | `"optimize"`)
+- `results` — raw `/recommend` response items (auto-fetched when Browse tab is active or filters change)
+- `meal` — user-built meal items (added from Browse modal or sent from Optimize)
+- `alternativeMeals` — the non-chosen Optimize results, shown in Meal Builder with nutrition deltas
+- `optimizedMealResults` — all 3 results from `/optimize_meal`; user picks one to send to Meal Builder
+- `modalItem` — item currently shown in the bottom-sheet detail modal (null = closed)
+
+Shared filter state (`goal`, `restaurant`, `maxCalories`, `category`) is used by both Browse and Optimize tabs.
 
 The `humanize_items()` backend function normalizes field names (`carbohydrate`/`carbs` inconsistency) so the frontend always receives `carbs`.
 
@@ -74,6 +79,16 @@ The `humanize_items()` backend function normalizes field names (`carbohydrate`/`
 - Backend: `CORS_ORIGINS` env var controls allowed origins (comma-separated)
 - Frontend: `VITE_API_BASE_URL` env var controls backend URL
 - Production: Vercel (frontend) + Render (backend, `render.yaml` config)
+
+## Workflow
+
+### Spec-driven development
+Before implementing any of the following, write and commit a spec to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` first:
+- New features or new data sources (e.g., adding a restaurant, adding an endpoint)
+- Cross-cutting changes touching both backend and frontend
+- Anything where you'd need to choose between 2+ approaches
+
+Spec-first is NOT required for: bug fixes, single-file refactors, dependency bumps, copy/style tweaks. When in doubt, ask the user.
 
 ## Validation
 
