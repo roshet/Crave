@@ -59,7 +59,7 @@ Crave/
 ### Category Naming
 Each restaurant uses different category strings in the JSON data. The backend maps these via hardcoded sets in `build_optimal_meal()`:
 - Entree categories: `{"burgers", "entrees", "salads", "nuggets_strips", "breakfast", "chicken", "chicken_fish", "wraps", "snack_wraps", "kid_s_meals", "catering_entrees"}`
-- Side categories: `{"fries_sides", "sides", "desserts", "proteins"}`
+- Side categories: `{"fries_sides", "sides", "desserts"}`
 - Drink detection: `item_type == "drink"` OR category in `{"beverages", "drinks", "mccafe_coffees"}`
 
 ### Frontend (`fast-food-ui/src/App.jsx`)

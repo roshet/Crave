@@ -245,6 +245,12 @@ body { margin: 0; }
   color: var(--accent);
   flex-shrink: 0;
 }
+.itemScoreUnit, .modalScoreUnit {
+  font-size: 0.7em;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-left: 1px;
+}
 
 /* ===== ITEM DETAIL MODAL ===== */
 .modalBackdrop {
@@ -744,54 +750,71 @@ body { margin: 0; }
 }
 
 /* ===== DARK MODE ===== */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #1c1917;
-    --card-bg: #292524;
-    --card-border: #44403c;
-    --text-primary: #fafaf9;
-    --text-secondary: #a8a29e;
-  }
-
-  .chipSelect {
-    background-color: #292524;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23a8a29e'/%3E%3C/svg%3E");
-    color: var(--text-primary);
-  }
-
-  .searchBar { background: #292524; }
-  .searchInput { color: var(--text-primary); }
-  .itemRow { background: #292524; }
-  .nutritionTile { background: #1c1917; }
-  .modalSheet { background: #292524; }
-  .modalDragHandle { background: #44403c; }
-  .summaryBadge { background: #14532d; color: #86efac; }
-  .addToMealBtn { background: #fafaf9; color: #1c1917; }
-  .addToMealBtn--added { background: #44403c; color: #78716c; }
-  .mealItem { background: #292524; }
-  .btnOutline { border-color: #44403c; color: var(--text-primary); }
-  .altCard { background: #1c1917; }
-  .presetCard { background: #292524; }
-  .presetCardActive { background: #fafaf9; }
-  .presetCardActive .presetCardLabel,
-  .presetCardActive .presetCardMeta { color: #1c1917; }
-  .optimizeCard { background: #292524; }
-  .macroRingsCard { background: #292524; }
-  .ringCircle { border-color: #44403c; }
-  .ringValueNum,
-  .ringValueUnit { color: #78716c; }
-
-  .goalBadge--success { background: #14532d; color: #86efac; }
-  .goalBadge--failure { background: #450a0a; color: #fca5a5; }
-  .goalCheck--pass    { background: #14532d; color: #86efac; }
-  .goalCheck--fail    { background: #450a0a; color: #fca5a5; }
-
-  .itemTag--protein    { background: #14532d; color: #86efac; }
-  .itemTag--sugar-good { background: #1e3a5f; color: #93c5fd; }
-  .itemTag--fat        { background: #450a0a; color: #fca5a5; }
-  .itemTag--fat-good   { background: #14532d; color: #86efac; }
-  .itemTag--cal        { background: #2e1065; color: #c4b5fd; }
-
-  .skeletonThumb,
-  .skeletonText { background: #44403c; }
+/* Applied via [data-theme="dark"] on <html> — set by JS in App.jsx based on
+   user toggle (localStorage) or prefers-color-scheme on first load. */
+:root[data-theme="dark"] {
+  --bg: #1c1917;
+  --card-bg: #292524;
+  --card-border: #44403c;
+  --text-primary: #fafaf9;
+  --text-secondary: #a8a29e;
 }
+
+[data-theme="dark"] .chipSelect {
+  background-color: #292524;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23a8a29e'/%3E%3C/svg%3E");
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .searchBar { background: #292524; }
+[data-theme="dark"] .searchInput { color: var(--text-primary); }
+[data-theme="dark"] .itemRow { background: #292524; }
+[data-theme="dark"] .nutritionTile { background: #1c1917; }
+[data-theme="dark"] .modalSheet { background: #292524; }
+[data-theme="dark"] .modalDragHandle { background: #44403c; }
+[data-theme="dark"] .summaryBadge { background: #14532d; color: #86efac; }
+[data-theme="dark"] .addToMealBtn { background: #fafaf9; color: #1c1917; }
+[data-theme="dark"] .addToMealBtn--added { background: #44403c; color: #78716c; }
+[data-theme="dark"] .mealItem { background: #292524; }
+[data-theme="dark"] .btnOutline { border-color: #44403c; color: var(--text-primary); }
+[data-theme="dark"] .altCard { background: #1c1917; }
+[data-theme="dark"] .presetCard { background: #292524; }
+[data-theme="dark"] .presetCardActive { background: #fafaf9; }
+[data-theme="dark"] .presetCardActive .presetCardLabel,
+[data-theme="dark"] .presetCardActive .presetCardMeta { color: #1c1917; }
+[data-theme="dark"] .optimizeCard { background: #292524; }
+[data-theme="dark"] .macroRingsCard { background: #292524; }
+[data-theme="dark"] .ringCircle { border-color: #44403c; }
+[data-theme="dark"] .ringValueNum,
+[data-theme="dark"] .ringValueUnit { color: #78716c; }
+
+[data-theme="dark"] .goalBadge--success { background: #14532d; color: #86efac; }
+[data-theme="dark"] .goalBadge--failure { background: #450a0a; color: #fca5a5; }
+[data-theme="dark"] .goalCheck--pass    { background: #14532d; color: #86efac; }
+[data-theme="dark"] .goalCheck--fail    { background: #450a0a; color: #fca5a5; }
+
+[data-theme="dark"] .itemTag--protein    { background: #14532d; color: #86efac; }
+[data-theme="dark"] .itemTag--sugar-good { background: #1e3a5f; color: #93c5fd; }
+[data-theme="dark"] .itemTag--fat        { background: #450a0a; color: #fca5a5; }
+[data-theme="dark"] .itemTag--fat-good   { background: #14532d; color: #86efac; }
+[data-theme="dark"] .itemTag--cal        { background: #2e1065; color: #c4b5fd; }
+
+[data-theme="dark"] .skeletonThumb,
+[data-theme="dark"] .skeletonText { background: #44403c; }
+
+/* Theme toggle button */
+.themeToggle {
+  background: transparent;
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  width: 36px;
+  height: 36px;
+  font-size: 1rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  padding: 0;
+}
+.themeToggle:hover { background: var(--card-bg); }

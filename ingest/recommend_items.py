@@ -149,12 +149,12 @@ def humanize_items(items):
                 f'{sodium_display}'
             ),
 
-            "calories": item.get("calories", 0),
-            "protein": item.get("protein", 0),
-            "sugars": item.get("sugars", 0),
-            "fat": item.get("fat", 0),
-            "carbs": item.get("carbohydrate", 0) or item.get("carbs") or 0,
-            "sodium": item.get("sodium", 0),
+            "calories": float(item.get("calories") or 0),
+            "protein": float(item.get("protein") or 0),
+            "sugars": float(item.get("sugars") or 0),
+            "fat": float(item.get("fat") or 0),
+            "carbs": float(item.get("carbohydrate") or item.get("carbs") or 0),
+            "sodium": float(item.get("sodium") or 0),
 
             "score": item["health_score"],
         })
@@ -220,7 +220,7 @@ def build_optimal_meal(
         "chicken", "chicken_fish", "wraps", "snack_wraps",
         "kid_s_meals", "catering_entrees",
     }
-    side_categories = {"fries_sides", "sides", "desserts", "proteins"}
+    side_categories = {"fries_sides", "sides", "desserts"}
 
     entrees = []
     sides = []
@@ -256,8 +256,8 @@ def build_optimal_meal(
         for i in entrees + sides + drinks
     }
 
-    sides_list = [None] + sides if allow_side else [None]
-    drinks_list = [None] + drinks if allow_drink else [None]
+    sides_list = sides if (allow_side and sides) else [None]
+    drinks_list = drinks if (allow_drink and drinks) else [None]
 
     top_meals = []
 

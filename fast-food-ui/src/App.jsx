@@ -6,7 +6,7 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:800
 const CATEGORY_EMOJI = {
   burgers:        { emoji: "🍔", gradient: ["#dbeafe", "#3b82f6"] },
   chicken:        { emoji: "🍗", gradient: ["#fde68a", "#f59e0b"] },
-  chicken_fish:   { emoji: "🐟", gradient: ["#cffafe", "#06b6d4"] },
+  chicken_fish:   { emoji: "🍗", gradient: ["#fde68a", "#f59e0b"] },
   nuggets_strips: { emoji: "🍗", gradient: ["#fde68a", "#f59e0b"] },
   salads:         { emoji: "🥗", gradient: ["#bbf7d0", "#16a34a"] },
   breakfast:      { emoji: "🥞", gradient: ["#fed7aa", "#f97316"] },
@@ -16,12 +16,35 @@ const CATEGORY_EMOJI = {
   beverages:      { emoji: "🥤", gradient: ["#cffafe", "#06b6d4"] },
   drinks:         { emoji: "🥤", gradient: ["#cffafe", "#06b6d4"] },
   mccafe_coffees: { emoji: "☕", gradient: ["#d6d3d1", "#78716c"] },
-  entrees:        { emoji: "🍱", gradient: ["#bbf7d0", "#16a34a"] },
+  entrees:        { emoji: "🍗", gradient: ["#fde68a", "#f59e0b"] },
+  proteins:       { emoji: "🍗", gradient: ["#fde68a", "#f59e0b"] },
   wraps:          { emoji: "🌯", gradient: ["#fef9c3", "#ca8a04"] },
   snack_wraps:    { emoji: "🌯", gradient: ["#fef9c3", "#ca8a04"] },
   kid_s_meals:    { emoji: "🎉", gradient: ["#fce7f3", "#ec4899"] },
 };
 const DEFAULT_EMOJI = { emoji: "🍽️", gradient: ["#f1f5f9", "#94a3b8"] };
+
+const NAME_EMOJI_OVERRIDES = [
+  { test: /fish/i,    result: { emoji: "🐟", gradient: ["#cffafe", "#06b6d4"] } },
+  { test: /\bbun\b/i, result: { emoji: "🍞", gradient: ["#fef3c7", "#d97706"] } },
+];
+
+// Theoretical min/max of health_score per goal — derived from GOAL_PROFILES weights
+// in recommend_items.py. Used to map raw scores onto a friendly 0–100 scale.
+const SCORE_RANGES = {
+  balanced:     { min: -4.8, max: 1.2 },
+  high_protein: { min: -4.0, max: 2.0 },
+  low_sugar:    { min: -5.4, max: 1.0 },
+  low_fat:      { min: -5.4, max: 1.0 },
+};
+
+function normalizeScore(rawScore, goal, itemCount = 1) {
+  const r = SCORE_RANGES[goal] || SCORE_RANGES.balanced;
+  const minTotal = r.min * itemCount;
+  const maxTotal = r.max * itemCount;
+  const pct = ((Number(rawScore ?? 0) - minTotal) / (maxTotal - minTotal)) * 100;
+  return Math.max(0, Math.min(100, Math.round(pct)));
+}
 
 const MCD_CATEGORIES = [
   { value: "burgers",        label: "Burgers" },
@@ -60,6 +83,10 @@ const GOAL_PRESETS = [
 ];
 
 function getThumbnail(item) {
+  const name = item.title || item.name || "";
+  for (const o of NAME_EMOJI_OVERRIDES) {
+    if (o.test.test(name)) return o.result;
+  }
   return CATEGORY_EMOJI[(item.category || "").toLowerCase()] || DEFAULT_EMOJI;
 }
 
@@ -92,12 +119,25 @@ function deltaStyle(delta, higherIsBetter) {
 function App() {
   // Shared filter state (Browse + Optimize)
   const [goal, setGoal]               = useState("balanced");
-  const [restaurant, setRestaurant]   = useState("mcdonalds");
+  const [restaurant, setRestaurant]   = useState("all");
   const [maxCalories, setMaxCalories] = useState(600);
   const [category, setCategory]       = useState("");
 
   // Navigation
   const [activeTab, setActiveTab] = useState("browse");
+
+  // Theme — explicit toggle; defaults to system preference, persists to localStorage
+  const [theme, setTheme] = useState(() => {
+    const stored = typeof window !== "undefined" && window.localStorage.getItem("theme");
+    if (stored === "light" || stored === "dark") return stored;
+    return typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark" : "light";
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    window.localStorage.setItem("theme", theme);
+  }, [theme]);
 
   // Browse
   const [results, setResults]         = useState([]);
@@ -380,11 +420,21 @@ function App() {
           <h1 className="appWordmark">Crave</h1>
           <p className="appTagline">Smart fast-food nutrition</p>
         </div>
-        {meal.length > 0 && (
-          <button className="mealBadge" onClick={() => setActiveTab("meal")}>
-            🍽️ {meal.length} item{meal.length !== 1 ? "s" : ""}
+        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+          {meal.length > 0 && (
+            <button className="mealBadge" onClick={() => setActiveTab("meal")}>
+              🍽️ {meal.length} item{meal.length !== 1 ? "s" : ""}
+            </button>
+          )}
+          <button
+            className="themeToggle"
+            onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {theme === "dark" ? "☀️" : "🌙"}
           </button>
-        )}
+        </div>
       </header>
 
       {/* Tab bar */}
@@ -450,7 +500,9 @@ function App() {
                         </div>
                       )}
                     </div>
-                    <div className="itemScore">{item.score}</div>
+                    <div className="itemScore" title={`Health score for ${goal.replace(/_/g," ")} goal`}>
+                      {normalizeScore(item.score, goal)}<span className="itemScoreUnit">/100</span>
+                    </div>
                   </div>
                 );
               })}
@@ -526,7 +578,7 @@ function App() {
                           {mealOption.items.map((m) => m.title || m.name).join(", ")}
                         </p>
                         <p className="altCardStats">
-                          {mealOption.total_calories} kcal · Score: {mealOption.total_score}
+                          {mealOption.total_calories} kcal · Score: {normalizeScore(mealOption.total_score, goal, mealOption.items.length)}/100
                         </p>
                         <div className="deltaRow">
                           <strong>Δ vs current:</strong>{" "}
@@ -589,7 +641,7 @@ function App() {
                   <div key={idx} className="optimizeCard">
                     <div className="optimizeCardHeader">
                       <span className="optimizeRank">#{idx + 1}</span>
-                      <span className="optimizeScore">Score {result.total_score}</span>
+                      <span className="optimizeScore" title={`Health score for ${goal.replace(/_/g," ")} goal`}>Score {normalizeScore(result.total_score, goal, result.items.length)}/100</span>
                     </div>
                     <p className="optimizeItems">
                       {result.items.map((m) => m.title || m.name).join(", ")}
@@ -633,7 +685,9 @@ function App() {
                 <p className="modalItemSub">{modalItem.restaurant} · {modalItem.category}</p>
               </div>
               {typeof modalItem.score !== "undefined" && (
-                <span className="modalScoreBadge">{modalItem.score}</span>
+                <span className="modalScoreBadge" title={`Health score for ${goal.replace(/_/g," ")} goal`}>
+                  {normalizeScore(modalItem.score, goal)}<span className="modalScoreUnit">/100</span>
+                </span>
               )}
             </div>
 
