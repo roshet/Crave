@@ -14,6 +14,9 @@ ingest/__pycache__/
 Thumbs.db
 .vscode/
 
+# Superpowers local scratch (brainstorm artifacts, server pids)
+.superpowers/
+
 # Personal files (do not commit)
 Resume/
 *.pdf

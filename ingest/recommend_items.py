@@ -219,8 +219,9 @@ def build_optimal_meal(
         "burgers", "entrees", "salads", "nuggets_strips", "breakfast",
         "chicken", "chicken_fish", "wraps", "snack_wraps",
         "kid_s_meals", "catering_entrees",
+        "tacos", "burritos", "quesadillas", "nachos", "specialties",
     }
-    side_categories = {"fries_sides", "sides", "desserts"}
+    side_categories = {"fries_sides", "sides", "desserts", "sweets"}
 
     entrees = []
     sides = []

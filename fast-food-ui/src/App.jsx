@@ -21,6 +21,12 @@ const CATEGORY_EMOJI = {
   wraps:          { emoji: "🌯", gradient: ["#fef9c3", "#ca8a04"] },
   snack_wraps:    { emoji: "🌯", gradient: ["#fef9c3", "#ca8a04"] },
   kid_s_meals:    { emoji: "🎉", gradient: ["#fce7f3", "#ec4899"] },
+  tacos:          { emoji: "🌮", gradient: ["#fed7aa", "#f97316"] },
+  burritos:       { emoji: "🌯", gradient: ["#fde68a", "#d97706"] },
+  quesadillas:    { emoji: "🫓", gradient: ["#fef9c3", "#ca8a04"] },
+  nachos:         { emoji: "🧀", gradient: ["#fef08a", "#eab308"] },
+  specialties:    { emoji: "🫔", gradient: ["#fecaca", "#ef4444"] },
+  sweets:         { emoji: "🍩", gradient: ["#fce7f3", "#ec4899"] },
 };
 const DEFAULT_EMOJI = { emoji: "🍽️", gradient: ["#f1f5f9", "#94a3b8"] };
 
@@ -73,6 +79,18 @@ const WENDYS_CATEGORIES = [
   { value: "wraps",   label: "Wraps" },
   { value: "salads",  label: "Salads" },
   { value: "sides",   label: "Sides" },
+];
+
+const TACOBELL_CATEGORIES = [
+  { value: "tacos",       label: "Tacos" },
+  { value: "burritos",    label: "Burritos" },
+  { value: "quesadillas", label: "Quesadillas" },
+  { value: "nachos",      label: "Nachos" },
+  { value: "specialties", label: "Specialties" },
+  { value: "breakfast",   label: "Breakfast" },
+  { value: "sides",       label: "Sides" },
+  { value: "sweets",      label: "Sweets" },
+  { value: "drinks",      label: "Drinks" },
 ];
 
 const GOAL_PRESETS = [
@@ -362,7 +380,8 @@ function App() {
   const currentCategories =
     restaurant === "mcdonalds" ? MCD_CATEGORIES :
     restaurant === "chickfila" ? CHICKFILA_CATEGORIES :
-    restaurant === "wendys"    ? WENDYS_CATEGORIES : [];
+    restaurant === "wendys"    ? WENDYS_CATEGORIES :
+    restaurant === "tacobell"  ? TACOBELL_CATEGORIES : [];
 
   function FilterChips({ showCategory }) {
     return (
@@ -371,6 +390,7 @@ function App() {
           <option value="mcdonalds">McDonald&#39;s</option>
           <option value="chickfila">Chick-fil-A</option>
           <option value="wendys">Wendy&#39;s</option>
+          <option value="tacobell">Taco Bell</option>
           <option value="all">All</option>
         </select>
         <select className="chipSelect" value={goal} onChange={(e) => setGoal(e.target.value)}>
