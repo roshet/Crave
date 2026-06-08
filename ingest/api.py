@@ -43,7 +43,9 @@ chickfila_items = list(chickfila_raw.values()) if isinstance(chickfila_raw, dict
 
 wendys_items = _load_json(BASE_DIR / "wendys_items.json")
 
-ALL_ITEMS = mcdonalds_items + chickfila_items + wendys_items
+tacobell_items = _load_json(BASE_DIR / "tacobell_items.json")
+
+ALL_ITEMS = mcdonalds_items + chickfila_items + wendys_items + tacobell_items
 
 @app.get("/")
 def root():
@@ -55,7 +57,7 @@ def root():
 
 @app.get("/categories")
 def categories(
-    restaurant: str = Query("all", pattern="^(mcdonalds|chickfila|wendys|all)$")
+    restaurant: str = Query("all", pattern="^(mcdonalds|chickfila|wendys|tacobell|all)$")
 ):
     if restaurant == "mcdonalds":
         items = mcdonalds_items
@@ -63,6 +65,8 @@ def categories(
         items = chickfila_items
     elif restaurant == "wendys":
         items = wendys_items
+    elif restaurant == "tacobell":
+        items = tacobell_items
     else:
         items = ALL_ITEMS
 
@@ -71,7 +75,7 @@ def categories(
 
 @app.get("/recommend")
 def recommend(
-    restaurant: str = Query("all", pattern = "^(mcdonalds|chickfila|wendys|all)$"),
+    restaurant: str = Query("all", pattern = "^(mcdonalds|chickfila|wendys|tacobell|all)$"),
     max_calories: int = Query(600, ge=1),
     top_n: int = Query(10, ge = 1, le = 50),
     goal: str = Query("balanced", pattern = "^(balanced|high_protein|low_sugar|low_fat)$"),
@@ -84,6 +88,8 @@ def recommend(
         items = chickfila_items
     elif restaurant == "wendys":
         items = wendys_items
+    elif restaurant == "tacobell":
+        items = tacobell_items
     else:
         items = ALL_ITEMS
 
@@ -119,7 +125,7 @@ def recommend(
 
 @app.get("/optimize_meal")
 def optimize_meal(
-    restaurant: str = Query("all", pattern="^(mcdonalds|chickfila|wendys|all)$"),
+    restaurant: str = Query("all", pattern="^(mcdonalds|chickfila|wendys|tacobell|all)$"),
     max_calories: int = Query(800, ge=1),
     goal: str = Query("balanced", pattern="^(balanced|high_protein|low_sugar|low_fat)$"),
     category: str | None = Query(None),
@@ -131,6 +137,7 @@ def optimize_meal(
         "mcdonalds": mcdonalds_items,
         "chickfila": chickfila_items,
         "wendys": wendys_items,
+        "tacobell": tacobell_items,
     }
 
     if category and restaurant != "all":
