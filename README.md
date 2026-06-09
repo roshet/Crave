@@ -18,7 +18,7 @@ Crave is a full-stack nutrition recommendation app that helps users build health
 ## Live Demo
 
 - Frontend (Vercel): [https://fast-food-ui.vercel.app](https://fast-food-ui.vercel.app)
-- Backend API (Render): [https://crave-2jtp.onrender.com](https://crave-2jtp.onrender.com)
+- Backend API (Render): [https://crave-2jtg.onrender.com](https://crave-2jtg.onrender.com)
 
 ## Features
 
@@ -59,7 +59,7 @@ Flow:
 
 ## API Endpoints
 
-Base URL: `https://crave-2jtp.onrender.com`
+Base URL: `https://crave-2jtg.onrender.com`
 
 - `GET /recommend`
   - Query params: `restaurant`, `max_calories`, `top_n`, `goal`, `category`, `format`
@@ -99,7 +99,7 @@ VITE_API_BASE_URL=http://127.0.0.1:8000
 - Frontend reads backend URL from `VITE_API_BASE_URL`
 - Backend CORS is controlled through `CORS_ORIGINS`
 - Production values:
-  - `VITE_API_BASE_URL=https://crave-2jtp.onrender.com` (Vercel)
+  - `VITE_API_BASE_URL=https://crave-2jtg.onrender.com` (Vercel)
   - `CORS_ORIGINS=https://fast-food-ui.vercel.app` (Render)
 
 ## Screenshots / Demo Media
