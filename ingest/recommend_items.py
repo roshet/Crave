@@ -1,3 +1,15 @@
+import math
+
+# Max extra contribution a single nutrient term can add beyond its cap. Keeps the
+# "no single nutrient dominates" property while letting the score keep discriminating
+# past the cap (a hard clamp made e.g. 40g and 80g of fat score identically).
+TAIL_WEIGHT = 0.5
+
+# Sodium is missing for some restaurants (e.g. Wendy's). Treating it as 0 gave those
+# items an unfair free pass. We impute a representative value instead. api.py overwrites
+# this at startup with the median sodium of items that report it, so it tracks the data.
+IMPUTED_SODIUM_MG = 600.0
+
 GOAL_PROFILES  = {
     "balanced": {
         "protein": 1.2,
@@ -44,6 +56,27 @@ def clamp(value, max_value):
         return 0.0
     return min(value / max_value, 1.0)
 
+def saturate(value, cap):
+    """Like clamp() within [0, cap], but keeps rising past the cap with diminishing
+    returns instead of flattening at 1.0. Bounded by (1 + TAIL_WEIGHT)."""
+    if cap == 0:
+        return 0.0
+    base = min(value / cap, 1.0)                              # unchanged in-range
+    overflow = max(value - cap, 0.0)
+    extra = TAIL_WEIGHT * (1.0 - math.exp(-overflow / cap))   # 0 at cap -> TAIL_WEIGHT
+    return base + extra
+
+def score_bounds(goal="balanced"):
+    """Analytic per-item min/max of health_score for a goal, derived from the weights
+    and TAIL_WEIGHT. The frontend uses these to map raw scores onto a 0-100 scale, so
+    they stay in sync with the weights automatically (no hand-tuned constants)."""
+    w = GOAL_PROFILES.get(goal, GOAL_PROFILES["balanced"])
+    term = 1.0 + TAIL_WEIGHT
+    return {
+        "max": term * w["protein"],
+        "min": -term * (w["sugars"] + w["fat"] + w["carbs"] + w["sodium"] + w["calories"]),
+    }
+
 def health_score(item, goal = "balanced", max_calories = 600):
     w = GOAL_PROFILES.get(goal, GOAL_PROFILES["balanced"])
 
@@ -51,18 +84,19 @@ def health_score(item, goal = "balanced", max_calories = 600):
     sugars = item.get("sugars") or 0
     fat = item.get("fat") or 0
     carbs = item.get("carbohydrate") or item.get("carbs") or 0
-    # sodium may be None for some restaurants (e.g. Wendy's) — treat as 0 (no penalty, no bonus)
+    # sodium may be None for some restaurants (e.g. Wendy's) — impute so missing data
+    # doesn't earn a free pass relative to items that honestly report sodium
     sodium_raw = item.get("sodium")
-    sodium = sodium_raw if sodium_raw is not None else 0
+    sodium = sodium_raw if sodium_raw is not None else IMPUTED_SODIUM_MG
     calories = item.get("calories") or 0
 
-    protein_score = clamp(protein, 30) * w["protein"]
+    protein_score = saturate(protein, 30) * w["protein"]
 
-    sugar_penalty = clamp(sugars, 25) * w["sugars"]
-    fat_penalty = clamp(fat, 40) * w["fat"]
-    carb_penalty = clamp(carbs, 60) * w["carbs"]
-    sodium_penalty = clamp(sodium, 2000) * w["sodium"]
-    calorie_penalty = clamp(calories, max_calories) * w["calories"]
+    sugar_penalty = saturate(sugars, 25) * w["sugars"]
+    fat_penalty = saturate(fat, 40) * w["fat"]
+    carb_penalty = saturate(carbs, 60) * w["carbs"]
+    sodium_penalty = saturate(sodium, 2000) * w["sodium"]
+    calorie_penalty = saturate(calories, max_calories) * w["calories"]
 
     score = (
         protein_score
@@ -81,7 +115,7 @@ def explain_item(item, goal):
     fat = item.get("fat") or 0
     carbs = item.get("carbohydrate") or item.get("carbs") or 0
     sodium_raw = item.get("sodium")
-    sodium = sodium_raw if sodium_raw is not None else 0
+    sodium = sodium_raw if sodium_raw is not None else IMPUTED_SODIUM_MG
     calories = item.get("calories") or 0
 
     reasons = []

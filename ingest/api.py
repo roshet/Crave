@@ -5,7 +5,10 @@ import os
 import sys
 from pathlib import Path
 
-from recommend_items import get_recommendations, humanize_items, build_optimal_meal
+import statistics
+
+import recommend_items
+from recommend_items import get_recommendations, humanize_items, build_optimal_meal, score_bounds
 
 app = FastAPI(title = "Fast Food Health Recommender")
 
@@ -46,6 +49,17 @@ wendys_items = _load_json(BASE_DIR / "wendys_items.json")
 tacobell_items = _load_json(BASE_DIR / "tacobell_items.json")
 
 ALL_ITEMS = mcdonalds_items + chickfila_items + wendys_items + tacobell_items
+
+# Impute missing sodium so restaurants lacking the data (e.g. Wendy's) don't get an
+# unfair scoring advantage. Use the median of *food* items that report sodium — every
+# missing-sodium item is a food, and including near-zero-sodium drinks would skew the
+# reference far too low. Tracks the data instead of hardcoding a magic number.
+_reported_sodium = [
+    it["sodium"] for it in ALL_ITEMS
+    if it.get("sodium") is not None and it.get("item_type") not in ("drink", "sauce")
+]
+if _reported_sodium:
+    recommend_items.IMPUTED_SODIUM_MG = float(statistics.median(_reported_sodium))
 
 @app.get("/")
 def root():
@@ -114,12 +128,14 @@ def recommend(
             "summary": f"Top {len(results)} {goal.replace('_',' ')} items"
                        + (f" in {category}" if category else ""),
             "results": humanize_items(results),
+            "score_bounds": score_bounds(goal),
         }
 
     return {
         "summary": f"Top {len(results)} {goal.replace('_',' ')} items from {restaurant}"
                    + (f" in {category}" if category else ""),
         "results": results,
+        "score_bounds": score_bounds(goal),
     }
 
 
@@ -181,7 +197,8 @@ def optimize_meal(
                     "total_calories": m["total_calories"],
                 }
                 for m in meal["meals"]
-            ]
+            ],
+            "score_bounds": score_bounds(goal),
         }
 
-    return meal
+    return {**meal, "score_bounds": score_bounds(goal)}

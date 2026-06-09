@@ -35,19 +35,15 @@ const NAME_EMOJI_OVERRIDES = [
   { test: /\bbun\b/i, result: { emoji: "🍞", gradient: ["#fef3c7", "#d97706"] } },
 ];
 
-// Theoretical min/max of health_score per goal — derived from GOAL_PROFILES weights
-// in recommend_items.py. Used to map raw scores onto a friendly 0–100 scale.
-const SCORE_RANGES = {
-  balanced:     { min: -4.8, max: 1.2 },
-  high_protein: { min: -4.0, max: 2.0 },
-  low_sugar:    { min: -5.4, max: 1.0 },
-  low_fat:      { min: -5.4, max: 1.0 },
-};
-
-function normalizeScore(rawScore, goal, itemCount = 1) {
-  const r = SCORE_RANGES[goal] || SCORE_RANGES.balanced;
-  const minTotal = r.min * itemCount;
-  const maxTotal = r.max * itemCount;
+// Map a raw health_score onto a friendly 0–100 scale using the per-item min/max bounds
+// the backend ships with each response (see score_bounds() in recommend_items.py). The
+// backend owns these numbers so they can never drift out of sync with the scoring weights.
+// `bounds` is { min, max }; `itemCount` scales them for multi-item meal totals.
+function normalizeScore(rawScore, bounds, itemCount = 1) {
+  if (!bounds) return 0;
+  const minTotal = bounds.min * itemCount;
+  const maxTotal = bounds.max * itemCount;
+  if (maxTotal === minTotal) return 0;
   const pct = ((Number(rawScore ?? 0) - minTotal) / (maxTotal - minTotal)) * 100;
   return Math.max(0, Math.min(100, Math.round(pct)));
 }
@@ -159,6 +155,9 @@ function App() {
 
   // Browse
   const [results, setResults]         = useState([]);
+  // Per-item score min/max from the backend, used to normalize raw scores to 0–100.
+  // Shared by Browse and Optimize since both use the same `goal`.
+  const [scoreBounds, setScoreBounds] = useState(null);
   const [search, setSearch]           = useState("");
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState("");
@@ -281,6 +280,7 @@ function App() {
       if (!res.ok) throw new Error(`API error (${res.status}): ${await res.text()}`);
       const data = await res.json();
       setResults(data.results || []);
+      if (data.score_bounds) setScoreBounds(data.score_bounds);
     } catch (e) {
       setResults([]);
       setError(e.name === "AbortError" ? "Request timed out. Please try again." : e.message || "Something went wrong.");
@@ -306,6 +306,7 @@ function App() {
         return;
       }
       setOptimizedMealResults(data.meals);
+      if (data.score_bounds) setScoreBounds(data.score_bounds);
     } catch (e) {
       setOptimizeError(e.name === "AbortError" ? "Request timed out. Please try again." : e.message || "Something went wrong.");
     } finally {
@@ -521,7 +522,7 @@ function App() {
                       )}
                     </div>
                     <div className="itemScore" title={`Health score for ${goal.replace(/_/g," ")} goal`}>
-                      {normalizeScore(item.score, goal)}<span className="itemScoreUnit">/100</span>
+                      {normalizeScore(item.score, scoreBounds)}<span className="itemScoreUnit">/100</span>
                     </div>
                   </div>
                 );
@@ -598,7 +599,7 @@ function App() {
                           {mealOption.items.map((m) => m.title || m.name).join(", ")}
                         </p>
                         <p className="altCardStats">
-                          {mealOption.total_calories} kcal · Score: {normalizeScore(mealOption.total_score, goal, mealOption.items.length)}/100
+                          {mealOption.total_calories} kcal · Score: {normalizeScore(mealOption.total_score, scoreBounds, mealOption.items.length)}/100
                         </p>
                         <div className="deltaRow">
                           <strong>Δ vs current:</strong>{" "}
@@ -661,7 +662,7 @@ function App() {
                   <div key={idx} className="optimizeCard">
                     <div className="optimizeCardHeader">
                       <span className="optimizeRank">#{idx + 1}</span>
-                      <span className="optimizeScore" title={`Health score for ${goal.replace(/_/g," ")} goal`}>Score {normalizeScore(result.total_score, goal, result.items.length)}/100</span>
+                      <span className="optimizeScore" title={`Health score for ${goal.replace(/_/g," ")} goal`}>Score {normalizeScore(result.total_score, scoreBounds, result.items.length)}/100</span>
                     </div>
                     <p className="optimizeItems">
                       {result.items.map((m) => m.title || m.name).join(", ")}
@@ -706,7 +707,7 @@ function App() {
               </div>
               {typeof modalItem.score !== "undefined" && (
                 <span className="modalScoreBadge" title={`Health score for ${goal.replace(/_/g," ")} goal`}>
-                  {normalizeScore(modalItem.score, goal)}<span className="modalScoreUnit">/100</span>
+                  {normalizeScore(modalItem.score, scoreBounds)}<span className="modalScoreUnit">/100</span>
                 </span>
               )}
             </div>

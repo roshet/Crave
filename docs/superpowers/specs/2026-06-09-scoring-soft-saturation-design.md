@@ -57,8 +57,11 @@ items carry a fair penalty and gain no cross-restaurant advantage:
 - `IMPUTED_SODIUM_MG = 600.0` module constant in `recommend_items.py` (default).
 - `health_score()` and `explain_item()` use it when `sodium is None`. `explain_item`
   keeps the honest `"sodium data unavailable"` reason string.
-- `api.py` computes the median sodium of items that report it at startup and assigns it
-  to `recommend_items.IMPUTED_SODIUM_MG`, so the value tracks the data (no magic number).
+- `api.py` computes, at startup, the median sodium of **food** items that report it
+  (drinks/sauces excluded — they skew near zero, and all missing-sodium items happen to
+  be foods) and assigns it to `recommend_items.IMPUTED_SODIUM_MG`, so the value tracks
+  the data (no magic number). In the current dataset this is ~660 mg vs ~195 mg if drinks
+  were included.
 
 This shifts every Wendy's item by the same amount → Wendy's *internal* ordering is
 unchanged; only the unfair cross-chain boost is removed.
