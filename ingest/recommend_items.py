@@ -51,11 +51,6 @@ GOAL_CONSTRAINTS = {
     "low_fat": {"max_fat": 30},
 }
 
-def clamp(value, max_value):
-    if max_value == 0:
-        return 0.0
-    return min(value / max_value, 1.0)
-
 def saturate(value, cap):
     """Like clamp() within [0, cap], but keeps rising past the cap with diminishing
     returns instead of flattening at 1.0. Bounded by (1 + TAIL_WEIGHT)."""

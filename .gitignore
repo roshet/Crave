@@ -8,6 +8,7 @@ fast-food-ui/.vercel
 ingest/__pycache__/
 *.pyc
 .venv/
+.pytest_cache/
 
 # OS/editor
 .DS_Store
