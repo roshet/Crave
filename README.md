@@ -94,13 +94,35 @@ Create `fast-food-ui/.env`:
 VITE_API_BASE_URL=http://127.0.0.1:8000
 ```
 
+## Testing & CI
+
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push to `main` and on pull
+requests, with two jobs:
+
+- **backend** — `pip install`, `python -c "import api"`, then `pytest`
+  (`ingest/test_scoring.py` scoring math + `ingest/test_api.py` endpoint/optimizer tests).
+- **frontend** — `npm ci`, `npm run lint`, `npm run build`.
+
+Run the same checks locally:
+
+```bash
+cd ingest && pip install -r requirements.txt && python -m pytest -q
+cd fast-food-ui && npm run lint && npm run build
+```
+
+Design specs for major changes live in `docs/superpowers/specs/`.
+
 ## Deployment Notes
 
-- Frontend reads backend URL from `VITE_API_BASE_URL`
-- Backend CORS is controlled through `CORS_ORIGINS`
-- Production values:
-  - `VITE_API_BASE_URL=https://crave-2jtg.onrender.com` (Vercel)
-  - `CORS_ORIGINS=https://fast-food-ui.vercel.app` (Render)
+Two environment variables wire the two halves together. See `ingest/.env.example` and
+`fast-food-ui/.env.example` for templates.
+
+| Variable | Set in | Production value | Symptom if wrong/missing |
+| --- | --- | --- | --- |
+| `VITE_API_BASE_URL` | Vercel (frontend) | `https://crave-2jtg.onrender.com` | Frontend falls back to `http://127.0.0.1:8000` and shows no data in production |
+| `CORS_ORIGINS` | Render (backend) | `https://fast-food-ui.vercel.app` | Browser blocks every API call with a CORS error; UI silently empty |
+
+`GET /health` returns dataset counts and is a good uptime/readiness probe.
 
 ## Screenshots / Demo Media
 ### Recommendations View
@@ -121,9 +143,9 @@ VITE_API_BASE_URL=http://127.0.0.1:8000
 
 - Add authentication and saved meal plans
 - Add more restaurant datasets
-- Add automated tests (unit + integration + API contract)
+- Add frontend component tests (backend unit + API/integration tests are in place)
 - Add caching and performance profiling
-- Add dark mode and accessibility improvements
+- Accessibility improvements (dark mode shipped)
 
 ## Author
 
