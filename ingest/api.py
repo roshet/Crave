@@ -1,8 +1,10 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 import json
+import logging
 import os
 import sys
+import time
 from pathlib import Path
 
 import statistics
@@ -27,6 +29,28 @@ app.add_middleware(
     allow_methods=["GET"],
     allow_headers=["Content-Type"],
 )
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s %(message)s",
+)
+logger = logging.getLogger("crave.api")
+
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """Log method, path, status, and latency so Render logs are usable for debugging."""
+    start = time.perf_counter()
+    response = await call_next(request)
+    duration_ms = (time.perf_counter() - start) * 1000
+    logger.info(
+        "%s %s -> %s (%.1fms)",
+        request.method,
+        request.url.path,
+        response.status_code,
+        duration_ms,
+    )
+    return response
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -66,7 +90,21 @@ def root():
     return {
         "message": "Crave API is live.",
         "docs": "/docs",
-        "endpoints": ["/recommend", "/optimize_meal", "/categories"],
+        "endpoints": ["/recommend", "/optimize_meal", "/categories", "/health"],
+    }
+
+@app.get("/health")
+def health():
+    """Liveness/readiness probe: confirms data loaded. Use for uptime checks."""
+    return {
+        "status": "ok",
+        "items": len(ALL_ITEMS),
+        "restaurants": {
+            "mcdonalds": len(mcdonalds_items),
+            "chickfila": len(chickfila_items),
+            "wendys": len(wendys_items),
+            "tacobell": len(tacobell_items),
+        },
     }
 
 @app.get("/categories")
