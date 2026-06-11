@@ -177,11 +177,22 @@ body { margin: 0; }
   border-radius: var(--radius-card);
   cursor: pointer;
   transition: box-shadow 0.15s, border-color 0.15s;
+  /* rendered as a <button> for keyboard access — reset native button styling */
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  appearance: none;
 }
 
 .itemRow:hover {
   border-color: #c7c4c1;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.itemRow:focus-visible {
+  outline: 2px solid var(--accent, #6366f1);
+  outline-offset: 2px;
 }
 
 .itemThumbnail {
@@ -264,6 +275,7 @@ body { margin: 0; }
 }
 
 .modalSheet {
+  position: relative;
   background: var(--card-bg);
   border-radius: 20px 20px 0 0;
   padding: 0 1.25rem 2rem;
@@ -274,6 +286,31 @@ body { margin: 0; }
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+.modalClose {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.9rem;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--text-primary);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.modalClose:hover { background: rgba(0, 0, 0, 0.12); }
+
+.modalClose:focus-visible {
+  outline: 2px solid var(--accent, #6366f1);
+  outline-offset: 2px;
 }
 
 .modalDragHandle {
@@ -544,6 +581,32 @@ body { margin: 0; }
   margin: 0;
 }
 
+.resultCount {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  margin: 0.25rem 0 0;
+}
+
+.optimizeIntro {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  margin: 0 0 0.25rem;
+}
+
+.optimizeEmpty {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.optimizeHint {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
 /* ===== ALT MEALS ===== */
 .altSection { margin-top: 0.25rem; }
 
@@ -772,6 +835,8 @@ body { margin: 0; }
 [data-theme="dark"] .nutritionTile { background: #1c1917; }
 [data-theme="dark"] .modalSheet { background: #292524; }
 [data-theme="dark"] .modalDragHandle { background: #44403c; }
+[data-theme="dark"] .modalClose { background: rgba(255, 255, 255, 0.1); }
+[data-theme="dark"] .modalClose:hover { background: rgba(255, 255, 255, 0.18); }
 [data-theme="dark"] .summaryBadge { background: #14532d; color: #86efac; }
 [data-theme="dark"] .addToMealBtn { background: #fafaf9; color: #1c1917; }
 [data-theme="dark"] .addToMealBtn--added { background: #44403c; color: #78716c; }
