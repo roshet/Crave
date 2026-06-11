@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import "./App.css";
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000").replace(/\/+$/, "");
@@ -130,6 +130,24 @@ function deltaStyle(delta, higherIsBetter) {
   return { color: "#64748b", fontWeight: 600 };
 }
 
+// Single source of truth for summing a list of items' nutrition. Used everywhere a
+// meal total is needed (meal builder, alternative-meal deltas, optimizer goal checks)
+// so the field set can never drift between call sites.
+function sumNutrition(items) {
+  return items.reduce(
+    (acc, item) => {
+      acc.calories += Number(item.calories ?? 0);
+      acc.protein  += Number(item.protein  ?? 0);
+      acc.sugars   += Number(item.sugars   ?? 0);
+      acc.fat      += Number(item.fat      ?? 0);
+      acc.carbs    += Number(item.carbs    ?? 0);
+      acc.sodium   += Number(item.sodium   ?? 0);
+      return acc;
+    },
+    { calories: 0, protein: 0, sugars: 0, fat: 0, carbs: 0, sodium: 0 }
+  );
+}
+
 function App() {
   // Shared filter state (Browse + Optimize)
   const [goal, setGoal]               = useState("balanced");
@@ -165,6 +183,7 @@ function App() {
 
   // Modal
   const [modalItem, setModalItem] = useState(null);
+  const modalSheetRef = useRef(null);
 
   // Meal
   const [meal, setMeal]                         = useState([]);
@@ -182,12 +201,43 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, goal, restaurant, maxCalories, category]);
 
-  // Escape closes modal
+  // While the modal is open: Escape closes, focus is trapped within the sheet, and
+  // focus is restored to the element that opened it on close.
   useEffect(() => {
     if (!modalItem) return;
-    const onKey = (e) => { if (e.key === "Escape") setModalItem(null); };
+    const previouslyFocused = document.activeElement;
+    const sheet = modalSheetRef.current;
+    const getFocusable = () => sheet
+      ? Array.from(sheet.querySelectorAll(
+          'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        ))
+      : [];
+
+    // Move focus into the dialog on open.
+    getFocusable()[0]?.focus();
+
+    const onKey = (e) => {
+      if (e.key === "Escape") { setModalItem(null); return; }
+      if (e.key !== "Tab") return;
+      const items = getFocusable();
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      if (previouslyFocused && typeof previouslyFocused.focus === "function") {
+        previouslyFocused.focus();
+      }
+    };
   }, [modalItem]);
 
   function isInMeal(item) {
@@ -217,35 +267,12 @@ function App() {
     setActiveTab("meal");
   }
 
-  const mealTotals = useMemo(() =>
-    meal.reduce(
-      (acc, item) => {
-        acc.calories += Number(item.calories ?? 0);
-        acc.protein  += Number(item.protein  ?? 0);
-        acc.sugars   += Number(item.sugars   ?? 0);
-        acc.fat      += Number(item.fat      ?? 0);
-        acc.carbs    += Number(item.carbs    ?? 0);
-        acc.sodium   += Number(item.sodium   ?? 0);
-        return acc;
-      },
-      { calories: 0, protein: 0, sugars: 0, fat: 0, carbs: 0, sodium: 0 }
-    ),
-  [meal]);
+  const mealTotals = useMemo(() => sumNutrition(meal), [meal]);
 
   const alternativeMealsWithDeltas = useMemo(() => {
     const base = mealTotals;
     return alternativeMeals.map((m) => {
-      const t = m.items.reduce(
-        (acc, item) => {
-          acc.calories += Number(item.calories ?? 0);
-          acc.protein  += Number(item.protein  ?? 0);
-          acc.sugars   += Number(item.sugars   ?? 0);
-          acc.fat      += Number(item.fat      ?? 0);
-          acc.sodium   += Number(item.sodium   ?? 0);
-          return acc;
-        },
-        { calories: 0, protein: 0, sugars: 0, fat: 0, sodium: 0 }
-      );
+      const t = sumNutrition(m.items);
       return {
         ...m,
         totals: t,
@@ -360,16 +387,7 @@ function App() {
   }
 
   function checkMealGoal(items) {
-    const t = items.reduce(
-      (acc, item) => {
-        acc.calories += Number(item.calories ?? 0);
-        acc.protein  += Number(item.protein  ?? 0);
-        acc.sugars   += Number(item.sugars   ?? 0);
-        acc.fat      += Number(item.fat      ?? 0);
-        return acc;
-      },
-      { calories: 0, protein: 0, sugars: 0, fat: 0 }
-    );
+    const t = sumNutrition(items);
     const checks = [];
     if (goal === "high_protein") checks.push(t.protein >= 35 ? "✓ High Protein" : "✗ Low Protein");
     if (goal === "low_sugar")    checks.push(t.sugars  <= 20 ? "✓ Low Sugar"    : "✗ High Sugar");
@@ -387,20 +405,20 @@ function App() {
   function FilterChips({ showCategory }) {
     return (
       <div className="filterChips">
-        <select className="chipSelect" value={restaurant} onChange={(e) => { setRestaurant(e.target.value); setCategory(""); }}>
+        <select className="chipSelect" aria-label="Restaurant" value={restaurant} onChange={(e) => { setRestaurant(e.target.value); setCategory(""); }}>
           <option value="mcdonalds">McDonald&#39;s</option>
           <option value="chickfila">Chick-fil-A</option>
           <option value="wendys">Wendy&#39;s</option>
           <option value="tacobell">Taco Bell</option>
           <option value="all">All</option>
         </select>
-        <select className="chipSelect" value={goal} onChange={(e) => setGoal(e.target.value)}>
+        <select className="chipSelect" aria-label="Nutrition goal" value={goal} onChange={(e) => setGoal(e.target.value)}>
           <option value="balanced">Balanced</option>
           <option value="high_protein">High Protein</option>
           <option value="low_sugar">Low Sugar</option>
           <option value="low_fat">Low Fat</option>
         </select>
-        <select className="chipSelect" value={maxCalories} onChange={(e) => setMaxCalories(Number(e.target.value))}>
+        <select className="chipSelect" aria-label="Maximum calories" value={maxCalories} onChange={(e) => setMaxCalories(Number(e.target.value))}>
           <option value={300}>300 cal</option>
           <option value={400}>400 cal</option>
           <option value={500}>500 cal</option>
@@ -409,7 +427,7 @@ function App() {
           <option value={1000}>1000 cal</option>
         </select>
         {showCategory && restaurant !== "all" && (
-          <select className="chipSelect" value={category} onChange={(e) => setCategory(e.target.value)}>
+          <select className="chipSelect" aria-label="Category" value={category} onChange={(e) => setCategory(e.target.value)}>
             <option value="">All categories</option>
             {currentCategories.map((c) => (
               <option key={c.value} value={c.value}>{c.label}</option>
@@ -459,7 +477,7 @@ function App() {
       </header>
 
       {/* Tab bar */}
-      <nav className="tabBar">
+      <nav className="tabBar" role="tablist" aria-label="Views">
         {[
           { id: "browse",   label: "Browse" },
           { id: "meal",     label: meal.length > 0 ? `Meal Builder (${meal.length})` : "Meal Builder" },
@@ -467,6 +485,8 @@ function App() {
         ].map((tab) => (
           <button
             key={tab.id}
+            role="tab"
+            aria-selected={activeTab === tab.id}
             className={`tabBtn${activeTab === tab.id ? " tabActive" : ""}`}
             onClick={() => setActiveTab(tab.id)}
           >
@@ -486,12 +506,19 @@ function App() {
               <input
                 className="searchInput"
                 type="text"
-                placeholder="Search items..."
+                placeholder="Filter these results…"
+                aria-label="Filter the loaded results by name"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
             {error && <p className="errorMsg">{error}</p>}
+            {!loading && !error && results.length > 0 && (
+              <p className="resultCount">
+                Showing {displayedResults.length} of {results.length} items
+                {search.trim() ? " matching your filter" : " for these filters"}
+              </p>
+            )}
             <div className="itemList">
               {loading && [0,1,2,3,4].map((i) => <SkeletonRow key={i} />)}
               {!loading && hasSearched && displayedResults.length === 0 && !error && (
@@ -501,7 +528,13 @@ function App() {
                 const { emoji, gradient } = getThumbnail(item);
                 const tags = getItemTags(item);
                 return (
-                  <div key={getItemKey(item)} className="itemRow" onClick={() => setModalItem(item)}>
+                  <button
+                    key={getItemKey(item)}
+                    type="button"
+                    className="itemRow"
+                    onClick={() => setModalItem(item)}
+                    aria-label={`View details for ${item.title || item.name}`}
+                  >
                     <div
                       className="itemThumbnail"
                       style={{ background: `linear-gradient(135deg, ${gradient[0]}, ${gradient[1]})` }}
@@ -521,10 +554,14 @@ function App() {
                         </div>
                       )}
                     </div>
-                    <div className="itemScore" title={`Health score for ${goal.replace(/_/g," ")} goal`}>
+                    <div
+                      className="itemScore"
+                      title={`Health score for ${goal.replace(/_/g," ")} goal`}
+                      aria-label={`Health score ${normalizeScore(item.score, scoreBounds)} out of 100`}
+                    >
                       {normalizeScore(item.score, scoreBounds)}<span className="itemScoreUnit">/100</span>
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -632,6 +669,11 @@ function App() {
         {/* ── OPTIMIZE ── */}
         {activeTab === "optimize" && (
           <div className="optimizeTab">
+            <p className="optimizeIntro">
+              Picks the best entrée + side + drink combo under your calorie cap for the
+              selected goal, and shows the top 3 meals. Adjust the filters or a preset below,
+              then build.
+            </p>
             <FilterChips showCategory={false} />
 
             <div className="presetGrid">
@@ -654,7 +696,15 @@ function App() {
               {optimizeLoading ? "Building..." : "⚡ Build Optimal Meal"}
             </button>
 
-            {optimizeError && <p className="errorMsg">{optimizeError}</p>}
+            {optimizeError && (
+              <div className="optimizeEmpty">
+                <p className="errorMsg">{optimizeError}</p>
+                <p className="optimizeHint">
+                  Try raising the calorie cap, switching the goal, or picking a different
+                  restaurant — some menus don&#39;t have a combo that fits every constraint.
+                </p>
+              </div>
+            )}
 
             {optimizedMealResults.length > 0 && (
               <div className="optimizeResults">
@@ -662,7 +712,11 @@ function App() {
                   <div key={idx} className="optimizeCard">
                     <div className="optimizeCardHeader">
                       <span className="optimizeRank">#{idx + 1}</span>
-                      <span className="optimizeScore" title={`Health score for ${goal.replace(/_/g," ")} goal`}>Score {normalizeScore(result.total_score, scoreBounds, result.items.length)}/100</span>
+                      <span
+                        className="optimizeScore"
+                        title={`Health score for ${goal.replace(/_/g," ")} goal`}
+                        aria-label={`Health score ${normalizeScore(result.total_score, scoreBounds, result.items.length)} out of 100`}
+                      >Score {normalizeScore(result.total_score, scoreBounds, result.items.length)}/100</span>
                     </div>
                     <p className="optimizeItems">
                       {result.items.map((m) => m.title || m.name).join(", ")}
@@ -689,8 +743,16 @@ function App() {
       {/* ── ITEM DETAIL MODAL ── */}
       {modalItem && (
         <div className="modalBackdrop" onClick={() => setModalItem(null)}>
-          <div className="modalSheet" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="modalSheet"
+            ref={modalSheetRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modalItemName"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modalDragHandle" />
+            <button className="modalClose" aria-label="Close" onClick={() => setModalItem(null)}>✕</button>
 
             <div className="modalItemHeader">
               {(() => {
@@ -702,11 +764,15 @@ function App() {
                 );
               })()}
               <div className="modalItemMeta">
-                <h2 className="modalItemName">{modalItem.title || modalItem.name}</h2>
+                <h2 className="modalItemName" id="modalItemName">{modalItem.title || modalItem.name}</h2>
                 <p className="modalItemSub">{modalItem.restaurant} · {modalItem.category}</p>
               </div>
               {typeof modalItem.score !== "undefined" && (
-                <span className="modalScoreBadge" title={`Health score for ${goal.replace(/_/g," ")} goal`}>
+                <span
+                  className="modalScoreBadge"
+                  title={`Health score for ${goal.replace(/_/g," ")} goal`}
+                  aria-label={`Health score ${normalizeScore(modalItem.score, scoreBounds)} out of 100`}
+                >
                   {normalizeScore(modalItem.score, scoreBounds)}<span className="modalScoreUnit">/100</span>
                 </span>
               )}
