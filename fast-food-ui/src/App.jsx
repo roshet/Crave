@@ -27,6 +27,10 @@ const CATEGORY_EMOJI = {
   nachos:         { emoji: "🧀", gradient: ["#fef08a", "#eab308"] },
   specialties:    { emoji: "🫔", gradient: ["#fecaca", "#ef4444"] },
   sweets:         { emoji: "🍩", gradient: ["#fce7f3", "#ec4899"] },
+  catering:       { emoji: "🍱", gradient: ["#fde68a", "#d97706"] },
+  sauces:         { emoji: "🥫", gradient: ["#fecaca", "#ef4444"] },
+  dressings:      { emoji: "🫙", gradient: ["#d9f99d", "#65a30d"] },
+  buns:           { emoji: "🍞", gradient: ["#fef3c7", "#d97706"] },
 };
 const DEFAULT_EMOJI = { emoji: "🍽️", gradient: ["#f1f5f9", "#94a3b8"] };
 

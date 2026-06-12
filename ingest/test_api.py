@@ -119,6 +119,32 @@ def test_optimize_impossible_constraint_returns_message_not_crash():
     assert "message" in resp.json()  # graceful "No valid meal found", no 500
 
 
+def test_optimize_chickfila_never_picks_catering():
+    """The Chick-fil-A cleanup parked gallons/trays in a `catering` category that is
+    in NO optimizer set, so multi-serve catering can never be built into a meal."""
+    resp = client.get("/optimize_meal", params={"restaurant": "chickfila"})
+    assert resp.status_code == 200
+    for meal in resp.json()["meals"]:
+        for item in meal["items"]:
+            assert item.get("category") != "catering"
+
+
+# --- data quality ------------------------------------------------------------
+
+def test_chickfila_ice_junk_rows_removed():
+    """The cleanup deleted non-food ice rows (scoop/bucket/bag/products) that the
+    optimizer could otherwise surface as a meal component."""
+    from api import chickfila_items
+
+    ids = {i["item_id"] for i in chickfila_items}
+    assert not (ids & {
+        "chickfila_ice_scoop",
+        "chickfila_ice_bucket_and_scoop",
+        "chickfila_bag_of_ice",
+        "chickfila_ice_products",
+    })
+
+
 # --- /categories -------------------------------------------------------------
 
 def test_categories_returns_list():
