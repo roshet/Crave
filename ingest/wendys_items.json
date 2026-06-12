@@ -10,7 +10,7 @@
     "fat": 29.0,
     "carbohydrate": 37.0,
     "sugars": 8.2,
-    "sodium": null
+    "sodium": 880
   },
   {
     "item_id": "Dave's Double",
@@ -23,7 +23,7 @@
     "fat": 56.0,
     "carbohydrate": 39.0,
     "sugars": 9.7,
-    "sodium": null
+    "sodium": 1760
   },
   {
     "item_id": "Dave's Triple",
@@ -36,7 +36,7 @@
     "fat": 80.0,
     "carbohydrate": 41.0,
     "sugars": 10.0,
-    "sodium": null
+    "sodium": 2440
   },
   {
     "item_id": "Baconator",
@@ -49,7 +49,7 @@
     "fat": 66.0,
     "carbohydrate": 38.0,
     "sugars": 8.5,
-    "sodium": null
+    "sodium": 2320
   },
   {
     "item_id": "Curry Bean Burger",
@@ -62,7 +62,7 @@
     "fat": 25.0,
     "carbohydrate": 57.0,
     "sugars": 9.0,
-    "sodium": null
+    "sodium": 1120
   },
   {
     "item_id": "Spicy Chicken",
@@ -75,7 +75,7 @@
     "fat": 15.0,
     "carbohydrate": 45.0,
     "sugars": 6.3,
-    "sodium": null
+    "sodium": 880
   },
   {
     "item_id": "Classic Chicken",
@@ -88,7 +88,7 @@
     "fat": 15.0,
     "carbohydrate": 46.0,
     "sugars": 6.4,
-    "sodium": null
+    "sodium": 1000
   },
   {
     "item_id": "Grilled Chicken",
@@ -101,7 +101,7 @@
     "fat": 10.0,
     "carbohydrate": 35.0,
     "sugars": 6.4,
-    "sodium": null
+    "sodium": 640
   },
   {
     "item_id": "Avocado Chicken Club",
@@ -114,7 +114,7 @@
     "fat": 30.0,
     "carbohydrate": 47.0,
     "sugars": 6.5,
-    "sodium": null
+    "sodium": 1360
   },
   {
     "item_id": "4 Pc Chicken Nuggets",
@@ -127,7 +127,7 @@
     "fat": 5.6,
     "carbohydrate": 4.9,
     "sugars": 0.0,
-    "sodium": null
+    "sodium": 372
   },
   {
     "item_id": "6 Pc Chicken Nuggets",
@@ -140,7 +140,7 @@
     "fat": 8.4,
     "carbohydrate": 7.4,
     "sugars": 0.0,
-    "sodium": null
+    "sodium": 560
   },
   {
     "item_id": "10 Pc Chicken Nuggets",
@@ -153,7 +153,7 @@
     "fat": 14.0,
     "carbohydrate": 12.0,
     "sugars": 0.0,
-    "sodium": null
+    "sodium": 920
   },
   {
     "item_id": "20 Pc Chicken Nuggets",
@@ -166,7 +166,7 @@
     "fat": 28.0,
     "carbohydrate": 25.0,
     "sugars": 0.0,
-    "sodium": null
+    "sodium": 1840
   },
   {
     "item_id": "4 Pc Spicy Chicken Nuggets",
@@ -179,7 +179,7 @@
     "fat": 2.8,
     "carbohydrate": 6.5,
     "sugars": 0.0,
-    "sodium": null
+    "sodium": 148
   },
   {
     "item_id": "6 Pc Spicy Chicken Nuggets",
@@ -192,7 +192,7 @@
     "fat": 4.1,
     "carbohydrate": 9.8,
     "sugars": 0.0,
-    "sodium": null
+    "sodium": 220
   },
   {
     "item_id": "10 Pc Spicy Chicken Nuggets",
@@ -205,7 +205,7 @@
     "fat": 6.8,
     "carbohydrate": 16.0,
     "sugars": 0.6,
-    "sodium": null
+    "sodium": 368
   },
   {
     "item_id": "20 Pc Spicy Chicken Nuggets",
@@ -218,7 +218,7 @@
     "fat": 13.0,
     "carbohydrate": 33.0,
     "sugars": 1.2,
-    "sodium": null
+    "sodium": 720
   },
   {
     "item_id": "Spicy Chicken Mayo Wrap",
@@ -231,7 +231,7 @@
     "fat": 20.0,
     "carbohydrate": 27.0,
     "sugars": 1.5,
-    "sodium": null
+    "sodium": 520
   },
   {
     "item_id": "Spicy Chicken Avocado Wrap",
@@ -244,7 +244,7 @@
     "fat": 11.0,
     "carbohydrate": 27.0,
     "sugars": 2.1,
-    "sodium": null
+    "sodium": 440
   },
   {
     "item_id": "Crispy Chicken Curry Mayo Wrap",
@@ -257,7 +257,7 @@
     "fat": 16.0,
     "carbohydrate": 28.0,
     "sugars": 2.6,
-    "sodium": null
+    "sodium": 480
   },
   {
     "item_id": "Spicy Chicken BBQ Wrap",
@@ -270,7 +270,7 @@
     "fat": 9.7,
     "carbohydrate": 32.0,
     "sugars": 5.8,
-    "sodium": null
+    "sodium": 560
   },
   {
     "item_id": "Cheeseburger Deluxe",
@@ -283,7 +283,7 @@
     "fat": 19.0,
     "carbohydrate": 31.0,
     "sugars": 7.3,
-    "sodium": null
+    "sodium": 760
   },
   {
     "item_id": "Bacon Cheeseburger",
@@ -296,7 +296,7 @@
     "fat": 23.0,
     "carbohydrate": 30.0,
     "sugars": 5.9,
-    "sodium": null
+    "sodium": 920
   },
   {
     "item_id": "Caesar Chicken Salad",
@@ -309,7 +309,7 @@
     "fat": 31.0,
     "carbohydrate": 4.2,
     "sugars": 3.7,
-    "sodium": null
+    "sodium": 840
   },
   {
     "item_id": "Avocado Chicken Salad",
@@ -322,7 +322,7 @@
     "fat": 36.0,
     "carbohydrate": 7.5,
     "sugars": 5.2,
-    "sodium": null
+    "sodium": 880
   },
   {
     "item_id": "Value Fries",
@@ -335,7 +335,7 @@
     "fat": 6.7,
     "carbohydrate": 18.0,
     "sugars": 3.5,
-    "sodium": null
+    "sodium": 840
   },
   {
     "item_id": "Medium Fries",
@@ -348,7 +348,7 @@
     "fat": 8.5,
     "carbohydrate": 22.0,
     "sugars": 3.7,
-    "sodium": null
+    "sodium": 840
   },
   {
     "item_id": "Large Fries",
@@ -361,7 +361,7 @@
     "fat": 11.0,
     "carbohydrate": 31.0,
     "sugars": 6.8,
-    "sodium": null
+    "sodium": 960
   },
   {
     "item_id": "Baconator Fries",
@@ -374,7 +374,7 @@
     "fat": 34.0,
     "carbohydrate": 25.0,
     "sugars": 2.6,
-    "sodium": null
+    "sodium": 680
   },
   {
     "item_id": "Cheesy Topped Fries",
@@ -387,7 +387,7 @@
     "fat": 24.0,
     "carbohydrate": 25.0,
     "sugars": 2.5,
-    "sodium": null
+    "sodium": 1040
   },
   {
     "item_id": "Plain Potato",
@@ -400,7 +400,7 @@
     "fat": 5.4,
     "carbohydrate": 39.0,
     "sugars": 2.4,
-    "sodium": null
+    "sodium": 760
   },
   {
     "item_id": "Bacon & Cheese Potato",
@@ -413,7 +413,7 @@
     "fat": 20.0,
     "carbohydrate": 40.0,
     "sugars": 3.8,
-    "sodium": null
+    "sodium": 640
   },
   {
     "item_id": "Sour Cream and Chives Potato",
@@ -426,7 +426,7 @@
     "fat": 5.4,
     "carbohydrate": 39.0,
     "sugars": 3.4,
-    "sodium": null
+    "sodium": 16
   },
   {
     "item_id": "Chili",
@@ -439,7 +439,7 @@
     "fat": 13.0,
     "carbohydrate": 14.0,
     "sugars": 3.5,
-    "sodium": null
+    "sodium": 600
   },
   {
     "item_id": "Bottled Water",

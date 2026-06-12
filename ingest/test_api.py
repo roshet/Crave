@@ -145,6 +145,16 @@ def test_chickfila_ice_junk_rows_removed():
     })
 
 
+def test_wendys_food_items_have_real_sodium():
+    """Sodium was derived from the official UK Salt (g) column (salt_g * 400), so no
+    Wendy's food item should fall back to the scoring engine's imputed median."""
+    from api import wendys_items
+
+    missing = [i["name"] for i in wendys_items
+               if i.get("item_type") == "food" and i.get("sodium") is None]
+    assert not missing, f"Wendy's food items lack sodium: {missing}"
+
+
 # --- /categories -------------------------------------------------------------
 
 def test_categories_returns_list():
