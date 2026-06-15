@@ -165,10 +165,11 @@ def humanize_items(items):
         sodium_display = f"{sodium}mg sodium" if sodium is not None else "sodium N/A"
 
         human.append({
+            "item_id": item.get("item_id"),
             "title": item["name"],
             "restaurant": item["restaurant"],
             "category": item["category"],
-            "summary": item["reason"],
+            "summary": item.get("reason", ""),
             "nutrition": (
                 f'{item["calories"]} kcal · '
                 f'{item["protein"]}g protein · '
@@ -185,7 +186,7 @@ def humanize_items(items):
             "carbs": float(item.get("carbohydrate") or item.get("carbs") or 0),
             "sodium": float(item.get("sodium") or 0),
 
-            "score": item["health_score"],
+            "score": item.get("health_score"),
         })
 
     return human

@@ -193,6 +193,7 @@ function App() {
   const [meal, setMeal]                         = useState([]);
   const [alternativeMeals, setAlternativeMeals] = useState([]);
   const [copySuccess, setCopySuccess]           = useState(false);
+  const [shareSuccess, setShareSuccess]         = useState(false);
 
   // Optimize
   const [optimizedMealResults, setOptimizedMealResults] = useState([]);
@@ -204,6 +205,30 @@ function App() {
     if (activeTab === "browse") fetchBrowse();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, goal, restaurant, maxCalories, category]);
+
+  // On first load, rehydrate a shared meal from the ?meal=<ids> URL param. Fetches the
+  // full items by id, drops the user on the Meal Builder, then strips the param so the
+  // address bar stays clean (the meal lives in state; Share regenerates a fresh link).
+  // Fails quietly — a link to since-deleted items should never break the app.
+  useEffect(() => {
+    const raw = new URLSearchParams(window.location.search).get("meal");
+    if (!raw) return;
+    (async () => {
+      try {
+        const resp = await fetch(`${API_BASE_URL}/items?ids=${encodeURIComponent(raw)}`);
+        if (!resp.ok) return;
+        const data = await resp.json();
+        if (data.results?.length) {
+          setMeal(data.results);
+          setActiveTab("meal");
+        }
+      } catch {
+        /* ignore — leave Meal Builder empty */
+      } finally {
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+    })();
+  }, []);
 
   // While the modal is open: Escape closes, focus is trapped within the sheet, and
   // focus is restored to the element that opened it on close.
@@ -362,6 +387,20 @@ function App() {
       setTimeout(() => setCopySuccess(false), 2000);
     } catch {
       setError("Could not copy to clipboard.");
+    }
+  }
+
+  // Build a shareable link encoding the current meal's item_ids, and copy it. Each id is
+  // URL-encoded (Wendy's ids contain spaces/apostrophes); commas separate them.
+  async function shareMeal() {
+    const ids = meal.map((m) => encodeURIComponent(getItemKey(m))).join(",");
+    const url = `${window.location.origin}/?meal=${ids}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareSuccess(true);
+      setTimeout(() => setShareSuccess(false), 2000);
+    } catch {
+      setError("Could not copy link.");
     }
   }
 
@@ -627,6 +666,9 @@ function App() {
                 <div className="actionRow">
                   <button className="btn btnDark" onClick={exportMeal}>
                     {copySuccess ? "✓ Copied!" : "Copy Summary"}
+                  </button>
+                  <button className="btn btnOutline" onClick={shareMeal}>
+                    {shareSuccess ? "✓ Link copied!" : "🔗 Share Meal"}
                   </button>
                   <button className="btn btnOutline" onClick={clearMeal}>Clear</button>
                 </div>

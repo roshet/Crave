@@ -163,3 +163,45 @@ def test_categories_returns_list():
     body = resp.json()
     assert body["restaurant"] == "wendys"
     assert isinstance(body["categories"], list) and body["categories"]
+
+
+# --- /items (shared-meal rehydration) ----------------------------------------
+
+def test_items_round_trips_in_request_order():
+    """Shared-meal links carry item_ids; /items must return them in the same order so
+    the rehydrated meal matches what was shared. Mixes id types across restaurants."""
+    ids = ["Dave's Single", "chickfila_spicy_chicken_biscuit", "600000"]
+    resp = client.get("/items", params={"ids": ",".join(ids)})
+    assert resp.status_code == 200
+    returned = [str(i["item_id"]) for i in resp.json()["results"]]
+    assert returned == ids
+
+
+def test_items_resolves_wendys_string_id():
+    """Wendy's ids are human names with spaces/apostrophes — must resolve as opaque
+    strings, never coerced to int."""
+    resp = client.get("/items", params={"ids": "Dave's Single"})
+    assert resp.status_code == 200
+    results = resp.json()["results"]
+    assert len(results) == 1
+    assert str(results[0]["item_id"]) == "Dave's Single"
+    assert "carbs" in results[0]  # humanized, like /recommend?format=human
+
+
+def test_items_skips_unknown_ids():
+    """A link to a since-deleted item must still load the rest of the meal."""
+    resp = client.get("/items", params={"ids": "Dave's Single,__nope__,600000"})
+    assert resp.status_code == 200
+    returned = [str(i["item_id"]) for i in resp.json()["results"]]
+    assert returned == ["Dave's Single", "600000"]
+
+
+def test_items_empty_ids_is_400():
+    resp = client.get("/items", params={"ids": "  , "})
+    assert resp.status_code == 400
+
+
+def test_items_missing_ids_param_is_422():
+    """`ids` is required, so omitting it is a FastAPI validation error."""
+    resp = client.get("/items")
+    assert resp.status_code == 422
