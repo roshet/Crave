@@ -980,3 +980,53 @@ body { margin: 0; }
 [data-theme="dark"] .targetInput input { background: #1c1917; }
 [data-theme="dark"] .targetRemaining { color: #86efac; }
 [data-theme="dark"] .targetRemaining--over { color: #fca5a5; }
+
+/* ===== SAVED MEALS ===== */
+.savedMeals {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--card-border);
+}
+.savedMealSaveRow {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+.savedMealNameInput {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-input);
+  background: var(--card-bg);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+.savedMealNameInput:disabled { opacity: 0.5; }
+.savedMealsHint {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin: 0.25rem 0 0;
+}
+.savedMealList {
+  display: flex;
+  flex-direction: column;
+}
+.savedMealRow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--card-border);
+}
+.savedMealInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex: 1;
+  min-width: 0;
+}
+.savedMealName { font-size: 0.9rem; font-weight: 600; }
+.savedMealStats { font-size: 0.78rem; color: var(--text-secondary); }
+
+[data-theme="dark"] .savedMealNameInput { background: #1c1917; }
