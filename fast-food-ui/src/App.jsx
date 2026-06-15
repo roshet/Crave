@@ -152,6 +152,52 @@ function sumNutrition(items) {
   );
 }
 
+// Local calendar date as YYYY-MM-DD — the key the daily log resets on.
+function today() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+// Sum the precomputed per-entry totals into a single day total. Reuses the same nutrient
+// keys as sumNutrition so the Today tab stays in lockstep with the Meal Builder.
+function sumDailyLog(entries) {
+  return entries.reduce(
+    (acc, e) => {
+      acc.calories += Number(e.totals?.calories ?? 0);
+      acc.protein  += Number(e.totals?.protein  ?? 0);
+      acc.sugars   += Number(e.totals?.sugars   ?? 0);
+      acc.fat      += Number(e.totals?.fat      ?? 0);
+      return acc;
+    },
+    { calories: 0, protein: 0, sugars: 0, fat: 0 }
+  );
+}
+
+const DEFAULT_TARGETS = { calories: 2000, protein: 100, sugars: 50, fat: 70 };
+
+// Nutrients tracked on the Today tab, with display metadata. Sodium/carbs exist in the data
+// but are intentionally excluded to keep the daily view focused.
+const TARGET_NUTRIENTS = [
+  { key: "calories", label: "Calories", unit: "" },
+  { key: "protein",  label: "Protein",  unit: "g" },
+  { key: "sugars",   label: "Sugar",    unit: "g" },
+  { key: "fat",      label: "Fat",      unit: "g" },
+];
+
+// Read the persisted daily log, resetting to an empty day when the stored date isn't today.
+function loadDailyLog() {
+  const fresh = { date: today(), entries: [] };
+  try {
+    const raw = window.localStorage.getItem("crave_daily_log");
+    if (!raw) return fresh;
+    const parsed = JSON.parse(raw);
+    if (parsed?.date !== today() || !Array.isArray(parsed.entries)) return fresh;
+    return parsed;
+  } catch {
+    return fresh;
+  }
+}
+
 function App() {
   // Shared filter state (Browse + Optimize)
   const [goal, setGoal]               = useState("balanced");
@@ -175,6 +221,25 @@ function App() {
     window.localStorage.setItem("theme", theme);
   }, [theme]);
 
+  // Daily targets — user's budget, persists across days (never auto-reset).
+  const [targets, setTargets] = useState(() => {
+    try {
+      const stored = JSON.parse(window.localStorage.getItem("crave_targets"));
+      return stored && typeof stored === "object" ? { ...DEFAULT_TARGETS, ...stored } : DEFAULT_TARGETS;
+    } catch {
+      return DEFAULT_TARGETS;
+    }
+  });
+  useEffect(() => {
+    window.localStorage.setItem("crave_targets", JSON.stringify(targets));
+  }, [targets]);
+
+  // Today's logged meals — resets when the calendar day rolls over.
+  const [dailyLog, setDailyLog] = useState(loadDailyLog);
+  useEffect(() => {
+    window.localStorage.setItem("crave_daily_log", JSON.stringify(dailyLog));
+  }, [dailyLog]);
+
   // Browse
   const [results, setResults]         = useState([]);
   // Per-item score min/max from the backend, used to normalize raw scores to 0–100.
@@ -194,6 +259,7 @@ function App() {
   const [alternativeMeals, setAlternativeMeals] = useState([]);
   const [copySuccess, setCopySuccess]           = useState(false);
   const [shareSuccess, setShareSuccess]         = useState(false);
+  const [logSuccess, setLogSuccess]             = useState(false);
 
   // Optimize
   const [optimizedMealResults, setOptimizedMealResults] = useState([]);
@@ -297,6 +363,8 @@ function App() {
   }
 
   const mealTotals = useMemo(() => sumNutrition(meal), [meal]);
+
+  const dailyTotals = useMemo(() => sumDailyLog(dailyLog.entries), [dailyLog]);
 
   const alternativeMealsWithDeltas = useMemo(() => {
     const base = mealTotals;
@@ -402,6 +470,38 @@ function App() {
     } catch {
       setError("Could not copy link.");
     }
+  }
+
+  // Append the current meal to today's log as one entry. Applies the day-rollover reset so a
+  // meal logged after midnight starts a fresh day rather than piling onto yesterday.
+  function logMealToToday() {
+    if (meal.length === 0) return;
+    const entry = {
+      id: (crypto.randomUUID?.() ?? String(Date.now())),
+      label: meal.map((m) => m.title || m.name).join(", "),
+      totals: sumNutrition(meal),
+      loggedAt: Date.now(),
+    };
+    setDailyLog((prev) => {
+      const base = prev.date === today() ? prev.entries : [];
+      return { date: today(), entries: [...base, entry] };
+    });
+    setLogSuccess(true);
+    setTimeout(() => setLogSuccess(false), 2000);
+  }
+
+  function removeLogEntry(id) {
+    setDailyLog((prev) => ({ ...prev, entries: prev.entries.filter((e) => e.id !== id) }));
+  }
+
+  function resetDay() {
+    setDailyLog({ date: today(), entries: [] });
+  }
+
+  // Clamp target inputs to non-negative integers; NaN (empty field) becomes 0.
+  function updateTarget(key, raw) {
+    const n = Math.max(0, Math.floor(Number(raw)));
+    setTargets((prev) => ({ ...prev, [key]: Number.isFinite(n) ? n : 0 }));
   }
 
   function getGoalBadges() {
@@ -525,6 +625,7 @@ function App() {
           { id: "browse",   label: "Browse" },
           { id: "meal",     label: meal.length > 0 ? `Meal Builder (${meal.length})` : "Meal Builder" },
           { id: "optimize", label: "Optimize" },
+          { id: "today",    label: dailyLog.entries.length > 0 ? `Today (${dailyLog.entries.length})` : "Today" },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -670,6 +771,9 @@ function App() {
                   <button className="btn btnOutline" onClick={shareMeal}>
                     {shareSuccess ? "✓ Link copied!" : "🔗 Share Meal"}
                   </button>
+                  <button className="btn btnOutline" onClick={logMealToToday}>
+                    {logSuccess ? "✓ Logged!" : "➕ Log to Today"}
+                  </button>
                   <button className="btn btnOutline" onClick={clearMeal}>Clear</button>
                 </div>
 
@@ -782,6 +886,95 @@ function App() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* ── TODAY ── */}
+        {activeTab === "today" && (
+          <div className="todayTab">
+            <p className="optimizeIntro">
+              Set your daily targets, then use <strong>➕ Log to Today</strong> in the Meal
+              Builder to track meals against them. Totals persist on this device and reset each
+              calendar day.
+            </p>
+
+            <div className="targetEditor">
+              <h3 className="todaySectionTitle">Daily targets</h3>
+              <div className="targetInputs">
+                {TARGET_NUTRIENTS.map((n) => (
+                  <label key={n.key} className="targetInput">
+                    <span className="targetInputLabel">{n.label}{n.unit ? ` (${n.unit})` : ""}</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      inputMode="numeric"
+                      aria-label={`Daily ${n.label} target`}
+                      value={targets[n.key]}
+                      onChange={(e) => updateTarget(n.key, e.target.value)}
+                    />
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="targetProgress">
+              <h3 className="todaySectionTitle">Today&#39;s progress</h3>
+              {TARGET_NUTRIENTS.map((n) => {
+                const consumed = dailyTotals[n.key] || 0;
+                const target = targets[n.key] || 0;
+                const pct = target > 0 ? (consumed / target) * 100 : 0;
+                const over = target > 0 && consumed > target;
+                const remaining = target - consumed;
+                return (
+                  <div key={n.key} className="targetRow">
+                    <div className="targetRowHead">
+                      <span className="targetRowName">{n.label}</span>
+                      <span className="targetRowVals">
+                        {consumed.toFixed(0)}{n.unit} / {target}{n.unit}
+                        {target > 0 && (
+                          <span className={over ? "targetRemaining targetRemaining--over" : "targetRemaining"}>
+                            {over
+                              ? ` · ${Math.abs(remaining).toFixed(0)}${n.unit} over`
+                              : ` · ${remaining.toFixed(0)}${n.unit} left`}
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                    <div className={over ? "targetBar targetBar--over" : "targetBar"}>
+                      <div className="targetFill" style={{ width: `${Math.min(100, pct)}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="loggedMeals">
+              <div className="loggedMealsHead">
+                <h3 className="todaySectionTitle">Logged meals</h3>
+                {dailyLog.entries.length > 0 && (
+                  <button className="btn btnOutline btnSm" onClick={resetDay}>Reset day</button>
+                )}
+              </div>
+              {dailyLog.entries.length === 0 ? (
+                <div className="emptyState">
+                  <p>No meals logged today. Build a meal and tap “Log to Today.”</p>
+                </div>
+              ) : (
+                dailyLog.entries.map((e) => (
+                  <div key={e.id} className="loggedMeal">
+                    <div className="loggedMealInfo">
+                      <span className="loggedMealLabel">{e.label}</span>
+                      <span className="loggedMealStats">
+                        {e.totals.calories.toFixed(0)} kcal · {e.totals.protein.toFixed(0)}g protein
+                        · {e.totals.sugars.toFixed(0)}g sugar · {e.totals.fat.toFixed(0)}g fat
+                      </span>
+                    </div>
+                    <button className="mealItemRemove" onClick={() => removeLogEntry(e.id)} aria-label="Remove logged meal">✕</button>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         )}
       </div>

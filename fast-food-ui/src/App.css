@@ -883,3 +883,100 @@ body { margin: 0; }
   padding: 0;
 }
 .themeToggle:hover { background: var(--card-bg); }
+
+/* ===== TODAY TAB ===== */
+.todaySectionTitle {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.targetEditor,
+.targetProgress,
+.loggedMeals {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-card);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.targetInputs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+.targetInput {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.targetInputLabel {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+.targetInput input {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-input);
+  background: var(--bg);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.targetRow { margin-bottom: 0.85rem; }
+.targetRow:last-child { margin-bottom: 0; }
+.targetRowHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.85rem;
+  margin-bottom: 0.3rem;
+}
+.targetRowName { font-weight: 600; }
+.targetRowVals { color: var(--text-secondary); }
+.targetRemaining { color: #15803d; }
+.targetRemaining--over { color: #b91c1c; }
+
+.targetBar {
+  height: 8px;
+  background: var(--card-border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.targetFill {
+  height: 100%;
+  background: #16a34a;
+  border-radius: 999px;
+  transition: width 0.2s ease;
+}
+.targetBar--over .targetFill { background: #dc2626; }
+
+.loggedMealsHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.loggedMeal {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--card-border);
+}
+.loggedMealInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex: 1;
+  min-width: 0;
+}
+.loggedMealLabel { font-size: 0.9rem; font-weight: 500; }
+.loggedMealStats { font-size: 0.78rem; color: var(--text-secondary); }
+
+[data-theme="dark"] .targetEditor,
+[data-theme="dark"] .targetProgress,
+[data-theme="dark"] .loggedMeals { background: #292524; }
+[data-theme="dark"] .targetInput input { background: #1c1917; }
+[data-theme="dark"] .targetRemaining { color: #86efac; }
+[data-theme="dark"] .targetRemaining--over { color: #fca5a5; }
