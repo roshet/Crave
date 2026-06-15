@@ -173,6 +173,13 @@ function sumDailyLog(entries) {
   );
 }
 
+// Auto-name a meal from its first item when the user doesn't type one.
+function defaultMealName(items) {
+  if (!items.length) return "Untitled meal";
+  const first = items[0].title || items[0].name || "Meal";
+  return items.length > 1 ? `${first} +${items.length - 1} more` : first;
+}
+
 const DEFAULT_TARGETS = { calories: 2000, protein: 100, sugars: 50, fat: 70 };
 
 // Nutrients tracked on the Today tab, with display metadata. Sodium/carbs exist in the data
@@ -239,6 +246,21 @@ function App() {
   useEffect(() => {
     window.localStorage.setItem("crave_daily_log", JSON.stringify(dailyLog));
   }, [dailyLog]);
+
+  // Saved meals — named meals the user keeps and reloads later. Persists across sessions.
+  const [savedMeals, setSavedMeals] = useState(() => {
+    try {
+      const stored = JSON.parse(window.localStorage.getItem("crave_saved_meals"));
+      return Array.isArray(stored) ? stored : [];
+    } catch {
+      return [];
+    }
+  });
+  useEffect(() => {
+    window.localStorage.setItem("crave_saved_meals", JSON.stringify(savedMeals));
+  }, [savedMeals]);
+  const [mealName, setMealName]       = useState("");
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   // Browse
   const [results, setResults]         = useState([]);
@@ -502,6 +524,34 @@ function App() {
   function updateTarget(key, raw) {
     const n = Math.max(0, Math.floor(Number(raw)));
     setTargets((prev) => ({ ...prev, [key]: Number.isFinite(n) ? n : 0 }));
+  }
+
+  // Save the current meal under a (optional) name; newest first.
+  function saveMeal() {
+    if (meal.length === 0) return;
+    const entry = {
+      id: (crypto.randomUUID?.() ?? String(Date.now())),
+      name: mealName.trim() || defaultMealName(meal),
+      items: meal,
+      savedAt: Date.now(),
+    };
+    setSavedMeals((prev) => [entry, ...prev]);
+    setMealName("");
+    setSaveSuccess(true);
+    setTimeout(() => setSaveSuccess(false), 2000);
+  }
+
+  // Load a saved meal back into the builder, clearing any optimizer leftovers.
+  function loadSavedMeal(id) {
+    const found = savedMeals.find((m) => m.id === id);
+    if (!found) return;
+    setMeal(found.items);
+    setAlternativeMeals([]);
+    setOptimizedMealResults([]);
+  }
+
+  function deleteSavedMeal(id) {
+    setSavedMeals((prev) => prev.filter((m) => m.id !== id));
   }
 
   function getGoalBadges() {
@@ -813,6 +863,54 @@ function App() {
                 )}
               </>
             )}
+
+            <section className="savedMeals">
+              <h3 className="todaySectionTitle">Saved meals</h3>
+              <div className="savedMealSaveRow">
+                <input
+                  className="savedMealNameInput"
+                  type="text"
+                  placeholder="Name this meal (optional)…"
+                  aria-label="Name for the saved meal"
+                  value={mealName}
+                  onChange={(e) => setMealName(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter" && meal.length > 0) saveMeal(); }}
+                  disabled={meal.length === 0}
+                />
+                <button
+                  className="btn btnDark btnSm"
+                  onClick={saveMeal}
+                  disabled={meal.length === 0}
+                >
+                  {saveSuccess ? "✓ Saved!" : "💾 Save meal"}
+                </button>
+              </div>
+              {meal.length === 0 && savedMeals.length === 0 && (
+                <p className="savedMealsHint">Build a meal above, then save it here to reuse later.</p>
+              )}
+
+              {savedMeals.length === 0 ? (
+                meal.length > 0 && <p className="savedMealsHint">No saved meals yet.</p>
+              ) : (
+                <div className="savedMealList">
+                  {savedMeals.map((m) => {
+                    const t = sumNutrition(m.items);
+                    return (
+                      <div key={m.id} className="savedMealRow">
+                        <div className="savedMealInfo">
+                          <span className="savedMealName">{m.name}</span>
+                          <span className="savedMealStats">
+                            {m.items.length} item{m.items.length === 1 ? "" : "s"} · {t.calories.toFixed(0)} kcal
+                          </span>
+                        </div>
+                        <button className="btn btnOutline btnSm" onClick={() => loadSavedMeal(m.id)}>Load</button>
+                        <button className="mealItemRemove" onClick={() => deleteSavedMeal(m.id)} aria-label={`Delete saved meal ${m.name}`}>✕</button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
           </div>
         )}
 
