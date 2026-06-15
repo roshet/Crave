@@ -85,6 +85,13 @@ _reported_sodium = [
 if _reported_sodium:
     recommend_items.IMPUTED_SODIUM_MG = float(statistics.median(_reported_sodium))
 
+# Index for O(1) lookup by item_id. Keyed on str() because id types differ across
+# datasets (McDonald's/Taco Bell ints, Chick-fil-A slugs, Wendy's names) — they must be
+# treated as opaque strings. Powers /items, used to rehydrate shared-meal URLs.
+ITEMS_BY_ID = {
+    str(it["item_id"]): it for it in ALL_ITEMS if it.get("item_id") is not None
+}
+
 @app.get("/")
 def root():
     return {
@@ -175,6 +182,19 @@ def recommend(
         "results": results,
         "score_bounds": score_bounds(goal),
     }
+
+
+@app.get("/items")
+def items(ids: str = Query(..., description="Comma-separated item_ids to fetch")):
+    """Fetch specific items by id, preserving request order. Powers shared-meal URLs:
+    the frontend rehydrates a meal from the ids in the URL. Unknown ids are silently
+    skipped so a link to a since-deleted item still loads the rest of the meal."""
+    requested = [part.strip() for part in ids.split(",") if part.strip()]
+    if not requested:
+        raise HTTPException(status_code=400, detail="Query param 'ids' must not be empty.")
+
+    matched = [ITEMS_BY_ID[i] for i in requested if i in ITEMS_BY_ID]
+    return {"results": humanize_items(matched)}
 
 
 @app.get("/optimize_meal")
