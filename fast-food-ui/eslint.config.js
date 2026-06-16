@@ -8,7 +8,7 @@ export default defineConfig([
   globalIgnores(['dist']),
   {
     files: ['**/*.{js,jsx}'],
-    ignores: ['api/**'],
+    ignores: ['api/**', 'middleware.js'],
     extends: [
       js.configs.recommended,
       reactHooks.configs.flat.recommended,
@@ -28,9 +28,9 @@ export default defineConfig([
     },
   },
   {
-    // Vercel Functions (api/) run on Node/Edge, not in the browser, and aren't React
-    // components — lint them with server globals and without the React plugin rules.
-    files: ['api/**/*.js'],
+    // Vercel Functions (api/) and Routing Middleware run on Node/Edge, not in the browser,
+    // and aren't React components — lint them with server globals, no React plugin rules.
+    files: ['api/**/*.js', 'middleware.js'],
     extends: [js.configs.recommended],
     languageOptions: {
       ecmaVersion: 'latest',
