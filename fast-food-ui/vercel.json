@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(facebookexternalhit|facebot|twitterbot|slackbot|slack-imgproxy|discordbot|linkedinbot|whatsapp|telegrambot|embedly|pinterest|redditbot|applebot|googlebot|bingbot|skypeuripreview|vkshare|flipboard|tumblr|bitlybot|nuzzel|mattermost|google-inspectiontool).*"
+        },
+        { "type": "query", "key": "meal" }
+      ],
+      "destination": "/api/share"
+    }
+  ]
+}
