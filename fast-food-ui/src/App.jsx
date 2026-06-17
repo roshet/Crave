@@ -74,11 +74,13 @@ const CHICKFILA_CATEGORIES = [
 ];
 
 const WENDYS_CATEGORIES = [
-  { value: "burgers", label: "Burgers" },
-  { value: "chicken", label: "Chicken" },
-  { value: "wraps",   label: "Wraps" },
-  { value: "salads",  label: "Salads" },
-  { value: "sides",   label: "Sides" },
+  { value: "burgers",   label: "Burgers" },
+  { value: "chicken",   label: "Chicken" },
+  { value: "wraps",     label: "Wraps" },
+  { value: "salads",    label: "Salads" },
+  { value: "sides",     label: "Sides" },
+  { value: "breakfast", label: "Breakfast" },
+  { value: "desserts",  label: "Desserts" },
 ];
 
 const TACOBELL_CATEGORIES = [

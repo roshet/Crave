@@ -146,13 +146,27 @@ def test_chickfila_ice_junk_rows_removed():
 
 
 def test_wendys_food_items_have_real_sodium():
-    """Sodium was derived from the official UK Salt (g) column (salt_g * 400), so no
+    """Wendy's is now US menu data (build_wendys_us.py) with real sodium per item, so no
     Wendy's food item should fall back to the scoring engine's imputed median."""
     from api import wendys_items
 
     missing = [i["name"] for i in wendys_items
                if i.get("item_type") == "food" and i.get("sodium") is None]
     assert not missing, f"Wendy's food items lack sodium: {missing}"
+
+
+def test_wendys_is_us_menu():
+    """Guard the UK->US re-source: Dave's Single must read US (~590), not the old UK 524,
+    and the US menu should span breakfast + drinks. Catches a generator/build regression."""
+    from api import wendys_items
+
+    by_name = {i["name"]: i for i in wendys_items}
+    daves = by_name.get("Dave's Single")
+    assert daves is not None, "Dave's Single missing (id used by shared-meal tests)"
+    assert 560 <= daves["calories"] <= 620, f"Dave's Single not US calories: {daves['calories']}"
+
+    cats = {i["category"] for i in wendys_items}
+    assert {"burgers", "breakfast", "drinks"} <= cats, f"missing US categories: {cats}"
 
 
 # --- /categories -------------------------------------------------------------
