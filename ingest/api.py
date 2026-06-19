@@ -72,7 +72,9 @@ wendys_items = _load_json(BASE_DIR / "wendys_items.json")
 
 tacobell_items = _load_json(BASE_DIR / "tacobell_items.json")
 
-ALL_ITEMS = mcdonalds_items + chickfila_items + wendys_items + tacobell_items
+burgerking_items = _load_json(BASE_DIR / "burgerking_items.json")
+
+ALL_ITEMS = mcdonalds_items + chickfila_items + wendys_items + tacobell_items + burgerking_items
 
 # Impute missing sodium so restaurants lacking the data (e.g. Wendy's) don't get an
 # unfair scoring advantage. Use the median of *food* items that report sodium — every
@@ -111,12 +113,13 @@ def health():
             "chickfila": len(chickfila_items),
             "wendys": len(wendys_items),
             "tacobell": len(tacobell_items),
+            "burgerking": len(burgerking_items),
         },
     }
 
 @app.get("/categories")
 def categories(
-    restaurant: str = Query("all", pattern="^(mcdonalds|chickfila|wendys|tacobell|all)$")
+    restaurant: str = Query("all", pattern="^(mcdonalds|chickfila|wendys|tacobell|burgerking|all)$")
 ):
     if restaurant == "mcdonalds":
         items = mcdonalds_items
@@ -126,6 +129,8 @@ def categories(
         items = wendys_items
     elif restaurant == "tacobell":
         items = tacobell_items
+    elif restaurant == "burgerking":
+        items = burgerking_items
     else:
         items = ALL_ITEMS
 
@@ -134,7 +139,7 @@ def categories(
 
 @app.get("/recommend")
 def recommend(
-    restaurant: str = Query("all", pattern = "^(mcdonalds|chickfila|wendys|tacobell|all)$"),
+    restaurant: str = Query("all", pattern = "^(mcdonalds|chickfila|wendys|tacobell|burgerking|all)$"),
     max_calories: int = Query(600, ge=1),
     top_n: int = Query(10, ge = 1, le = 50),
     goal: str = Query("balanced", pattern = "^(balanced|high_protein|low_sugar|low_fat)$"),
@@ -149,6 +154,8 @@ def recommend(
         items = wendys_items
     elif restaurant == "tacobell":
         items = tacobell_items
+    elif restaurant == "burgerking":
+        items = burgerking_items
     else:
         items = ALL_ITEMS
 
@@ -199,7 +206,7 @@ def items(ids: str = Query(..., description="Comma-separated item_ids to fetch")
 
 @app.get("/optimize_meal")
 def optimize_meal(
-    restaurant: str = Query("all", pattern="^(mcdonalds|chickfila|wendys|tacobell|all)$"),
+    restaurant: str = Query("all", pattern="^(mcdonalds|chickfila|wendys|tacobell|burgerking|all)$"),
     max_calories: int = Query(800, ge=1),
     goal: str = Query("balanced", pattern="^(balanced|high_protein|low_sugar|low_fat)$"),
     category: str | None = Query(None),
@@ -212,6 +219,7 @@ def optimize_meal(
         "chickfila": chickfila_items,
         "wendys": wendys_items,
         "tacobell": tacobell_items,
+        "burgerking": burgerking_items,
     }
 
     if category and restaurant != "all":

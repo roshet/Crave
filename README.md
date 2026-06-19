@@ -22,7 +22,7 @@ Crave is a full-stack nutrition recommendation app that helps users build health
 
 ## Features
 
-- Multi-restaurant support (McDonald's, Chick-fil-A, Wendy's, Taco Bell, or all)
+- Multi-restaurant support (McDonald's, Chick-fil-A, Wendy's, Taco Bell, Burger King, or all)
 - Goal-based recommendation modes:
   - Balanced
   - High Protein

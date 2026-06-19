@@ -40,12 +40,14 @@ Crave/
 │   ├── recommend_items.py  # Scoring engine and meal optimizer
 │   ├── mcdonalds_items.json
 │   ├── chickfila_items.json
-│   └── wendys_items.json
+│   ├── wendys_items.json
+│   ├── tacobell_items.json
+│   └── burgerking_items.json
 └── render.yaml         # Render.com deployment config
 ```
 
 ### Data Flow
-1. JSON datasets are loaded at startup in `api.py` into `mcdonalds_items`, `chickfila_items`, `wendys_items`, and `ALL_ITEMS`
+1. JSON datasets are loaded at startup in `api.py` into `mcdonalds_items`, `chickfila_items`, `wendys_items`, `tacobell_items`, `burgerking_items`, and `ALL_ITEMS`
 2. `/recommend` scores individual items via `health_score()` and filters/sorts them
 3. `/optimize_meal` brute-forces entree × side × drink combinations (top 3 returned)
 4. Frontend calls these endpoints and renders results + a Meal Builder with live nutrition totals
