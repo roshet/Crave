@@ -95,6 +95,15 @@ const TACOBELL_CATEGORIES = [
   { value: "drinks",      label: "Drinks" },
 ];
 
+const BURGERKING_CATEGORIES = [
+  { value: "burgers",   label: "Burgers" },
+  { value: "chicken",   label: "Chicken" },
+  { value: "sides",     label: "Sides" },
+  { value: "breakfast", label: "Breakfast" },
+  { value: "desserts",  label: "Desserts" },
+  { value: "drinks",    label: "Drinks" },
+];
+
 const GOAL_PRESETS = [
   { label: "Weight Loss", goal: "balanced",     maxCalories: 500 },
   { label: "Athlete",     goal: "high_protein", maxCalories: 800 },
@@ -595,7 +604,8 @@ function App() {
     restaurant === "mcdonalds" ? MCD_CATEGORIES :
     restaurant === "chickfila" ? CHICKFILA_CATEGORIES :
     restaurant === "wendys"    ? WENDYS_CATEGORIES :
-    restaurant === "tacobell"  ? TACOBELL_CATEGORIES : [];
+    restaurant === "tacobell"  ? TACOBELL_CATEGORIES :
+    restaurant === "burgerking" ? BURGERKING_CATEGORIES : [];
 
   function FilterChips({ showCategory }) {
     return (
@@ -605,6 +615,7 @@ function App() {
           <option value="chickfila">Chick-fil-A</option>
           <option value="wendys">Wendy&#39;s</option>
           <option value="tacobell">Taco Bell</option>
+          <option value="burgerking">Burger King</option>
           <option value="all">All</option>
         </select>
         <select className="chipSelect" aria-label="Nutrition goal" value={goal} onChange={(e) => setGoal(e.target.value)}>

@@ -169,6 +169,33 @@ def test_wendys_is_us_menu():
     assert {"burgers", "breakfast", "drinks"} <= cats, f"missing US categories: {cats}"
 
 
+def test_burgerking_is_us_menu():
+    """Guard the Track-D add: BK has a Whopper with sane US calories and spans burgers +
+    drinks. Catches a generator/build regression. ids live in a fresh 7xxxxx range so they
+    can't collide with McDonald's (~2xxxxx) or Taco Bell (6xxxxx) in ITEMS_BY_ID."""
+    from api import burgerking_items
+
+    by_name = {i["name"]: i for i in burgerking_items}
+    whopper = by_name.get("Whopper")
+    assert whopper is not None, "Whopper missing"
+    assert 600 <= whopper["calories"] <= 750, f"Whopper not US calories: {whopper['calories']}"
+
+    cats = {i["category"] for i in burgerking_items}
+    assert {"burgers", "drinks"} <= cats, f"missing BK categories: {cats}"
+    assert all(700000 <= i["item_id"] < 800000 for i in burgerking_items)
+
+
+def test_optimize_burgerking_builds_a_meal():
+    """BK maps onto existing optimizer categories (burgers entree, sides side, drinks), so a
+    full entree+side+drink meal must be buildable for restaurant=burgerking."""
+    resp = client.get("/optimize_meal", params={"restaurant": "burgerking", "max_calories": 1200})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body.get("meals"), "no BK meal returned"
+    cats = {it.get("category") for it in body["meals"][0]["items"]}
+    assert "drinks" in cats and len(body["meals"][0]["items"]) >= 2
+
+
 # --- /categories -------------------------------------------------------------
 
 def test_categories_returns_list():
