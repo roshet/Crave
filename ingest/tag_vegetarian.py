@@ -31,8 +31,8 @@ NON_VEG_KEYWORDS = {
     "nugget", "mcnugget", "sausage", "ham", "pepperoni", "steak", "filet", "fish",
     "fillet", "mcrib", "rib", "brisket", "turkey", "pork", "meat", "spicy chicken",
     "grilled chicken", "crispy chicken", "strips", "tender", "wing", "shrimp",
-    "carne", "asada", "chorizo", "baconator", "dave's", "jr.", "whopper", "big mac",
-    "quarter pounder", "mcdouble", "club", "blt", "anchov",
+    "carne", "asada", "chorizo", "baconator", "dave's", "whopper", "big mac",
+    "quarter pounder", "mcdouble", "blt", "anchov",
 }
 
 # Categories whose items are vegetarian by default UNLESS a non-veg keyword fires.
