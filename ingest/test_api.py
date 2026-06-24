@@ -246,3 +246,13 @@ def test_items_missing_ids_param_is_422():
     """`ids` is required, so omitting it is a FastAPI validation error."""
     resp = client.get("/items")
     assert resp.status_code == 422
+
+
+# --- vegetarian field invariant ----------------------------------------------
+
+def test_every_item_has_boolean_vegetarian_field():
+    """The vegetarian filter relies on every item carrying the tag; a dataset
+    edit that drops it would silently hide items. Guard the whole corpus."""
+    from api import ALL_ITEMS
+    missing = [it.get("name") for it in ALL_ITEMS if not isinstance(it.get("vegetarian"), bool)]
+    assert missing == [], f"items missing boolean 'vegetarian': {missing[:10]}"

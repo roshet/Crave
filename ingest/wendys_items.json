@@ -10,7 +10,8 @@
     "fat": 34.0,
     "carbohydrate": 46.0,
     "sugars": 9.0,
-    "sodium": 1170
+    "sodium": 1170,
+    "vegetarian": false
   },
   {
     "item_id": "Dave's Double",
@@ -23,7 +24,8 @@
     "fat": 57.0,
     "carbohydrate": 37.0,
     "sugars": 8.0,
-    "sodium": 1200
+    "sodium": 1200,
+    "vegetarian": false
   },
   {
     "item_id": "Dave's Triple",
@@ -36,7 +38,8 @@
     "fat": 73.0,
     "carbohydrate": 41.0,
     "sugars": 9.0,
-    "sodium": 1620
+    "sodium": 1620,
+    "vegetarian": false
   },
   {
     "item_id": "Baconator",
@@ -49,7 +52,8 @@
     "fat": 64.0,
     "carbohydrate": 40.0,
     "sugars": 8.0,
-    "sodium": 1800
+    "sodium": 1800,
+    "vegetarian": false
   },
   {
     "item_id": "Son of Baconator",
@@ -62,7 +66,8 @@
     "fat": 40.0,
     "carbohydrate": 36.0,
     "sugars": 7.0,
-    "sodium": 1210
+    "sodium": 1210,
+    "vegetarian": false
   },
   {
     "item_id": "Jr. Hamburger",
@@ -75,7 +80,8 @@
     "fat": 11.0,
     "carbohydrate": 24.0,
     "sugars": 5.0,
-    "sodium": 470
+    "sodium": 470,
+    "vegetarian": false
   },
   {
     "item_id": "Jr. Cheeseburger",
@@ -88,7 +94,8 @@
     "fat": 14.0,
     "carbohydrate": 26.0,
     "sugars": 6.0,
-    "sodium": 630
+    "sodium": 630,
+    "vegetarian": false
   },
   {
     "item_id": "Jr. Bacon Cheeseburger",
@@ -101,7 +108,8 @@
     "fat": 22.0,
     "carbohydrate": 24.0,
     "sugars": 5.0,
-    "sodium": 640
+    "sodium": 640,
+    "vegetarian": false
   },
   {
     "item_id": "Spicy Chicken Sandwich",
@@ -114,7 +122,8 @@
     "fat": 20.0,
     "carbohydrate": 49.0,
     "sugars": 5.0,
-    "sodium": 1290
+    "sodium": 1290,
+    "vegetarian": false
   },
   {
     "item_id": "Classic Chicken Sandwich",
@@ -127,7 +136,8 @@
     "fat": 21.0,
     "carbohydrate": 49.0,
     "sugars": 6.0,
-    "sodium": 1310
+    "sodium": 1310,
+    "vegetarian": false
   },
   {
     "item_id": "Grilled Chicken Sandwich",
@@ -140,7 +150,8 @@
     "fat": 10.0,
     "carbohydrate": 38.0,
     "sugars": 8.0,
-    "sodium": 840
+    "sodium": 840,
+    "vegetarian": false
   },
   {
     "item_id": "Crispy Chicken Sandwich",
@@ -153,7 +164,8 @@
     "fat": 17.0,
     "carbohydrate": 32.0,
     "sugars": 4.0,
-    "sodium": 640
+    "sodium": 640,
+    "vegetarian": false
   },
   {
     "item_id": "Asiago Ranch Chicken Club",
@@ -166,7 +178,8 @@
     "fat": 31.0,
     "carbohydrate": 50.0,
     "sugars": 8.0,
-    "sodium": 1800
+    "sodium": 1800,
+    "vegetarian": false
   },
   {
     "item_id": "4 Pc Chicken Nuggets",
@@ -179,7 +192,8 @@
     "fat": 11.0,
     "carbohydrate": 10.0,
     "sugars": 0.0,
-    "sodium": 380
+    "sodium": 380,
+    "vegetarian": false
   },
   {
     "item_id": "6 Pc Chicken Nuggets",
@@ -192,7 +206,8 @@
     "fat": 16.0,
     "carbohydrate": 14.0,
     "sugars": 0.0,
-    "sodium": 570
+    "sodium": 570,
+    "vegetarian": false
   },
   {
     "item_id": "10 Pc Chicken Nuggets",
@@ -205,7 +220,8 @@
     "fat": 27.0,
     "carbohydrate": 24.0,
     "sugars": 0.0,
-    "sodium": 850
+    "sodium": 850,
+    "vegetarian": false
   },
   {
     "item_id": "4 Pc Spicy Chicken Nuggets",
@@ -218,7 +234,8 @@
     "fat": 12.0,
     "carbohydrate": 9.0,
     "sugars": 0.0,
-    "sodium": 480
+    "sodium": 480,
+    "vegetarian": false
   },
   {
     "item_id": "6 Pc Spicy Chicken Nuggets",
@@ -231,7 +248,8 @@
     "fat": 18.0,
     "carbohydrate": 13.0,
     "sugars": 0.0,
-    "sodium": 720
+    "sodium": 720,
+    "vegetarian": false
   },
   {
     "item_id": "10 Pc Spicy Chicken Nuggets",
@@ -244,7 +262,8 @@
     "fat": 31.0,
     "carbohydrate": 22.0,
     "sugars": 0.0,
-    "sodium": 1190
+    "sodium": 1190,
+    "vegetarian": false
   },
   {
     "item_id": "Grilled Chicken Ranch Wrap",
@@ -257,7 +276,8 @@
     "fat": 16.0,
     "carbohydrate": 41.0,
     "sugars": 2.0,
-    "sodium": 1100
+    "sodium": 1100,
+    "vegetarian": false
   },
   {
     "item_id": "Taco Salad",
@@ -270,7 +290,8 @@
     "fat": 32.0,
     "carbohydrate": 63.0,
     "sugars": 18.0,
-    "sodium": 1820
+    "sodium": 1820,
+    "vegetarian": false
   },
   {
     "item_id": "Apple Pecan Chicken Salad",
@@ -283,7 +304,8 @@
     "fat": 24.0,
     "carbohydrate": 52.0,
     "sugars": 41.0,
-    "sodium": 1030
+    "sodium": 1030,
+    "vegetarian": false
   },
   {
     "item_id": "Small Fries",
@@ -296,7 +318,8 @@
     "fat": 12.0,
     "carbohydrate": 35.0,
     "sugars": 0.0,
-    "sodium": 420
+    "sodium": 420,
+    "vegetarian": false
   },
   {
     "item_id": "Medium Fries",
@@ -309,7 +332,8 @@
     "fat": 16.0,
     "carbohydrate": 47.0,
     "sugars": 0.0,
-    "sodium": 550
+    "sodium": 550,
+    "vegetarian": false
   },
   {
     "item_id": "Large Fries",
@@ -322,7 +346,8 @@
     "fat": 21.0,
     "carbohydrate": 63.0,
     "sugars": 0.0,
-    "sodium": 740
+    "sodium": 740,
+    "vegetarian": false
   },
   {
     "item_id": "Baconator Fries",
@@ -335,7 +360,8 @@
     "fat": 28.0,
     "carbohydrate": 45.0,
     "sugars": 1.0,
-    "sodium": 1290
+    "sodium": 1290,
+    "vegetarian": false
   },
   {
     "item_id": "Small Chili",
@@ -348,7 +374,8 @@
     "fat": 6.0,
     "carbohydrate": 23.0,
     "sugars": 6.0,
-    "sodium": 780
+    "sodium": 780,
+    "vegetarian": false
   },
   {
     "item_id": "Plain Baked Potato",
@@ -361,7 +388,8 @@
     "fat": 0.0,
     "carbohydrate": 61.0,
     "sugars": 3.0,
-    "sodium": 40
+    "sodium": 40,
+    "vegetarian": false
   },
   {
     "item_id": "Sour Cream & Chives Potato",
@@ -374,7 +402,8 @@
     "fat": 3.0,
     "carbohydrate": 63.0,
     "sugars": 3.0,
-    "sodium": 50
+    "sodium": 50,
+    "vegetarian": false
   },
   {
     "item_id": "Seasoned Potatoes",
@@ -387,7 +416,8 @@
     "fat": 14.0,
     "carbohydrate": 46.0,
     "sugars": 0.0,
-    "sodium": 900
+    "sodium": 900,
+    "vegetarian": false
   },
   {
     "item_id": "Small Chocolate Frosty",
@@ -400,7 +430,8 @@
     "fat": 9.0,
     "carbohydrate": 58.0,
     "sugars": 47.0,
-    "sodium": 150
+    "sodium": 150,
+    "vegetarian": true
   },
   {
     "item_id": "Small Vanilla Frosty",
@@ -413,7 +444,8 @@
     "fat": 8.0,
     "carbohydrate": 56.0,
     "sugars": 47.0,
-    "sodium": 160
+    "sodium": 160,
+    "vegetarian": true
   },
   {
     "item_id": "Breakfast Baconator",
@@ -426,7 +458,8 @@
     "fat": 50.0,
     "carbohydrate": 37.0,
     "sugars": 7.0,
-    "sodium": 1760
+    "sodium": 1760,
+    "vegetarian": false
   },
   {
     "item_id": "Honey Butter Chicken Biscuit",
@@ -439,7 +472,8 @@
     "fat": 29.0,
     "carbohydrate": 44.0,
     "sugars": 8.0,
-    "sodium": 970
+    "sodium": 970,
+    "vegetarian": false
   },
   {
     "item_id": "Sausage Egg & Cheese Biscuit",
@@ -452,7 +486,8 @@
     "fat": 43.0,
     "carbohydrate": 28.0,
     "sugars": 3.0,
-    "sodium": 1280
+    "sodium": 1280,
+    "vegetarian": false
   },
   {
     "item_id": "Bacon Egg & Swiss Croissant",
@@ -465,7 +500,8 @@
     "fat": 23.0,
     "carbohydrate": 34.0,
     "sugars": 6.0,
-    "sodium": 900
+    "sodium": 900,
+    "vegetarian": false
   },
   {
     "item_id": "Maple Bacon Chicken Croissant",
@@ -478,7 +514,8 @@
     "fat": 30.0,
     "carbohydrate": 48.0,
     "sugars": 12.0,
-    "sodium": 880
+    "sodium": 880,
+    "vegetarian": false
   },
   {
     "item_id": "Sausage Egg & Cheese Burrito",
@@ -491,7 +528,8 @@
     "fat": 20.0,
     "carbohydrate": 25.0,
     "sugars": 2.0,
-    "sodium": 920
+    "sodium": 920,
+    "vegetarian": false
   },
   {
     "item_id": "Bottled Water",
@@ -504,7 +542,8 @@
     "fat": 0.0,
     "carbohydrate": 0.0,
     "sugars": 0.0,
-    "sodium": 0
+    "sodium": 0,
+    "vegetarian": true
   },
   {
     "item_id": "Diet Coke (Small)",
@@ -517,7 +556,8 @@
     "fat": 0.0,
     "carbohydrate": 0.0,
     "sugars": 0.0,
-    "sodium": 40
+    "sodium": 40,
+    "vegetarian": true
   },
   {
     "item_id": "Unsweetened Iced Tea (Small)",
@@ -530,7 +570,8 @@
     "fat": 0.0,
     "carbohydrate": 0.0,
     "sugars": 0.0,
-    "sodium": 15
+    "sodium": 15,
+    "vegetarian": true
   },
   {
     "item_id": "Coffee",
@@ -543,7 +584,8 @@
     "fat": 0.0,
     "carbohydrate": 0.0,
     "sugars": 0.0,
-    "sodium": 0
+    "sodium": 0,
+    "vegetarian": true
   },
   {
     "item_id": "Coca-Cola (Small)",
@@ -556,7 +598,8 @@
     "fat": 0.0,
     "carbohydrate": 48.0,
     "sugars": 48.0,
-    "sodium": 50
+    "sodium": 50,
+    "vegetarian": true
   },
   {
     "item_id": "Sprite (Small)",
@@ -569,7 +612,8 @@
     "fat": 0.0,
     "carbohydrate": 44.0,
     "sugars": 44.0,
-    "sodium": 80
+    "sodium": 80,
+    "vegetarian": true
   },
   {
     "item_id": "Sweetened Iced Tea (Small)",
@@ -582,7 +626,8 @@
     "fat": 0.0,
     "carbohydrate": 47.0,
     "sugars": 47.0,
-    "sodium": 0
+    "sodium": 0,
+    "vegetarian": true
   },
   {
     "item_id": "All-Natural Lemonade (Small)",
@@ -595,7 +640,8 @@
     "fat": 0.0,
     "carbohydrate": 49.0,
     "sugars": 45.0,
-    "sodium": 15
+    "sodium": 15,
+    "vegetarian": true
   },
   {
     "item_id": "Vanilla Frosty-ccino",
@@ -608,6 +654,7 @@
     "fat": 5.0,
     "carbohydrate": 35.0,
     "sugars": 28.0,
-    "sodium": 105
+    "sodium": 105,
+    "vegetarian": true
   }
 ]
