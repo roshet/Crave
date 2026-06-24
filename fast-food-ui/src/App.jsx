@@ -222,6 +222,7 @@ function App() {
   const [restaurant, setRestaurant]   = useState("all");
   const [maxCalories, setMaxCalories] = useState(600);
   const [category, setCategory]       = useState("");
+  const [vegetarian, setVegetarian]   = useState(false);
 
   // Navigation
   const [activeTab, setActiveTab] = useState("browse");
@@ -303,7 +304,7 @@ function App() {
   useEffect(() => {
     if (activeTab === "browse") fetchBrowse();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, goal, restaurant, maxCalories, category]);
+  }, [activeTab, goal, restaurant, maxCalories, category, vegetarian]);
 
   // On first load, rehydrate a shared meal from the ?meal=<ids> URL param. Fetches the
   // full items by id, drops the user on the Meal Builder, then strips the param so the
@@ -433,6 +434,7 @@ function App() {
     try {
       let url = `${API_BASE_URL}/recommend?restaurant=${encodeURIComponent(restaurant)}&goal=${encodeURIComponent(goal)}&max_calories=${encodeURIComponent(maxCalories)}&top_n=20&format=human`;
       if (category) url += `&category=${encodeURIComponent(category)}`;
+      if (vegetarian) url += `&vegetarian=true`;
       const res = await fetch(url, { signal: controller.signal });
       if (!res.ok) throw new Error(`API error (${res.status}): ${await res.text()}`);
       const data = await res.json();
@@ -454,7 +456,8 @@ function App() {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 15000);
     try {
-      const url = `${API_BASE_URL}/optimize_meal?restaurant=${encodeURIComponent(restaurant)}&goal=${encodeURIComponent(goal)}&max_calories=${encodeURIComponent(maxCalories)}&format=human`;
+      let url = `${API_BASE_URL}/optimize_meal?restaurant=${encodeURIComponent(restaurant)}&goal=${encodeURIComponent(goal)}&max_calories=${encodeURIComponent(maxCalories)}&format=human`;
+      if (vegetarian) url += `&vegetarian=true`;
       const res = await fetch(url, { signal: controller.signal });
       if (!res.ok) throw new Error(`API error (${res.status}): ${await res.text()}`);
       const data = await res.json();
@@ -640,6 +643,15 @@ function App() {
             ))}
           </select>
         )}
+        <label className="vegToggle">
+          <input
+            type="checkbox"
+            checked={vegetarian}
+            onChange={(e) => setVegetarian(e.target.checked)}
+            aria-label="Vegetarian only"
+          />
+          <span>🌱 Vegetarian</span>
+        </label>
       </div>
     );
   }
@@ -749,7 +761,10 @@ function App() {
                       {emoji}
                     </div>
                     <div className="itemInfo">
-                      <div className="itemName">{item.title || item.name}</div>
+                      <div className="itemName">
+                        {item.title || item.name}
+                        {item.vegetarian && <span className="vegBadge" title="Vegetarian" aria-label="Vegetarian">🌱</span>}
+                      </div>
                       <div className="itemStats">
                         {item.calories} kcal · {item.protein}g protein · {item.sugars}g sugar
                       </div>
@@ -1114,7 +1129,10 @@ function App() {
                 );
               })()}
               <div className="modalItemMeta">
-                <h2 className="modalItemName" id="modalItemName">{modalItem.title || modalItem.name}</h2>
+                <h2 className="modalItemName" id="modalItemName">
+                  {modalItem.title || modalItem.name}
+                  {modalItem.vegetarian && <span className="vegBadge" title="Vegetarian" aria-label="Vegetarian">🌱</span>}
+                </h2>
                 <p className="modalItemSub">{modalItem.restaurant} · {modalItem.category}</p>
               </div>
               {typeof modalItem.score !== "undefined" && (
