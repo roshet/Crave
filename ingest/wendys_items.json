@@ -319,7 +319,7 @@
     "carbohydrate": 35.0,
     "sugars": 0.0,
     "sodium": 420,
-    "vegetarian": false
+    "vegetarian": true
   },
   {
     "item_id": "Medium Fries",
@@ -333,7 +333,7 @@
     "carbohydrate": 47.0,
     "sugars": 0.0,
     "sodium": 550,
-    "vegetarian": false
+    "vegetarian": true
   },
   {
     "item_id": "Large Fries",
@@ -347,7 +347,7 @@
     "carbohydrate": 63.0,
     "sugars": 0.0,
     "sodium": 740,
-    "vegetarian": false
+    "vegetarian": true
   },
   {
     "item_id": "Baconator Fries",
@@ -389,7 +389,7 @@
     "carbohydrate": 61.0,
     "sugars": 3.0,
     "sodium": 40,
-    "vegetarian": false
+    "vegetarian": true
   },
   {
     "item_id": "Sour Cream & Chives Potato",
@@ -403,7 +403,7 @@
     "carbohydrate": 63.0,
     "sugars": 3.0,
     "sodium": 50,
-    "vegetarian": false
+    "vegetarian": true
   },
   {
     "item_id": "Seasoned Potatoes",
@@ -417,7 +417,7 @@
     "carbohydrate": 46.0,
     "sugars": 0.0,
     "sodium": 900,
-    "vegetarian": false
+    "vegetarian": true
   },
   {
     "item_id": "Small Chocolate Frosty",

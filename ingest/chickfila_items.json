@@ -165,7 +165,7 @@
     "sugars": 0.0,
     "protein": 3.0,
     "sodium": 440.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_berry_parfait": {
     "item_id": "chickfila_berry_parfait",
@@ -179,7 +179,7 @@
     "sugars": 26.0,
     "protein": 13.0,
     "sodium": 85.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_fruit_cup": {
     "item_id": "chickfila_fruit_cup",
@@ -193,7 +193,7 @@
     "sugars": 12.0,
     "protein": 1.0,
     "sodium": 0.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_breakfast_breads": {
     "item_id": "chickfila_breakfast_breads",
@@ -207,7 +207,7 @@
     "sugars": 4.0,
     "protein": 4.0,
     "sodium": 760.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_chick_fil_a_chicken_biscuit": {
     "item_id": "chickfila_chick_fil_a_chicken_biscuit",
@@ -431,7 +431,7 @@
     "sugars": 8.0,
     "protein": 4.0,
     "sodium": 250.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_chick_fil_a_waffle_potato_fries": {
     "item_id": "chickfila_chick_fil_a_waffle_potato_fries",
@@ -445,7 +445,7 @@
     "sugars": 1.0,
     "protein": 5.0,
     "sodium": 240.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_mac_cheese": {
     "item_id": "chickfila_mac_cheese",
@@ -459,7 +459,7 @@
     "sugars": 3.0,
     "protein": 20.0,
     "sodium": 1190.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_chicken_noodle_soup": {
     "item_id": "chickfila_chicken_noodle_soup",
@@ -487,7 +487,7 @@
     "sugars": 5.0,
     "protein": 6.0,
     "sodium": 700.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_chicken_tortilla_soup": {
     "item_id": "chickfila_chicken_tortilla_soup",
@@ -515,7 +515,7 @@
     "sugars": 0.0,
     "protein": 3.0,
     "sodium": 250.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_buddy_fruits_apple_sauce": {
     "item_id": "chickfila_buddy_fruits_apple_sauce",
@@ -529,7 +529,7 @@
     "sugars": 8.0,
     "protein": 0.0,
     "sodium": 0.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_chick_fil_a_sauce_flavored_waffle_potato_chips": {
     "item_id": "chickfila_chick_fil_a_sauce_flavored_waffle_potato_chips",
@@ -543,7 +543,7 @@
     "sugars": 3.0,
     "protein": 3.0,
     "sodium": 330.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_5_ct_nuggets_kid_s_meal": {
     "item_id": "chickfila_5_ct_nuggets_kid_s_meal",
@@ -599,7 +599,7 @@
     "sugars": 94.0,
     "protein": 11.0,
     "sodium": 340.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_chocolate_fudge_brownie": {
     "item_id": "chickfila_chocolate_fudge_brownie",
@@ -613,7 +613,7 @@
     "sugars": 35.0,
     "protein": 4.0,
     "sodium": 140.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_frosted_lemonade": {
     "item_id": "chickfila_frosted_lemonade",
@@ -627,7 +627,7 @@
     "sugars": 65.0,
     "protein": 7.0,
     "sodium": 135.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_frosted_coffee": {
     "item_id": "chickfila_frosted_coffee",
@@ -641,7 +641,7 @@
     "sugars": 44.0,
     "protein": 7.0,
     "sodium": 140.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_chocolate_chunk_cookie": {
     "item_id": "chickfila_chocolate_chunk_cookie",
@@ -655,7 +655,7 @@
     "sugars": 26.0,
     "protein": 5.0,
     "sodium": 230.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_peppermint_chip_frosted_coffee": {
     "item_id": "chickfila_peppermint_chip_frosted_coffee",
@@ -669,7 +669,7 @@
     "sugars": 68.0,
     "protein": 7.0,
     "sodium": 170.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_cookies_cream_milkshake": {
     "item_id": "chickfila_cookies_cream_milkshake",
@@ -683,7 +683,7 @@
     "sugars": 84.0,
     "protein": 13.0,
     "sodium": 430.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_chocolate_milkshake": {
     "item_id": "chickfila_chocolate_milkshake",
@@ -697,7 +697,7 @@
     "sugars": 90.0,
     "protein": 12.0,
     "sodium": 350.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_strawberry_milkshake": {
     "item_id": "chickfila_strawberry_milkshake",
@@ -711,7 +711,7 @@
     "sugars": 87.0,
     "protein": 10.0,
     "sodium": 370.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_vanilla_milkshake": {
     "item_id": "chickfila_vanilla_milkshake",
@@ -725,7 +725,7 @@
     "sugars": 80.0,
     "protein": 13.0,
     "sodium": 390.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_chick_fil_a_icedream_cone": {
     "item_id": "chickfila_chick_fil_a_icedream_cone",
@@ -739,7 +739,7 @@
     "sugars": 25.0,
     "protein": 4.0,
     "sodium": 90.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_chick_fil_a_icedream_cup": {
     "item_id": "chickfila_chick_fil_a_icedream_cup",
@@ -753,7 +753,7 @@
     "sugars": 24.0,
     "protein": 4.0,
     "sodium": 75.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_dr_pepper_float": {
     "item_id": "chickfila_dr_pepper_float",
@@ -767,7 +767,7 @@
     "sugars": 59.0,
     "protein": 7.0,
     "sodium": 150.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_freshly_brewed_iced_tea_sweetened": {
     "item_id": "chickfila_freshly_brewed_iced_tea_sweetened",
@@ -963,7 +963,7 @@
     "sugars": 516.0,
     "protein": 4.0,
     "sodium": 0.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_seasonal_gallon_beverages": {
     "item_id": "chickfila_seasonal_gallon_beverages",
@@ -977,7 +977,7 @@
     "sugars": 443.0,
     "protein": 2.0,
     "sodium": 20.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_peppermint_iced_coffee": {
     "item_id": "chickfila_peppermint_iced_coffee",
@@ -1467,7 +1467,7 @@
     "sugars": 1.0,
     "protein": 1.0,
     "sodium": 0.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_harvest_nut_granola": {
     "item_id": "chickfila_harvest_nut_granola",
@@ -1481,7 +1481,7 @@
     "sugars": 4.0,
     "protein": 1.0,
     "sodium": 35.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_seasoned_tortilla_strips": {
     "item_id": "chickfila_seasoned_tortilla_strips",
@@ -1495,7 +1495,7 @@
     "sugars": 0.0,
     "protein": 1.0,
     "sodium": 55.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_blue_cheese_crumbles": {
     "item_id": "chickfila_blue_cheese_crumbles",
@@ -1509,7 +1509,7 @@
     "sugars": 0.0,
     "protein": 2.0,
     "sodium": 110.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_crispy_bell_peppers": {
     "item_id": "chickfila_crispy_bell_peppers",
@@ -1523,7 +1523,7 @@
     "sugars": 0.0,
     "protein": 1.0,
     "sodium": 75.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_chili_lime_pepitas": {
     "item_id": "chickfila_chili_lime_pepitas",
@@ -1537,7 +1537,7 @@
     "sugars": 0.0,
     "protein": 4.0,
     "sodium": 50.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_american_cheese": {
     "item_id": "chickfila_american_cheese",
@@ -1551,7 +1551,7 @@
     "sugars": 0.0,
     "protein": 3.0,
     "sodium": 230.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_colby_jack_cheese": {
     "item_id": "chickfila_colby_jack_cheese",
@@ -1565,7 +1565,7 @@
     "sugars": 0.0,
     "protein": 5.0,
     "sodium": 140.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_pepper_jack_cheese": {
     "item_id": "chickfila_pepper_jack_cheese",
@@ -1579,7 +1579,7 @@
     "sugars": 0.0,
     "protein": 4.0,
     "sodium": 140.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_tomato": {
     "item_id": "chickfila_tomato",
@@ -1593,7 +1593,7 @@
     "sugars": 1.0,
     "protein": 0.0,
     "sodium": 0.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_lettuce": {
     "item_id": "chickfila_lettuce",
@@ -1607,7 +1607,7 @@
     "sugars": 0.0,
     "protein": 0.0,
     "sodium": 5.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_saltines": {
     "item_id": "chickfila_saltines",
@@ -1621,7 +1621,7 @@
     "sugars": 0.0,
     "protein": 1.0,
     "sodium": 180.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_grilled_chicken_bundle": {
     "item_id": "chickfila_grilled_chicken_bundle",
@@ -1747,7 +1747,7 @@
     "sugars": 3.0,
     "protein": 14.0,
     "sodium": 940.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_spicy_cool_wrap_trays": {
     "item_id": "chickfila_spicy_cool_wrap_trays",
@@ -1775,7 +1775,7 @@
     "sugars": 134.0,
     "protein": 8.0,
     "sodium": 0.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_mac_cheese_tray": {
     "item_id": "chickfila_mac_cheese_tray",
@@ -1789,7 +1789,7 @@
     "sugars": 36.0,
     "protein": 221.0,
     "sodium": 13030.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_garden_salad_tray": {
     "item_id": "chickfila_garden_salad_tray",
@@ -1803,7 +1803,7 @@
     "sugars": 11.0,
     "protein": 19.0,
     "sodium": 420.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_kale_crunch_side_tray": {
     "item_id": "chickfila_kale_crunch_side_tray",
@@ -1817,7 +1817,7 @@
     "sugars": 42.0,
     "protein": 30.0,
     "sodium": 1420.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_chocolate_chunk_cookie_tray": {
     "item_id": "chickfila_chocolate_chunk_cookie_tray",
@@ -1831,7 +1831,7 @@
     "sugars": 26.0,
     "protein": 5.0,
     "sodium": 230.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_chocolate_fudge_brownie_tray": {
     "item_id": "chickfila_chocolate_fudge_brownie_tray",
@@ -1845,7 +1845,7 @@
     "sugars": 18.0,
     "protein": 2.0,
     "sodium": 70.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_cookie_brownie_tray": {
     "item_id": "chickfila_cookie_brownie_tray",
@@ -1859,7 +1859,7 @@
     "sugars": 22.0,
     "protein": 3.0,
     "sodium": 150.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_chilled_grilled_chicken_sub_sandwich": {
     "item_id": "chickfila_chilled_grilled_chicken_sub_sandwich",
@@ -1971,7 +1971,7 @@
     "sugars": 516.0,
     "protein": 4.0,
     "sodium": 0.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_gallon_chick_fil_a_diet_lemonade": {
     "item_id": "chickfila_gallon_chick_fil_a_diet_lemonade",
@@ -1985,7 +1985,7 @@
     "sugars": 91.0,
     "protein": 3.0,
     "sodium": 95.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_gallon_chick_fil_a_lemonade_1_2_lemonade_1_2_diet_lemonade": {
     "item_id": "chickfila_gallon_chick_fil_a_lemonade_1_2_lemonade_1_2_diet_lemonade",
@@ -1999,7 +1999,7 @@
     "sugars": 350.0,
     "protein": 1.0,
     "sodium": 40.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_gallon_freshly_brewed_iced_tea_sweetened": {
     "item_id": "chickfila_gallon_freshly_brewed_iced_tea_sweetened",
@@ -2013,7 +2013,7 @@
     "sugars": 391.0,
     "protein": 0.0,
     "sodium": 0.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_gallon_freshly_brewed_iced_tea_unsweetened": {
     "item_id": "chickfila_gallon_freshly_brewed_iced_tea_unsweetened",
@@ -2027,7 +2027,7 @@
     "sugars": 0.0,
     "protein": 0.0,
     "sodium": 0.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_gallon_chick_fil_a_iced_tea_1_2_sweet_tea_1_2_unsweet_tea": {
     "item_id": "chickfila_gallon_chick_fil_a_iced_tea_1_2_sweet_tea_1_2_unsweet_tea",
@@ -2041,7 +2041,7 @@
     "sugars": 205.0,
     "protein": 0.0,
     "sodium": 0.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_gallon_sunjoy_1_2_sweet_tea_1_2_lemonade": {
     "item_id": "chickfila_gallon_sunjoy_1_2_sweet_tea_1_2_lemonade",
@@ -2055,7 +2055,7 @@
     "sugars": 481.0,
     "protein": 2.0,
     "sodium": 0.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_gallon_sunjoy_1_2_sweet_tea_1_2_diet_lemonade": {
     "item_id": "chickfila_gallon_sunjoy_1_2_sweet_tea_1_2_diet_lemonade",
@@ -2069,7 +2069,7 @@
     "sugars": 252.0,
     "protein": 1.0,
     "sodium": 50.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_gallon_sunjoy_1_2_unsweet_tea_1_2_lemonade": {
     "item_id": "chickfila_gallon_sunjoy_1_2_unsweet_tea_1_2_lemonade",
@@ -2083,7 +2083,7 @@
     "sugars": 276.0,
     "protein": 2.0,
     "sodium": 0.0,
-    "vegetarian": false
+    "vegetarian": true
   },
   "chickfila_gallon_sunjoy_1_2_unsweet_tea_1_2_diet_lemonade": {
     "item_id": "chickfila_gallon_sunjoy_1_2_unsweet_tea_1_2_diet_lemonade",
@@ -2097,6 +2097,6 @@
     "sugars": 47.0,
     "protein": 1.0,
     "sodium": 50.0,
-    "vegetarian": false
+    "vegetarian": true
   }
 }
