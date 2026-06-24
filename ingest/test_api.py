@@ -258,6 +258,26 @@ def test_every_item_has_boolean_vegetarian_field():
     assert missing == [], f"items missing boolean 'vegetarian': {missing[:10]}"
 
 
+def test_no_meat_keyword_in_any_vegetarian_item():
+    """Safety tripwire: the feature's core contract is that no meat item is ever
+    tagged vegetarian. Tagging is heuristic + manual overrides, so assert directly
+    that no unambiguous meat/seafood term appears in any vegetarian item's name.
+    Guards against a future dataset edit silently leaking meat into vegetarian views."""
+    from api import ALL_ITEMS
+    meat_terms = [
+        "bacon", "beef", "chicken", "sausage", "pepperoni", "steak", "pork",
+        "turkey", "brisket", "shrimp", "fish", "nugget", "baconator", "chorizo",
+        "mcrib", "mcchicken", "filet", "carne", "anchov",
+    ]
+    leaks = [
+        it["name"]
+        for it in ALL_ITEMS
+        if it.get("vegetarian") is True
+        and any(term in it["name"].lower() for term in meat_terms)
+    ]
+    assert leaks == [], f"meat keyword found in vegetarian-tagged items: {leaks}"
+
+
 def test_recommend_vegetarian_excludes_meat_and_keeps_veg():
     resp = client.get("/recommend", params={"vegetarian": "true", "format": "human", "top_n": 50})
     assert resp.status_code == 200
