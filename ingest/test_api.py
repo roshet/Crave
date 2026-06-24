@@ -256,3 +256,29 @@ def test_every_item_has_boolean_vegetarian_field():
     from api import ALL_ITEMS
     missing = [it.get("name") for it in ALL_ITEMS if not isinstance(it.get("vegetarian"), bool)]
     assert missing == [], f"items missing boolean 'vegetarian': {missing[:10]}"
+
+
+def test_recommend_vegetarian_excludes_meat_and_keeps_veg():
+    resp = client.get("/recommend", params={"vegetarian": "true", "format": "human", "top_n": 50})
+    assert resp.status_code == 200
+    titles = [r["title"].lower() for r in resp.json()["results"]]
+    # no obvious meat items survive the filter
+    assert not any("nugget" in t or "bacon" in t or "burger" in t for t in titles)
+    # the humanized payload carries the flag, and everything returned is vegetarian
+    assert all(r.get("vegetarian") is True for r in resp.json()["results"])
+
+
+def test_recommend_vegetarian_off_by_default_includes_meat():
+    resp = client.get("/recommend", params={"format": "human", "top_n": 50})
+    titles = [r["title"].lower() for r in resp.json()["results"]]
+    assert any("chicken" in t or "burger" in t or "nugget" in t for t in titles)
+
+
+def test_optimize_meal_vegetarian_returns_all_veg_meal():
+    resp = client.get("/optimize_meal", params={"vegetarian": "true", "restaurant": "all"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "meals" in body and body["meals"], "expected at least one vegetarian meal"
+    for meal in body["meals"]:
+        for item in meal["items"]:
+            assert item.get("vegetarian") is True
