@@ -10,7 +10,8 @@
     "fat": 12.0,
     "carbohydrate": 3.0,
     "sugars": 2.0,
-    "sodium": 120.0
+    "sodium": 120.0,
+    "vegetarian": true
   },
   {
     "item_id": 600001,
@@ -23,7 +24,8 @@
     "fat": 34.0,
     "carbohydrate": 61.0,
     "sugars": 4.0,
-    "sodium": 1500.0
+    "sodium": 1500.0,
+    "vegetarian": false
   },
   {
     "item_id": 600002,
@@ -36,7 +38,8 @@
     "fat": 33.0,
     "carbohydrate": 61.0,
     "sugars": 4.0,
-    "sodium": 1450.0
+    "sodium": 1450.0,
+    "vegetarian": false
   },
   {
     "item_id": 600003,
@@ -49,7 +52,8 @@
     "fat": 35.0,
     "carbohydrate": 62.0,
     "sugars": 3.0,
-    "sodium": 1610.0
+    "sodium": 1610.0,
+    "vegetarian": false
   },
   {
     "item_id": 600004,
@@ -62,7 +66,8 @@
     "fat": 13.0,
     "carbohydrate": 25.0,
     "sugars": 0.0,
-    "sodium": 1050.0
+    "sodium": 1050.0,
+    "vegetarian": false
   },
   {
     "item_id": 600005,
@@ -75,7 +80,8 @@
     "fat": 26.0,
     "carbohydrate": 49.0,
     "sugars": 0.0,
-    "sodium": 2110.0
+    "sodium": 2110.0,
+    "vegetarian": false
   },
   {
     "item_id": 600006,
@@ -88,7 +94,8 @@
     "fat": 11.0,
     "carbohydrate": 19.0,
     "sugars": 0.0,
-    "sodium": 710.0
+    "sodium": 710.0,
+    "vegetarian": false
   },
   {
     "item_id": 600007,
@@ -101,7 +108,8 @@
     "fat": 22.0,
     "carbohydrate": 39.0,
     "sugars": 0.0,
-    "sodium": 1420.0
+    "sodium": 1420.0,
+    "vegetarian": false
   },
   {
     "item_id": 600008,
@@ -114,7 +122,8 @@
     "fat": 12.0,
     "carbohydrate": 27.0,
     "sugars": 2.0,
-    "sodium": 680.0
+    "sodium": 680.0,
+    "vegetarian": false
   },
   {
     "item_id": 600009,
@@ -127,7 +136,8 @@
     "fat": 12.0,
     "carbohydrate": 27.0,
     "sugars": 2.0,
-    "sodium": 670.0
+    "sodium": 670.0,
+    "vegetarian": false
   },
   {
     "item_id": 600010,
@@ -140,7 +150,8 @@
     "fat": 14.0,
     "carbohydrate": 27.0,
     "sugars": 0.0,
-    "sodium": 1340.0
+    "sodium": 1340.0,
+    "vegetarian": false
   },
   {
     "item_id": 600011,
@@ -153,7 +164,8 @@
     "fat": 27.0,
     "carbohydrate": 53.0,
     "sugars": 1.0,
-    "sodium": 2500.0
+    "sodium": 2500.0,
+    "vegetarian": false
   },
   {
     "item_id": 600012,
@@ -166,7 +178,8 @@
     "fat": 0.0,
     "carbohydrate": 41.0,
     "sugars": 41.0,
-    "sodium": 45.0
+    "sodium": 45.0,
+    "vegetarian": true
   },
   {
     "item_id": 600013,
@@ -179,7 +192,8 @@
     "fat": 0.0,
     "carbohydrate": 52.0,
     "sugars": 51.0,
-    "sodium": 60.0
+    "sodium": 60.0,
+    "vegetarian": true
   },
   {
     "item_id": 600014,
@@ -192,7 +206,8 @@
     "fat": 0.0,
     "carbohydrate": 46.0,
     "sugars": 44.0,
-    "sodium": 50.0
+    "sodium": 50.0,
+    "vegetarian": true
   },
   {
     "item_id": 600015,
@@ -205,7 +220,8 @@
     "fat": 0.0,
     "carbohydrate": 56.0,
     "sugars": 55.0,
-    "sodium": 60.0
+    "sodium": 60.0,
+    "vegetarian": true
   },
   {
     "item_id": 600016,
@@ -218,7 +234,8 @@
     "fat": 0.0,
     "carbohydrate": 52.0,
     "sugars": 50.0,
-    "sodium": 160.0
+    "sodium": 160.0,
+    "vegetarian": true
   },
   {
     "item_id": 600017,
@@ -231,7 +248,8 @@
     "fat": 13.0,
     "carbohydrate": 1.0,
     "sugars": 1.0,
-    "sodium": 125.0
+    "sodium": 125.0,
+    "vegetarian": true
   },
   {
     "item_id": 600018,
@@ -244,7 +262,8 @@
     "fat": 11.0,
     "carbohydrate": 5.0,
     "sugars": 4.0,
-    "sodium": 95.0
+    "sodium": 95.0,
+    "vegetarian": true
   },
   {
     "item_id": 600019,
@@ -257,7 +276,8 @@
     "fat": 0.0,
     "carbohydrate": 56.0,
     "sugars": 56.0,
-    "sodium": 190.0
+    "sodium": 190.0,
+    "vegetarian": true
   },
   {
     "item_id": 600020,
@@ -270,7 +290,8 @@
     "fat": 1.0,
     "carbohydrate": 53.0,
     "sugars": 50.0,
-    "sodium": 75.0
+    "sodium": 75.0,
+    "vegetarian": true
   },
   {
     "item_id": 600021,
@@ -283,7 +304,8 @@
     "fat": 1.0,
     "carbohydrate": 64.0,
     "sugars": 60.0,
-    "sodium": 90.0
+    "sodium": 90.0,
+    "vegetarian": true
   },
   {
     "item_id": 600022,
@@ -296,7 +318,8 @@
     "fat": 1.0,
     "carbohydrate": 55.0,
     "sugars": 53.0,
-    "sodium": 170.0
+    "sodium": 170.0,
+    "vegetarian": true
   },
   {
     "item_id": 600023,
@@ -309,7 +332,8 @@
     "fat": 0.0,
     "carbohydrate": 41.0,
     "sugars": 41.0,
-    "sodium": 75.0
+    "sodium": 75.0,
+    "vegetarian": true
   },
   {
     "item_id": 600024,
@@ -322,7 +346,8 @@
     "fat": 0.0,
     "carbohydrate": 51.0,
     "sugars": 51.0,
-    "sodium": 95.0
+    "sodium": 95.0,
+    "vegetarian": true
   },
   {
     "item_id": 600025,
@@ -335,7 +360,8 @@
     "fat": 0.0,
     "carbohydrate": 42.0,
     "sugars": 42.0,
-    "sodium": 75.0
+    "sodium": 75.0,
+    "vegetarian": true
   },
   {
     "item_id": 600026,
@@ -348,7 +374,8 @@
     "fat": 0.0,
     "carbohydrate": 53.0,
     "sugars": 52.0,
-    "sodium": 95.0
+    "sodium": 95.0,
+    "vegetarian": true
   },
   {
     "item_id": 600027,
@@ -361,7 +388,8 @@
     "fat": 1.0,
     "carbohydrate": 57.0,
     "sugars": 54.0,
-    "sodium": 170.0
+    "sodium": 170.0,
+    "vegetarian": true
   },
   {
     "item_id": 600028,
@@ -374,7 +402,8 @@
     "fat": 0.0,
     "carbohydrate": 56.0,
     "sugars": 55.0,
-    "sodium": 190.0
+    "sodium": 190.0,
+    "vegetarian": true
   },
   {
     "item_id": 600029,
@@ -387,7 +416,8 @@
     "fat": 29.0,
     "carbohydrate": 88.0,
     "sugars": 6.0,
-    "sodium": 1580.0
+    "sodium": 1580.0,
+    "vegetarian": false
   },
   {
     "item_id": 600030,
@@ -400,7 +430,8 @@
     "fat": 1.0,
     "carbohydrate": 49.0,
     "sugars": 47.0,
-    "sodium": 70.0
+    "sodium": 70.0,
+    "vegetarian": true
   },
   {
     "item_id": 600031,
@@ -413,7 +444,8 @@
     "fat": 1.0,
     "carbohydrate": 60.0,
     "sugars": 58.0,
-    "sodium": 90.0
+    "sodium": 90.0,
+    "vegetarian": true
   },
   {
     "item_id": 600032,
@@ -426,7 +458,8 @@
     "fat": 31.0,
     "carbohydrate": 40.0,
     "sugars": 3.0,
-    "sodium": 1170.0
+    "sodium": 1170.0,
+    "vegetarian": false
   },
   {
     "item_id": 600033,
@@ -439,7 +472,8 @@
     "fat": 1.0,
     "carbohydrate": 26.0,
     "sugars": 23.0,
-    "sodium": 85.0
+    "sodium": 85.0,
+    "vegetarian": true
   },
   {
     "item_id": 600034,
@@ -452,7 +486,8 @@
     "fat": 1.0,
     "carbohydrate": 29.0,
     "sugars": 27.0,
-    "sodium": 105.0
+    "sodium": 105.0,
+    "vegetarian": true
   },
   {
     "item_id": 600035,
@@ -465,7 +500,8 @@
     "fat": 1.0,
     "carbohydrate": 39.0,
     "sugars": 37.0,
-    "sodium": 160.0
+    "sodium": 160.0,
+    "vegetarian": true
   },
   {
     "item_id": 600036,
@@ -478,7 +514,8 @@
     "fat": 1.0,
     "carbohydrate": 33.0,
     "sugars": 31.0,
-    "sodium": 55.0
+    "sodium": 55.0,
+    "vegetarian": true
   },
   {
     "item_id": 600037,
@@ -491,7 +528,8 @@
     "fat": 1.0,
     "carbohydrate": 39.0,
     "sugars": 37.0,
-    "sodium": 65.0
+    "sodium": 65.0,
+    "vegetarian": true
   },
   {
     "item_id": 600038,
@@ -504,7 +542,8 @@
     "fat": 1.0,
     "carbohydrate": 54.0,
     "sugars": 52.0,
-    "sodium": 100.0
+    "sodium": 100.0,
+    "vegetarian": true
   },
   {
     "item_id": 600039,
@@ -517,7 +556,8 @@
     "fat": 1.0,
     "carbohydrate": 9.0,
     "sugars": 7.0,
-    "sodium": 100.0
+    "sodium": 100.0,
+    "vegetarian": true
   },
   {
     "item_id": 600040,
@@ -530,7 +570,8 @@
     "fat": 1.0,
     "carbohydrate": 9.0,
     "sugars": 7.0,
-    "sodium": 125.0
+    "sodium": 125.0,
+    "vegetarian": true
   },
   {
     "item_id": 600041,
@@ -543,7 +584,8 @@
     "fat": 1.0,
     "carbohydrate": 10.0,
     "sugars": 7.0,
-    "sodium": 180.0
+    "sodium": 180.0,
+    "vegetarian": true
   },
   {
     "item_id": 600042,
@@ -556,7 +598,8 @@
     "fat": 1.0,
     "carbohydrate": 9.0,
     "sugars": 7.0,
-    "sodium": 80.0
+    "sodium": 80.0,
+    "vegetarian": true
   },
   {
     "item_id": 600043,
@@ -569,7 +612,8 @@
     "fat": 1.0,
     "carbohydrate": 9.0,
     "sugars": 7.0,
-    "sodium": 100.0
+    "sodium": 100.0,
+    "vegetarian": true
   },
   {
     "item_id": 600044,
@@ -582,7 +626,8 @@
     "fat": 1.0,
     "carbohydrate": 9.0,
     "sugars": 7.0,
-    "sodium": 140.0
+    "sodium": 140.0,
+    "vegetarian": true
   },
   {
     "item_id": 600045,
@@ -595,7 +640,8 @@
     "fat": 1.0,
     "carbohydrate": 61.0,
     "sugars": 58.0,
-    "sodium": 65.0
+    "sodium": 65.0,
+    "vegetarian": true
   },
   {
     "item_id": 600046,
@@ -608,7 +654,8 @@
     "fat": 1.0,
     "carbohydrate": 74.0,
     "sugars": 71.0,
-    "sodium": 80.0
+    "sodium": 80.0,
+    "vegetarian": true
   },
   {
     "item_id": 600047,
@@ -621,7 +668,8 @@
     "fat": 1.0,
     "carbohydrate": 107.0,
     "sugars": 103.0,
-    "sodium": 115.0
+    "sodium": 115.0,
+    "vegetarian": true
   },
   {
     "item_id": 600048,
@@ -634,7 +682,8 @@
     "fat": 1.0,
     "carbohydrate": 68.0,
     "sugars": 67.0,
-    "sodium": 70.0
+    "sodium": 70.0,
+    "vegetarian": true
   },
   {
     "item_id": 600049,
@@ -647,7 +696,8 @@
     "fat": 1.0,
     "carbohydrate": 83.0,
     "sugars": 81.0,
-    "sodium": 85.0
+    "sodium": 85.0,
+    "vegetarian": true
   },
   {
     "item_id": 600050,
@@ -660,7 +710,8 @@
     "fat": 1.0,
     "carbohydrate": 120.0,
     "sugars": 118.0,
-    "sodium": 125.0
+    "sodium": 125.0,
+    "vegetarian": true
   },
   {
     "item_id": 600051,
@@ -673,7 +724,8 @@
     "fat": 1.0,
     "carbohydrate": 48.0,
     "sugars": 47.0,
-    "sodium": 45.0
+    "sodium": 45.0,
+    "vegetarian": true
   },
   {
     "item_id": 600052,
@@ -686,7 +738,8 @@
     "fat": 1.0,
     "carbohydrate": 59.0,
     "sugars": 57.0,
-    "sodium": 55.0
+    "sodium": 55.0,
+    "vegetarian": true
   },
   {
     "item_id": 600053,
@@ -699,7 +752,8 @@
     "fat": 1.0,
     "carbohydrate": 9.0,
     "sugars": 7.0,
-    "sodium": 70.0
+    "sodium": 70.0,
+    "vegetarian": true
   },
   {
     "item_id": 600054,
@@ -712,7 +766,8 @@
     "fat": 1.0,
     "carbohydrate": 9.0,
     "sugars": 7.0,
-    "sodium": 90.0
+    "sodium": 90.0,
+    "vegetarian": true
   },
   {
     "item_id": 600055,
@@ -725,7 +780,8 @@
     "fat": 1.0,
     "carbohydrate": 9.0,
     "sugars": 7.0,
-    "sodium": 130.0
+    "sodium": 130.0,
+    "vegetarian": true
   },
   {
     "item_id": 600056,
@@ -738,7 +794,8 @@
     "fat": 1.0,
     "carbohydrate": 68.0,
     "sugars": 67.0,
-    "sodium": 70.0
+    "sodium": 70.0,
+    "vegetarian": true
   },
   {
     "item_id": 600057,
@@ -751,7 +808,8 @@
     "fat": 1.0,
     "carbohydrate": 83.0,
     "sugars": 81.0,
-    "sodium": 90.0
+    "sodium": 90.0,
+    "vegetarian": true
   },
   {
     "item_id": 600058,
@@ -764,7 +822,8 @@
     "fat": 1.0,
     "carbohydrate": 120.0,
     "sugars": 118.0,
-    "sodium": 130.0
+    "sodium": 130.0,
+    "vegetarian": true
   },
   {
     "item_id": 600059,
@@ -777,7 +836,8 @@
     "fat": 1.0,
     "carbohydrate": 68.0,
     "sugars": 66.0,
-    "sodium": 75.0
+    "sodium": 75.0,
+    "vegetarian": true
   },
   {
     "item_id": 600060,
@@ -790,7 +850,8 @@
     "fat": 1.0,
     "carbohydrate": 82.0,
     "sugars": 80.0,
-    "sodium": 90.0
+    "sodium": 90.0,
+    "vegetarian": true
   },
   {
     "item_id": 600061,
@@ -803,7 +864,8 @@
     "fat": 1.0,
     "carbohydrate": 119.0,
     "sugars": 117.0,
-    "sodium": 135.0
+    "sodium": 135.0,
+    "vegetarian": true
   },
   {
     "item_id": 600062,
@@ -816,7 +878,8 @@
     "fat": 1.0,
     "carbohydrate": 9.0,
     "sugars": 8.0,
-    "sodium": 65.0
+    "sodium": 65.0,
+    "vegetarian": true
   },
   {
     "item_id": 600063,
@@ -829,7 +892,8 @@
     "fat": 1.0,
     "carbohydrate": 10.0,
     "sugars": 8.0,
-    "sodium": 85.0
+    "sodium": 85.0,
+    "vegetarian": true
   },
   {
     "item_id": 600064,
@@ -842,7 +906,8 @@
     "fat": 1.0,
     "carbohydrate": 10.0,
     "sugars": 8.0,
-    "sodium": 120.0
+    "sodium": 120.0,
+    "vegetarian": true
   },
   {
     "item_id": 600065,
@@ -855,7 +920,8 @@
     "fat": 1.0,
     "carbohydrate": 60.0,
     "sugars": 58.0,
-    "sodium": 80.0
+    "sodium": 80.0,
+    "vegetarian": true
   },
   {
     "item_id": 600066,
@@ -868,7 +934,8 @@
     "fat": 1.0,
     "carbohydrate": 73.0,
     "sugars": 71.0,
-    "sodium": 100.0
+    "sodium": 100.0,
+    "vegetarian": true
   },
   {
     "item_id": 600067,
@@ -881,7 +948,8 @@
     "fat": 1.0,
     "carbohydrate": 105.0,
     "sugars": 103.0,
-    "sodium": 150.0
+    "sodium": 150.0,
+    "vegetarian": true
   },
   {
     "item_id": 600068,
@@ -894,7 +962,8 @@
     "fat": 1.0,
     "carbohydrate": 64.0,
     "sugars": 62.0,
-    "sodium": 45.0
+    "sodium": 45.0,
+    "vegetarian": true
   },
   {
     "item_id": 600069,
@@ -907,7 +976,8 @@
     "fat": 1.0,
     "carbohydrate": 78.0,
     "sugars": 76.0,
-    "sodium": 55.0
+    "sodium": 55.0,
+    "vegetarian": true
   },
   {
     "item_id": 600070,
@@ -920,7 +990,8 @@
     "fat": 1.0,
     "carbohydrate": 113.0,
     "sugars": 111.0,
-    "sodium": 85.0
+    "sodium": 85.0,
+    "vegetarian": true
   },
   {
     "item_id": 600071,
@@ -933,7 +1004,8 @@
     "fat": 1.0,
     "carbohydrate": 65.0,
     "sugars": 64.0,
-    "sodium": 45.0
+    "sodium": 45.0,
+    "vegetarian": true
   },
   {
     "item_id": 600072,
@@ -946,7 +1018,8 @@
     "fat": 1.0,
     "carbohydrate": 80.0,
     "sugars": 78.0,
-    "sodium": 60.0
+    "sodium": 60.0,
+    "vegetarian": true
   },
   {
     "item_id": 600073,
@@ -959,7 +1032,8 @@
     "fat": 1.0,
     "carbohydrate": 115.0,
     "sugars": 113.0,
-    "sodium": 85.0
+    "sodium": 85.0,
+    "vegetarian": true
   },
   {
     "item_id": 600074,
@@ -972,7 +1046,8 @@
     "fat": 1.0,
     "carbohydrate": 9.0,
     "sugars": 7.0,
-    "sodium": 90.0
+    "sodium": 90.0,
+    "vegetarian": true
   },
   {
     "item_id": 600075,
@@ -985,7 +1060,8 @@
     "fat": 1.0,
     "carbohydrate": 9.0,
     "sugars": 7.0,
-    "sodium": 110.0
+    "sodium": 110.0,
+    "vegetarian": true
   },
   {
     "item_id": 600076,
@@ -998,7 +1074,8 @@
     "fat": 1.0,
     "carbohydrate": 10.0,
     "sugars": 7.0,
-    "sodium": 160.0
+    "sodium": 160.0,
+    "vegetarian": true
   },
   {
     "item_id": 600077,
@@ -1011,7 +1088,8 @@
     "fat": 1.0,
     "carbohydrate": 61.0,
     "sugars": 59.0,
-    "sodium": 50.0
+    "sodium": 50.0,
+    "vegetarian": true
   },
   {
     "item_id": 600078,
@@ -1024,7 +1102,8 @@
     "fat": 1.0,
     "carbohydrate": 74.0,
     "sugars": 72.0,
-    "sodium": 60.0
+    "sodium": 60.0,
+    "vegetarian": true
   },
   {
     "item_id": 600079,
@@ -1037,7 +1116,8 @@
     "fat": 1.0,
     "carbohydrate": 106.0,
     "sugars": 105.0,
-    "sodium": 90.0
+    "sodium": 90.0,
+    "vegetarian": true
   },
   {
     "item_id": 600080,
@@ -1050,7 +1130,8 @@
     "fat": 1.0,
     "carbohydrate": 25.0,
     "sugars": 23.0,
-    "sodium": 220.0
+    "sodium": 220.0,
+    "vegetarian": true
   },
   {
     "item_id": 600081,
@@ -1063,7 +1144,8 @@
     "fat": 1.0,
     "carbohydrate": 30.0,
     "sugars": 27.0,
-    "sodium": 270.0
+    "sodium": 270.0,
+    "vegetarian": true
   },
   {
     "item_id": 600082,
@@ -1076,7 +1158,8 @@
     "fat": 1.0,
     "carbohydrate": 40.0,
     "sugars": 37.0,
-    "sodium": 400.0
+    "sodium": 400.0,
+    "vegetarian": true
   },
   {
     "item_id": 600083,
@@ -1089,7 +1172,8 @@
     "fat": 5.0,
     "carbohydrate": 1.0,
     "sugars": 0.0,
-    "sodium": 70.0
+    "sodium": 70.0,
+    "vegetarian": true
   },
   {
     "item_id": 600084,
@@ -1102,7 +1186,8 @@
     "fat": 23.0,
     "carbohydrate": 44.0,
     "sugars": 3.0,
-    "sodium": 1170.0
+    "sodium": 1170.0,
+    "vegetarian": false
   },
   {
     "item_id": 600085,
@@ -1115,7 +1200,8 @@
     "fat": 28.0,
     "carbohydrate": 44.0,
     "sugars": 4.0,
-    "sodium": 1190.0
+    "sodium": 1190.0,
+    "vegetarian": false
   },
   {
     "item_id": 600086,
@@ -1128,7 +1214,8 @@
     "fat": 15.0,
     "carbohydrate": 19.0,
     "sugars": 1.0,
-    "sodium": 520.0
+    "sodium": 520.0,
+    "vegetarian": false
   },
   {
     "item_id": 600087,
@@ -1141,7 +1228,8 @@
     "fat": 28.0,
     "carbohydrate": 46.0,
     "sugars": 3.0,
-    "sodium": 1410.0
+    "sodium": 1410.0,
+    "vegetarian": false
   },
   {
     "item_id": 600088,
@@ -1154,7 +1242,8 @@
     "fat": 10.0,
     "carbohydrate": 19.0,
     "sugars": 2.0,
-    "sodium": 530.0
+    "sodium": 530.0,
+    "vegetarian": false
   },
   {
     "item_id": 600089,
@@ -1167,7 +1256,8 @@
     "fat": 17.0,
     "carbohydrate": 36.0,
     "sugars": 4.0,
-    "sodium": 450.0
+    "sodium": 450.0,
+    "vegetarian": true
   },
   {
     "item_id": 600090,
@@ -1180,7 +1270,8 @@
     "fat": 20.0,
     "carbohydrate": 32.0,
     "sugars": 3.0,
-    "sodium": 570.0
+    "sodium": 570.0,
+    "vegetarian": false
   },
   {
     "item_id": 600091,
@@ -1193,7 +1284,8 @@
     "fat": 17.0,
     "carbohydrate": 30.0,
     "sugars": 3.0,
-    "sodium": 580.0
+    "sodium": 580.0,
+    "vegetarian": false
   },
   {
     "item_id": 600092,
@@ -1206,7 +1298,8 @@
     "fat": 18.0,
     "carbohydrate": 30.0,
     "sugars": 4.0,
-    "sodium": 590.0
+    "sodium": 590.0,
+    "vegetarian": false
   },
   {
     "item_id": 600093,
@@ -1219,7 +1312,8 @@
     "fat": 26.0,
     "carbohydrate": 44.0,
     "sugars": 4.0,
-    "sodium": 830.0
+    "sodium": 830.0,
+    "vegetarian": false
   },
   {
     "item_id": 600094,
@@ -1232,7 +1326,8 @@
     "fat": 9.0,
     "carbohydrate": 13.0,
     "sugars": 0.0,
-    "sodium": 310.0
+    "sodium": 310.0,
+    "vegetarian": false
   },
   {
     "item_id": 600095,
@@ -1245,7 +1340,8 @@
     "fat": 10.0,
     "carbohydrate": 16.0,
     "sugars": 1.0,
-    "sodium": 320.0
+    "sodium": 320.0,
+    "vegetarian": false
   },
   {
     "item_id": 600096,
@@ -1258,7 +1354,8 @@
     "fat": 26.0,
     "carbohydrate": 43.0,
     "sugars": 4.0,
-    "sodium": 890.0
+    "sodium": 890.0,
+    "vegetarian": false
   },
   {
     "item_id": 600097,
@@ -1271,7 +1368,8 @@
     "fat": 16.0,
     "carbohydrate": 34.0,
     "sugars": 2.0,
-    "sodium": 610.0
+    "sodium": 610.0,
+    "vegetarian": false
   },
   {
     "item_id": 600098,
@@ -1284,7 +1382,8 @@
     "fat": 10.0,
     "carbohydrate": 13.0,
     "sugars": 1.0,
-    "sodium": 370.0
+    "sodium": 370.0,
+    "vegetarian": false
   },
   {
     "item_id": 600099,
@@ -1297,7 +1396,8 @@
     "fat": 11.0,
     "carbohydrate": 15.0,
     "sugars": 2.0,
-    "sodium": 380.0
+    "sodium": 380.0,
+    "vegetarian": false
   },
   {
     "item_id": 600100,
@@ -1310,7 +1410,8 @@
     "fat": 8.0,
     "carbohydrate": 18.0,
     "sugars": 1.0,
-    "sodium": 500.0
+    "sodium": 500.0,
+    "vegetarian": false
   },
   {
     "item_id": 600101,
@@ -1323,7 +1424,8 @@
     "fat": 5.0,
     "carbohydrate": 16.0,
     "sugars": 1.0,
-    "sodium": 510.0
+    "sodium": 510.0,
+    "vegetarian": false
   },
   {
     "item_id": 600102,
@@ -1336,7 +1438,8 @@
     "fat": 9.0,
     "carbohydrate": 21.0,
     "sugars": 2.0,
-    "sodium": 520.0
+    "sodium": 520.0,
+    "vegetarian": false
   },
   {
     "item_id": 600103,
@@ -1349,7 +1452,8 @@
     "fat": 6.0,
     "carbohydrate": 19.0,
     "sugars": 2.0,
-    "sodium": 520.0
+    "sodium": 520.0,
+    "vegetarian": false
   },
   {
     "item_id": 600104,
@@ -1362,7 +1466,8 @@
     "fat": 11.0,
     "carbohydrate": 28.0,
     "sugars": 1.0,
-    "sodium": 470.0
+    "sodium": 470.0,
+    "vegetarian": true
   },
   {
     "item_id": 600105,
@@ -1375,7 +1480,8 @@
     "fat": 10.0,
     "carbohydrate": 54.0,
     "sugars": 3.0,
-    "sodium": 1080.0
+    "sodium": 1080.0,
+    "vegetarian": true
   },
   {
     "item_id": 600106,
@@ -1388,7 +1494,8 @@
     "fat": 18.0,
     "carbohydrate": 65.0,
     "sugars": 4.0,
-    "sodium": 1290.0
+    "sodium": 1290.0,
+    "vegetarian": false
   },
   {
     "item_id": 600107,
@@ -1401,7 +1508,8 @@
     "fat": 33.0,
     "carbohydrate": 72.0,
     "sugars": 5.0,
-    "sodium": 1360.0
+    "sodium": 1360.0,
+    "vegetarian": true
   },
   {
     "item_id": 600108,
@@ -1414,7 +1522,8 @@
     "fat": 14.0,
     "carbohydrate": 52.0,
     "sugars": 4.0,
-    "sodium": 1160.0
+    "sodium": 1160.0,
+    "vegetarian": false
   },
   {
     "item_id": 600109,
@@ -1427,7 +1536,8 @@
     "fat": 11.0,
     "carbohydrate": 49.0,
     "sugars": 4.0,
-    "sodium": 1170.0
+    "sodium": 1170.0,
+    "vegetarian": false
   },
   {
     "item_id": 600110,
@@ -1440,7 +1550,8 @@
     "fat": 12.0,
     "carbohydrate": 50.0,
     "sugars": 5.0,
-    "sodium": 1180.0
+    "sodium": 1180.0,
+    "vegetarian": false
   },
   {
     "item_id": 600111,
@@ -1453,7 +1564,8 @@
     "fat": 16.0,
     "carbohydrate": 56.0,
     "sugars": 3.0,
-    "sodium": 950.0
+    "sodium": 950.0,
+    "vegetarian": true
   },
   {
     "item_id": 600112,
@@ -1466,7 +1578,8 @@
     "fat": 25.0,
     "carbohydrate": 64.0,
     "sugars": 3.0,
-    "sodium": 1340.0
+    "sodium": 1340.0,
+    "vegetarian": false
   },
   {
     "item_id": 600113,
@@ -1479,7 +1592,8 @@
     "fat": 11.0,
     "carbohydrate": 50.0,
     "sugars": 3.0,
-    "sodium": 1150.0
+    "sodium": 1150.0,
+    "vegetarian": false
   },
   {
     "item_id": 600114,
@@ -1492,7 +1606,8 @@
     "fat": 17.0,
     "carbohydrate": 41.0,
     "sugars": 2.0,
-    "sodium": 970.0
+    "sodium": 970.0,
+    "vegetarian": false
   },
   {
     "item_id": 600115,
@@ -1505,7 +1620,8 @@
     "fat": 36.0,
     "carbohydrate": 68.0,
     "sugars": 4.0,
-    "sodium": 1480.0
+    "sodium": 1480.0,
+    "vegetarian": false
   },
   {
     "item_id": 600116,
@@ -1518,7 +1634,8 @@
     "fat": 33.0,
     "carbohydrate": 66.0,
     "sugars": 4.0,
-    "sodium": 1490.0
+    "sodium": 1490.0,
+    "vegetarian": false
   },
   {
     "item_id": 600117,
@@ -1531,7 +1648,8 @@
     "fat": 34.0,
     "carbohydrate": 66.0,
     "sugars": 5.0,
-    "sodium": 1500.0
+    "sodium": 1500.0,
+    "vegetarian": false
   },
   {
     "item_id": 600118,
@@ -1544,7 +1662,8 @@
     "fat": 13.0,
     "carbohydrate": 24.0,
     "sugars": 1.0,
-    "sodium": 280.0
+    "sodium": 280.0,
+    "vegetarian": true
   },
   {
     "item_id": 600119,
@@ -1557,7 +1676,8 @@
     "fat": 24.0,
     "carbohydrate": 45.0,
     "sugars": 2.0,
-    "sodium": 930.0
+    "sodium": 930.0,
+    "vegetarian": false
   },
   {
     "item_id": 600120,
@@ -1570,7 +1690,8 @@
     "fat": 38.0,
     "carbohydrate": 81.0,
     "sugars": 4.0,
-    "sodium": 1180.0
+    "sodium": 1180.0,
+    "vegetarian": false
   },
   {
     "item_id": 600121,
@@ -1583,7 +1704,8 @@
     "fat": 35.0,
     "carbohydrate": 79.0,
     "sugars": 4.0,
-    "sodium": 1190.0
+    "sodium": 1190.0,
+    "vegetarian": false
   },
   {
     "item_id": 600122,
@@ -1596,7 +1718,8 @@
     "fat": 36.0,
     "carbohydrate": 79.0,
     "sugars": 5.0,
-    "sodium": 1200.0
+    "sodium": 1200.0,
+    "vegetarian": false
   },
   {
     "item_id": 600123,
@@ -1609,7 +1732,8 @@
     "fat": 22.0,
     "carbohydrate": 43.0,
     "sugars": 3.0,
-    "sodium": 980.0
+    "sodium": 980.0,
+    "vegetarian": true
   },
   {
     "item_id": 600124,
@@ -1622,7 +1746,8 @@
     "fat": 23.0,
     "carbohydrate": 44.0,
     "sugars": 3.0,
-    "sodium": 1240.0
+    "sodium": 1240.0,
+    "vegetarian": false
   },
   {
     "item_id": 600125,
@@ -1635,7 +1760,8 @@
     "fat": 24.0,
     "carbohydrate": 44.0,
     "sugars": 4.0,
-    "sodium": 1260.0
+    "sodium": 1260.0,
+    "vegetarian": false
   },
   {
     "item_id": 600126,
@@ -1648,7 +1774,8 @@
     "fat": 14.0,
     "carbohydrate": 30.0,
     "sugars": 4.0,
-    "sodium": 750.0
+    "sodium": 750.0,
+    "vegetarian": false
   },
   {
     "item_id": 600127,
@@ -1661,7 +1788,8 @@
     "fat": 17.0,
     "carbohydrate": 78.0,
     "sugars": 6.0,
-    "sodium": 1090.0
+    "sodium": 1090.0,
+    "vegetarian": true
   },
   {
     "item_id": 600128,
@@ -1674,7 +1802,8 @@
     "fat": 8.0,
     "carbohydrate": 18.0,
     "sugars": 1.0,
-    "sodium": 420.0
+    "sodium": 420.0,
+    "vegetarian": true
   },
   {
     "item_id": 600129,
@@ -1687,7 +1816,8 @@
     "fat": 20.0,
     "carbohydrate": 74.0,
     "sugars": 6.0,
-    "sodium": 1210.0
+    "sodium": 1210.0,
+    "vegetarian": false
   },
   {
     "item_id": 600130,
@@ -1700,7 +1830,8 @@
     "fat": 27.0,
     "carbohydrate": 51.0,
     "sugars": 3.0,
-    "sodium": 1000.0
+    "sodium": 1000.0,
+    "vegetarian": false
   },
   {
     "item_id": 600131,
@@ -1713,7 +1844,8 @@
     "fat": 17.0,
     "carbohydrate": 43.0,
     "sugars": 3.0,
-    "sodium": 1060.0
+    "sodium": 1060.0,
+    "vegetarian": false
   },
   {
     "item_id": 600132,
@@ -1726,7 +1858,8 @@
     "fat": 23.0,
     "carbohydrate": 48.0,
     "sugars": 3.0,
-    "sodium": 740.0
+    "sodium": 740.0,
+    "vegetarian": true
   },
   {
     "item_id": 600133,
@@ -1739,7 +1872,8 @@
     "fat": 4.5,
     "carbohydrate": 25.0,
     "sugars": 1.0,
-    "sodium": 370.0
+    "sodium": 370.0,
+    "vegetarian": true
   },
   {
     "item_id": 600134,
@@ -1752,7 +1886,8 @@
     "fat": 1.5,
     "carbohydrate": 7.0,
     "sugars": 0.0,
-    "sodium": 140.0
+    "sodium": 140.0,
+    "vegetarian": true
   },
   {
     "item_id": 600135,
@@ -1765,7 +1900,8 @@
     "fat": 12.0,
     "carbohydrate": 29.0,
     "sugars": 1.0,
-    "sodium": 520.0
+    "sodium": 520.0,
+    "vegetarian": true
   },
   {
     "item_id": 600136,
@@ -1778,7 +1914,8 @@
     "fat": 11.0,
     "carbohydrate": 15.0,
     "sugars": 9.0,
-    "sodium": 70.0
+    "sodium": 70.0,
+    "vegetarian": true
   },
   {
     "item_id": 600137,
@@ -1791,7 +1928,8 @@
     "fat": 68.0,
     "carbohydrate": 88.0,
     "sugars": 52.0,
-    "sodium": 430.0
+    "sodium": 430.0,
+    "vegetarian": true
   },
   {
     "item_id": 600138,
@@ -1804,7 +1942,8 @@
     "fat": 6.0,
     "carbohydrate": 27.0,
     "sugars": 11.0,
-    "sodium": 150.0
+    "sodium": 150.0,
+    "vegetarian": true
   },
   {
     "item_id": 600139,
@@ -1817,7 +1956,8 @@
     "fat": 0.0,
     "carbohydrate": 0.0,
     "sugars": 0.0,
-    "sodium": 35.0
+    "sodium": 35.0,
+    "vegetarian": true
   },
   {
     "item_id": 600140,
@@ -1830,7 +1970,8 @@
     "fat": 0.0,
     "carbohydrate": 0.0,
     "sugars": 0.0,
-    "sodium": 55.0
+    "sodium": 55.0,
+    "vegetarian": true
   },
   {
     "item_id": 600141,
@@ -1843,7 +1984,8 @@
     "fat": 0.0,
     "carbohydrate": 0.0,
     "sugars": 0.0,
-    "sodium": 45.0
+    "sodium": 45.0,
+    "vegetarian": true
   },
   {
     "item_id": 600142,
@@ -1856,7 +1998,8 @@
     "fat": 29.0,
     "carbohydrate": 52.0,
     "sugars": 1.0,
-    "sodium": 1090.0
+    "sodium": 1090.0,
+    "vegetarian": true
   },
   {
     "item_id": 600143,
@@ -1869,7 +2012,8 @@
     "fat": 0.0,
     "carbohydrate": 0.0,
     "sugars": 0.0,
-    "sodium": 30.0
+    "sodium": 30.0,
+    "vegetarian": true
   },
   {
     "item_id": 600144,
@@ -1882,7 +2026,8 @@
     "fat": 21.0,
     "carbohydrate": 36.0,
     "sugars": 1.0,
-    "sodium": 790.0
+    "sodium": 790.0,
+    "vegetarian": true
   },
   {
     "item_id": 600145,
@@ -1895,7 +2040,8 @@
     "fat": 6.0,
     "carbohydrate": 19.0,
     "sugars": 1.0,
-    "sodium": 680.0
+    "sodium": 680.0,
+    "vegetarian": true
   },
   {
     "item_id": 600146,
@@ -1908,7 +2054,8 @@
     "fat": 0.0,
     "carbohydrate": 30.0,
     "sugars": 30.0,
-    "sodium": 35.0
+    "sodium": 35.0,
+    "vegetarian": true
   },
   {
     "item_id": 600147,
@@ -1921,7 +2068,8 @@
     "fat": 0.0,
     "carbohydrate": 38.0,
     "sugars": 38.0,
-    "sodium": 40.0
+    "sodium": 40.0,
+    "vegetarian": true
   },
   {
     "item_id": 600148,
@@ -1934,7 +2082,8 @@
     "fat": 19.0,
     "carbohydrate": 78.0,
     "sugars": 77.0,
-    "sodium": 350.0
+    "sodium": 350.0,
+    "vegetarian": true
   },
   {
     "item_id": 600149,
@@ -1947,7 +2096,8 @@
     "fat": 25.0,
     "carbohydrate": 106.0,
     "sugars": 103.0,
-    "sodium": 470.0
+    "sodium": 470.0,
+    "vegetarian": true
   },
   {
     "item_id": 600150,
@@ -1960,7 +2110,8 @@
     "fat": 2.0,
     "carbohydrate": 35.0,
     "sugars": 22.0,
-    "sodium": 65.0
+    "sodium": 65.0,
+    "vegetarian": true
   },
   {
     "item_id": 600151,
@@ -1973,7 +2124,8 @@
     "fat": 9.0,
     "carbohydrate": 35.0,
     "sugars": 23.0,
-    "sodium": 150.0
+    "sodium": 150.0,
+    "vegetarian": true
   },
   {
     "item_id": 600152,
@@ -1986,7 +2138,8 @@
     "fat": 9.0,
     "carbohydrate": 35.0,
     "sugars": 23.0,
-    "sodium": 150.0
+    "sodium": 150.0,
+    "vegetarian": true
   },
   {
     "item_id": 600153,
@@ -1999,7 +2152,8 @@
     "fat": 16.0,
     "carbohydrate": 59.0,
     "sugars": 45.0,
-    "sodium": 240.0
+    "sodium": 240.0,
+    "vegetarian": true
   },
   {
     "item_id": 600154,
@@ -2012,7 +2166,8 @@
     "fat": 22.0,
     "carbohydrate": 75.0,
     "sugars": 60.0,
-    "sodium": 340.0
+    "sodium": 340.0,
+    "vegetarian": true
   },
   {
     "item_id": 600155,
@@ -2025,7 +2180,8 @@
     "fat": 2.0,
     "carbohydrate": 34.0,
     "sugars": 22.0,
-    "sodium": 75.0
+    "sodium": 75.0,
+    "vegetarian": true
   },
   {
     "item_id": 600156,
@@ -2038,7 +2194,8 @@
     "fat": 2.0,
     "carbohydrate": 34.0,
     "sugars": 22.0,
-    "sodium": 85.0
+    "sodium": 85.0,
+    "vegetarian": true
   },
   {
     "item_id": 600157,
@@ -2051,7 +2208,8 @@
     "fat": 0.0,
     "carbohydrate": 43.0,
     "sugars": 41.0,
-    "sodium": 40.0
+    "sodium": 40.0,
+    "vegetarian": true
   },
   {
     "item_id": 600158,
@@ -2064,7 +2222,8 @@
     "fat": 1.0,
     "carbohydrate": 8.0,
     "sugars": 7.0,
-    "sodium": 10.0
+    "sodium": 10.0,
+    "vegetarian": true
   },
   {
     "item_id": 600159,
@@ -2077,7 +2236,8 @@
     "fat": 1.0,
     "carbohydrate": 8.0,
     "sugars": 7.0,
-    "sodium": 15.0
+    "sodium": 15.0,
+    "vegetarian": true
   },
   {
     "item_id": 600160,
@@ -2090,7 +2250,8 @@
     "fat": 2.0,
     "carbohydrate": 13.0,
     "sugars": 12.0,
-    "sodium": 130.0
+    "sodium": 130.0,
+    "vegetarian": true
   },
   {
     "item_id": 600161,
@@ -2103,7 +2264,8 @@
     "fat": 2.0,
     "carbohydrate": 10.0,
     "sugars": 9.0,
-    "sodium": 100.0
+    "sodium": 100.0,
+    "vegetarian": true
   },
   {
     "item_id": 600162,
@@ -2116,7 +2278,8 @@
     "fat": 0.0,
     "carbohydrate": 43.0,
     "sugars": 42.0,
-    "sodium": 40.0
+    "sodium": 40.0,
+    "vegetarian": true
   },
   {
     "item_id": 600163,
@@ -2129,7 +2292,8 @@
     "fat": 18.0,
     "carbohydrate": 63.0,
     "sugars": 58.0,
-    "sodium": 330.0
+    "sodium": 330.0,
+    "vegetarian": true
   },
   {
     "item_id": 600164,
@@ -2142,7 +2306,8 @@
     "fat": 24.0,
     "carbohydrate": 82.0,
     "sugars": 75.0,
-    "sodium": 440.0
+    "sodium": 440.0,
+    "vegetarian": true
   },
   {
     "item_id": 600165,
@@ -2155,7 +2320,8 @@
     "fat": 2.5,
     "carbohydrate": 32.0,
     "sugars": 20.0,
-    "sodium": 55.0
+    "sodium": 55.0,
+    "vegetarian": true
   },
   {
     "item_id": 600166,
@@ -2168,7 +2334,8 @@
     "fat": 11.0,
     "carbohydrate": 37.0,
     "sugars": 26.0,
-    "sodium": 125.0
+    "sodium": 125.0,
+    "vegetarian": true
   },
   {
     "item_id": 600167,
@@ -2181,7 +2348,8 @@
     "fat": 11.0,
     "carbohydrate": 42.0,
     "sugars": 28.0,
-    "sodium": 140.0
+    "sodium": 140.0,
+    "vegetarian": true
   },
   {
     "item_id": 600168,
@@ -2194,7 +2362,8 @@
     "fat": 17.0,
     "carbohydrate": 61.0,
     "sugars": 48.0,
-    "sodium": 220.0
+    "sodium": 220.0,
+    "vegetarian": true
   },
   {
     "item_id": 600169,
@@ -2207,7 +2376,8 @@
     "fat": 23.0,
     "carbohydrate": 77.0,
     "sugars": 64.0,
-    "sodium": 320.0
+    "sodium": 320.0,
+    "vegetarian": true
   },
   {
     "item_id": 600170,
@@ -2220,7 +2390,8 @@
     "fat": 0.0,
     "carbohydrate": 41.0,
     "sugars": 41.0,
-    "sodium": 45.0
+    "sodium": 45.0,
+    "vegetarian": true
   },
   {
     "item_id": 600171,
@@ -2233,7 +2404,8 @@
     "fat": 0.0,
     "carbohydrate": 51.0,
     "sugars": 51.0,
-    "sodium": 55.0
+    "sodium": 55.0,
+    "vegetarian": true
   },
   {
     "item_id": 600172,
@@ -2246,7 +2418,8 @@
     "fat": 0.0,
     "carbohydrate": 33.0,
     "sugars": 28.0,
-    "sodium": 20.0
+    "sodium": 20.0,
+    "vegetarian": true
   },
   {
     "item_id": 600173,
@@ -2259,7 +2432,8 @@
     "fat": 0.0,
     "carbohydrate": 12.0,
     "sugars": 11.0,
-    "sodium": 30.0
+    "sodium": 30.0,
+    "vegetarian": true
   },
   {
     "item_id": 600174,
@@ -2272,7 +2446,8 @@
     "fat": 1.5,
     "carbohydrate": 47.0,
     "sugars": 47.0,
-    "sodium": 135.0
+    "sodium": 135.0,
+    "vegetarian": true
   },
   {
     "item_id": 600175,
@@ -2285,7 +2460,8 @@
     "fat": 3.0,
     "carbohydrate": 66.0,
     "sugars": 65.0,
-    "sodium": 190.0
+    "sodium": 190.0,
+    "vegetarian": true
   },
   {
     "item_id": 600176,
@@ -2298,7 +2474,8 @@
     "fat": 0.0,
     "carbohydrate": 0.0,
     "sugars": 0.0,
-    "sodium": 5.0
+    "sodium": 5.0,
+    "vegetarian": true
   },
   {
     "item_id": 600177,
@@ -2311,7 +2488,8 @@
     "fat": 0.0,
     "carbohydrate": 0.0,
     "sugars": 0.0,
-    "sodium": 20.0
+    "sodium": 20.0,
+    "vegetarian": true
   },
   {
     "item_id": 600178,
@@ -2324,7 +2502,8 @@
     "fat": 21.0,
     "carbohydrate": 74.0,
     "sugars": 61.0,
-    "sodium": 290.0
+    "sodium": 290.0,
+    "vegetarian": true
   },
   {
     "item_id": 600179,
@@ -2337,7 +2516,8 @@
     "fat": 27.0,
     "carbohydrate": 100.0,
     "sugars": 82.0,
-    "sodium": 390.0
+    "sodium": 390.0,
+    "vegetarian": true
   },
   {
     "item_id": 600180,
@@ -2350,7 +2530,8 @@
     "fat": 0.0,
     "carbohydrate": 43.0,
     "sugars": 41.0,
-    "sodium": 40.0
+    "sodium": 40.0,
+    "vegetarian": true
   },
   {
     "item_id": 600181,
@@ -2363,7 +2544,8 @@
     "fat": 0.0,
     "carbohydrate": 20.0,
     "sugars": 19.0,
-    "sodium": 65.0
+    "sodium": 65.0,
+    "vegetarian": true
   },
   {
     "item_id": 600182,
@@ -2376,7 +2558,8 @@
     "fat": 2.0,
     "carbohydrate": 20.0,
     "sugars": 14.0,
-    "sodium": 10.0
+    "sodium": 10.0,
+    "vegetarian": true
   },
   {
     "item_id": 600183,
@@ -2389,7 +2572,8 @@
     "fat": 10.0,
     "carbohydrate": 28.0,
     "sugars": 22.0,
-    "sodium": 95.0
+    "sodium": 95.0,
+    "vegetarian": true
   },
   {
     "item_id": 600184,
@@ -2402,7 +2586,8 @@
     "fat": 10.0,
     "carbohydrate": 29.0,
     "sugars": 22.0,
-    "sodium": 95.0
+    "sodium": 95.0,
+    "vegetarian": true
   },
   {
     "item_id": 600185,
@@ -2415,7 +2600,8 @@
     "fat": 17.0,
     "carbohydrate": 53.0,
     "sugars": 44.0,
-    "sodium": 190.0
+    "sodium": 190.0,
+    "vegetarian": true
   },
   {
     "item_id": 600186,
@@ -2428,7 +2614,8 @@
     "fat": 23.0,
     "carbohydrate": 69.0,
     "sugars": 60.0,
-    "sodium": 290.0
+    "sodium": 290.0,
+    "vegetarian": true
   },
   {
     "item_id": 600187,
@@ -2441,7 +2628,8 @@
     "fat": 0.0,
     "carbohydrate": 0.0,
     "sugars": 0.0,
-    "sodium": 0.0
+    "sodium": 0.0,
+    "vegetarian": true
   },
   {
     "item_id": 600188,
@@ -2454,7 +2642,8 @@
     "fat": 17.0,
     "carbohydrate": 64.0,
     "sugars": 60.0,
-    "sodium": 310.0
+    "sodium": 310.0,
+    "vegetarian": true
   },
   {
     "item_id": 600189,
@@ -2467,7 +2656,8 @@
     "fat": 23.0,
     "carbohydrate": 85.0,
     "sugars": 78.0,
-    "sodium": 400.0
+    "sodium": 400.0,
+    "vegetarian": true
   },
   {
     "item_id": 600190,
@@ -2480,7 +2670,8 @@
     "fat": 38.0,
     "carbohydrate": 54.0,
     "sugars": 4.0,
-    "sodium": 1390.0
+    "sodium": 1390.0,
+    "vegetarian": false
   },
   {
     "item_id": 600191,
@@ -2493,7 +2684,8 @@
     "fat": 45.0,
     "carbohydrate": 54.0,
     "sugars": 3.0,
-    "sodium": 1360.0
+    "sodium": 1360.0,
+    "vegetarian": false
   },
   {
     "item_id": 600192,
@@ -2506,7 +2698,8 @@
     "fat": 40.0,
     "carbohydrate": 54.0,
     "sugars": 3.0,
-    "sodium": 1370.0
+    "sodium": 1370.0,
+    "vegetarian": false
   },
   {
     "item_id": 600193,
@@ -2519,7 +2712,8 @@
     "fat": 49.0,
     "carbohydrate": 55.0,
     "sugars": 4.0,
-    "sodium": 1270.0
+    "sodium": 1270.0,
+    "vegetarian": false
   },
   {
     "item_id": 600194,
@@ -2532,7 +2726,8 @@
     "fat": 38.0,
     "carbohydrate": 55.0,
     "sugars": 4.0,
-    "sodium": 1410.0
+    "sodium": 1410.0,
+    "vegetarian": false
   },
   {
     "item_id": 600195,
@@ -2545,7 +2740,8 @@
     "fat": 26.0,
     "carbohydrate": 42.0,
     "sugars": 3.0,
-    "sodium": 1240.0
+    "sodium": 1240.0,
+    "vegetarian": false
   },
   {
     "item_id": 600196,
@@ -2558,7 +2754,8 @@
     "fat": 27.0,
     "carbohydrate": 42.0,
     "sugars": 3.0,
-    "sodium": 1110.0
+    "sodium": 1110.0,
+    "vegetarian": false
   },
   {
     "item_id": 600197,
@@ -2571,7 +2768,8 @@
     "fat": 23.0,
     "carbohydrate": 43.0,
     "sugars": 4.0,
-    "sodium": 1290.0
+    "sodium": 1290.0,
+    "vegetarian": false
   },
   {
     "item_id": 600198,
@@ -2584,7 +2782,8 @@
     "fat": 0.0,
     "carbohydrate": 1.0,
     "sugars": 0.0,
-    "sodium": 50.0
+    "sodium": 50.0,
+    "vegetarian": true
   },
   {
     "item_id": 600199,
@@ -2597,7 +2796,8 @@
     "fat": 16.0,
     "carbohydrate": 38.0,
     "sugars": 3.0,
-    "sodium": 900.0
+    "sodium": 900.0,
+    "vegetarian": false
   },
   {
     "item_id": 600200,
@@ -2610,7 +2810,8 @@
     "fat": 14.0,
     "carbohydrate": 44.0,
     "sugars": 3.0,
-    "sodium": 770.0
+    "sodium": 770.0,
+    "vegetarian": true
   },
   {
     "item_id": 600201,
@@ -2623,7 +2824,8 @@
     "fat": 17.0,
     "carbohydrate": 38.0,
     "sugars": 3.0,
-    "sodium": 770.0
+    "sodium": 770.0,
+    "vegetarian": false
   },
   {
     "item_id": 600202,
@@ -2636,7 +2838,8 @@
     "fat": 11.0,
     "carbohydrate": 15.0,
     "sugars": 9.0,
-    "sodium": 70.0
+    "sodium": 70.0,
+    "vegetarian": true
   },
   {
     "item_id": 600203,
@@ -2649,7 +2852,8 @@
     "fat": 68.0,
     "carbohydrate": 88.0,
     "sugars": 52.0,
-    "sodium": 430.0
+    "sodium": 430.0,
+    "vegetarian": true
   },
   {
     "item_id": 600204,
@@ -2662,7 +2866,8 @@
     "fat": 29.0,
     "carbohydrate": 52.0,
     "sugars": 3.0,
-    "sodium": 1310.0
+    "sodium": 1310.0,
+    "vegetarian": false
   },
   {
     "item_id": 600205,
@@ -2675,7 +2880,8 @@
     "fat": 30.0,
     "carbohydrate": 52.0,
     "sugars": 3.0,
-    "sodium": 1180.0
+    "sodium": 1180.0,
+    "vegetarian": false
   },
   {
     "item_id": 600206,
@@ -2688,7 +2894,8 @@
     "fat": 27.0,
     "carbohydrate": 53.0,
     "sugars": 4.0,
-    "sodium": 1360.0
+    "sodium": 1360.0,
+    "vegetarian": false
   },
   {
     "item_id": 600207,
@@ -2701,7 +2908,8 @@
     "fat": 11.0,
     "carbohydrate": 14.0,
     "sugars": 1.0,
-    "sodium": 330.0
+    "sodium": 330.0,
+    "vegetarian": true
   },
   {
     "item_id": 600208,
@@ -2714,7 +2922,8 @@
     "fat": 31.0,
     "carbohydrate": 53.0,
     "sugars": 3.0,
-    "sodium": 1350.0
+    "sodium": 1350.0,
+    "vegetarian": false
   },
   {
     "item_id": 600209,
@@ -2727,7 +2936,8 @@
     "fat": 32.0,
     "carbohydrate": 53.0,
     "sugars": 3.0,
-    "sodium": 1220.0
+    "sodium": 1220.0,
+    "vegetarian": false
   },
   {
     "item_id": 600210,
@@ -2740,7 +2950,8 @@
     "fat": 29.0,
     "carbohydrate": 54.0,
     "sugars": 4.0,
-    "sodium": 1400.0
+    "sodium": 1400.0,
+    "vegetarian": false
   },
   {
     "item_id": 600211,
@@ -2753,6 +2964,7 @@
     "fat": 0.0,
     "carbohydrate": 4.0,
     "sugars": 3.0,
-    "sodium": 0.0
+    "sodium": 0.0,
+    "vegetarian": true
   }
 ]

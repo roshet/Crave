@@ -144,7 +144,8 @@ def recommend(
     top_n: int = Query(10, ge = 1, le = 50),
     goal: str = Query("balanced", pattern = "^(balanced|high_protein|low_sugar|low_fat)$"),
     category: str | None = Query(None),
-    format: str = Query("raw", pattern = "^(raw|human)$")
+    format: str = Query("raw", pattern = "^(raw|human)$"),
+    vegetarian: bool = Query(False),
 ):
     if restaurant == "mcdonalds":
         items = mcdonalds_items
@@ -158,6 +159,9 @@ def recommend(
         items = burgerking_items
     else:
         items = ALL_ITEMS
+
+    if vegetarian:
+        items = [it for it in items if it.get("vegetarian")]
 
     if category:
         valid = {(it.get("category") or "").lower() for it in items}
@@ -213,6 +217,7 @@ def optimize_meal(
     allow_side: bool = Query(True),
     allow_drink: bool = Query(True),
     format: str = Query("human", pattern="^(raw|human)$"),
+    vegetarian: bool = Query(False),
 ):
     per_restaurant = {
         "mcdonalds": mcdonalds_items,
@@ -231,6 +236,8 @@ def optimize_meal(
             )
 
     def _optimize(items):
+        if vegetarian:
+            items = [it for it in items if it.get("vegetarian")]
         return build_optimal_meal(
             items,
             max_calories=max_calories,

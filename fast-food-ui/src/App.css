@@ -1030,3 +1030,21 @@ body { margin: 0; }
 .savedMealStats { font-size: 0.78rem; color: var(--text-secondary); }
 
 [data-theme="dark"] .savedMealNameInput { background: #1c1917; }
+
+.vegToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.vegToggle input {
+  cursor: pointer;
+}
+
+.vegBadge {
+  margin-left: 0.4rem;
+  font-size: 0.9em;
+}

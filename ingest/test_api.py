@@ -246,3 +246,59 @@ def test_items_missing_ids_param_is_422():
     """`ids` is required, so omitting it is a FastAPI validation error."""
     resp = client.get("/items")
     assert resp.status_code == 422
+
+
+# --- vegetarian field invariant ----------------------------------------------
+
+def test_every_item_has_boolean_vegetarian_field():
+    """The vegetarian filter relies on every item carrying the tag; a dataset
+    edit that drops it would silently hide items. Guard the whole corpus."""
+    from api import ALL_ITEMS
+    missing = [it.get("name") for it in ALL_ITEMS if not isinstance(it.get("vegetarian"), bool)]
+    assert missing == [], f"items missing boolean 'vegetarian': {missing[:10]}"
+
+
+def test_no_meat_keyword_in_any_vegetarian_item():
+    """Safety tripwire: the feature's core contract is that no meat item is ever
+    tagged vegetarian. Tagging is heuristic + manual overrides, so assert directly
+    that no unambiguous meat/seafood term appears in any vegetarian item's name.
+    Guards against a future dataset edit silently leaking meat into vegetarian views."""
+    from api import ALL_ITEMS
+    meat_terms = [
+        "bacon", "beef", "chicken", "sausage", "pepperoni", "steak", "pork",
+        "turkey", "brisket", "shrimp", "fish", "nugget", "baconator", "chorizo",
+        "mcrib", "mcchicken", "filet", "carne", "anchov",
+    ]
+    leaks = [
+        it["name"]
+        for it in ALL_ITEMS
+        if it.get("vegetarian") is True
+        and any(term in it["name"].lower() for term in meat_terms)
+    ]
+    assert leaks == [], f"meat keyword found in vegetarian-tagged items: {leaks}"
+
+
+def test_recommend_vegetarian_excludes_meat_and_keeps_veg():
+    resp = client.get("/recommend", params={"vegetarian": "true", "format": "human", "top_n": 50})
+    assert resp.status_code == 200
+    titles = [r["title"].lower() for r in resp.json()["results"]]
+    # no obvious meat items survive the filter
+    assert not any("nugget" in t or "bacon" in t or "burger" in t for t in titles)
+    # the humanized payload carries the flag, and everything returned is vegetarian
+    assert all(r.get("vegetarian") is True for r in resp.json()["results"])
+
+
+def test_recommend_vegetarian_off_by_default_includes_meat():
+    resp = client.get("/recommend", params={"format": "human", "top_n": 50})
+    titles = [r["title"].lower() for r in resp.json()["results"]]
+    assert any("chicken" in t or "burger" in t or "nugget" in t for t in titles)
+
+
+def test_optimize_meal_vegetarian_returns_all_veg_meal():
+    resp = client.get("/optimize_meal", params={"vegetarian": "true", "restaurant": "all"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "meals" in body and body["meals"], "expected at least one vegetarian meal"
+    for meal in body["meals"]:
+        for item in meal["items"]:
+            assert item.get("vegetarian") is True

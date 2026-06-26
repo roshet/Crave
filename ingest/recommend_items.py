@@ -187,6 +187,7 @@ def humanize_items(items):
             "sodium": float(item.get("sodium") or 0),
 
             "score": item.get("health_score"),
+            "vegetarian": bool(item.get("vegetarian", False)),
         })
 
     return human
