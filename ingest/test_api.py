@@ -302,3 +302,23 @@ def test_optimize_meal_vegetarian_returns_all_veg_meal():
     for meal in body["meals"]:
         for item in meal["items"]:
             assert item.get("vegetarian") is True
+
+
+# --- vegan field invariants --------------------------------------------------
+
+def test_every_item_has_boolean_vegan_field():
+    """The vegan filter relies on every item carrying the tag; a dataset edit
+    that drops it would silently hide items. Guard the whole corpus."""
+    from api import ALL_ITEMS
+    missing = [it.get("name") for it in ALL_ITEMS if not isinstance(it.get("vegan"), bool)]
+    assert missing == [], f"items missing boolean 'vegan': {missing[:10]}"
+
+
+def test_vegan_is_subset_of_vegetarian():
+    """A vegan item must also be vegetarian. This is the core safety invariant."""
+    from api import ALL_ITEMS
+    violations = [
+        it.get("name") for it in ALL_ITEMS
+        if it.get("vegan") and not it.get("vegetarian")
+    ]
+    assert violations == [], f"vegan-but-not-vegetarian items: {violations[:10]}"

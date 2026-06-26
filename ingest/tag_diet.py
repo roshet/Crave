@@ -1,14 +1,16 @@
-"""Derive a `vegetarian` boolean for every item across all 5 datasets and write it
-back into the JSON files. Idempotent — re-running yields a no-op diff.
+"""Derive `vegetarian` and `vegan` booleans for every item across all 5 datasets
+and write them back into the JSON files. Idempotent — re-running yields a no-op diff.
 
-We have NO ingredient data, only name + category + macros, so vegetarian status is
-*derived*: a non-vegetarian keyword match on the name, plus category defaults, plus
-an explicit per-item OVERRIDES table for whatever the heuristic gets wrong.
+We have NO ingredient data, only name + category + macros, so diet status is
+*derived*: keyword matches on the name, plus category defaults, plus explicit
+per-item override tables for whatever the heuristics get wrong.
 
 Conservative bias: mark True only when confident; ambiguity stays False. Showing a
-meat item to someone filtering vegetarian is the failure we must avoid.
+meat item to a vegetarian (or a dairy/egg item to a vegan) is the failure we avoid.
+Vegan is a strict subset of vegetarian and leans harder on overrides, since dairy
+and egg are frequently invisible in product names.
 
-Re-run after editing OVERRIDES:  python tag_vegetarian.py
+Re-run after editing any OVERRIDES table:  python tag_diet.py
 """
 
 import json
@@ -40,6 +42,48 @@ VEG_DEFAULT_CATEGORIES = {
     "drinks", "beverages", "mccafe_coffees", "desserts", "sweets", "sauces",
     "dressings", "buns",
 }
+
+# Substrings (lowercased) that mark an otherwise-vegetarian item as NOT vegan:
+# dairy, egg, honey, and dairy-dessert/drink signals. Matched against full names.
+NON_VEGAN_KEYWORDS = {
+    "cheese", "cheesy", "milk", "cream", "creamy", "butter", "egg", "mayo",
+    "ranch", "yogurt", "parfait", "shake", "float", "latte", "cappuccino",
+    "mocha", "frappe", "frosted", "queso", "honey", "custard", "icedream",
+    "sundae", "mcflurry", "cheddar", "parmesan", "aioli", "alfredo",
+}
+
+# Categories whose items are vegan by default UNLESS a non-vegan keyword fires.
+# Deliberately narrow: only fountain drinks/teas/lemonades/water reliably qualify
+# (milkshakes/lattes are caught by NON_VEGAN_KEYWORDS). Sides/buns/sauces are NOT
+# here — they carry name-invisible dairy/egg/tallow, so they stay override-driven.
+VEGAN_DEFAULT_CATEGORIES = {"drinks", "beverages"}
+
+# Explicit per-item vegan corrections, keyed on str(item_id). Populated during the
+# review gate (Step 8). Value is the FINAL vegan boolean. NEVER set True for a
+# non-vegetarian item (a test asserts the subset invariant).
+VEGAN_OVERRIDES: dict[str, bool] = {}
+
+
+def _has_vegan_signal(item: dict) -> bool:
+    """Vegan-specific heuristic only — does NOT re-check meat. The vegetarian gate
+    lives in _is_vegan's composing rule."""
+    name = (item.get("name") or "").lower()
+    if any(kw in name for kw in NON_VEGAN_KEYWORDS):
+        return False
+    category = (item.get("category") or "").lower()
+    if category in VEGAN_DEFAULT_CATEGORIES:
+        return True
+    # Unknown territory: conservative default is False.
+    return False
+
+
+def _is_vegan(item: dict) -> bool:
+    item_id = str(item.get("item_id"))
+    if item_id in VEGAN_OVERRIDES:
+        return VEGAN_OVERRIDES[item_id]
+    # Subset invariant: must be vegetarian first.
+    return _is_vegetarian(item) and _has_vegan_signal(item)
+
 
 # Explicit per-item corrections, keyed on str(item_id). Populated during review:
 # run the script, inspect the printed report, and add entries for misclassifications
@@ -181,25 +225,35 @@ def main():
             data = json.load(f)
 
         veg_count = 0
+        vegan_count = 0
         for item in _iter_items(data):
             veg = _is_vegetarian(item)
+            vegan = _is_vegan(item)
             item["vegetarian"] = veg
+            item["vegan"] = vegan
             if veg:
                 veg_count += 1
-            report.append((filename, str(item.get("item_id")), item.get("name"), veg))
+            if vegan:
+                vegan_count += 1
+            report.append((filename, str(item.get("item_id")), item.get("name"), veg, vegan))
 
         with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
             f.write("\n")
 
         total = sum(1 for _ in _iter_items(data))
-        print(f"{filename}: {veg_count}/{total} vegetarian")
+        print(f"{filename}: {veg_count}/{total} vegetarian, {vegan_count}/{total} vegan")
 
-    # Full per-item report for review of the heuristic.
-    print("\n--- items tagged vegetarian (review for false positives) ---")
-    for fn, iid, name, veg in report:
-        if veg:
-            print(f"  VEG  {fn:24} {name}")
+    # Full per-item report for review of the heuristics.
+    print("\n--- items tagged VEGAN (review for false positives) ---")
+    for fn, iid, name, veg, vegan in report:
+        if vegan:
+            print(f"  VEGAN  {fn:24} {name}")
+
+    print("\n--- vegetarian-but-NOT-vegan (review for false negatives) ---")
+    for fn, iid, name, veg, vegan in report:
+        if veg and not vegan:
+            print(f"  veg-only  {fn:24} {name}")
 
 
 if __name__ == "__main__":
