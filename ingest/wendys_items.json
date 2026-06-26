@@ -342,7 +342,7 @@
     "sugars": 0.0,
     "sodium": 420,
     "vegetarian": true,
-    "vegan": false
+    "vegan": true
   },
   {
     "item_id": "Medium Fries",
@@ -357,7 +357,7 @@
     "sugars": 0.0,
     "sodium": 550,
     "vegetarian": true,
-    "vegan": false
+    "vegan": true
   },
   {
     "item_id": "Large Fries",
@@ -372,7 +372,7 @@
     "sugars": 0.0,
     "sodium": 740,
     "vegetarian": true,
-    "vegan": false
+    "vegan": true
   },
   {
     "item_id": "Baconator Fries",
@@ -417,7 +417,7 @@
     "sugars": 3.0,
     "sodium": 40,
     "vegetarian": true,
-    "vegan": false
+    "vegan": true
   },
   {
     "item_id": "Sour Cream & Chives Potato",
@@ -702,6 +702,6 @@
     "sugars": 28.0,
     "sodium": 105,
     "vegetarian": true,
-    "vegan": true
+    "vegan": false
   }
 ]

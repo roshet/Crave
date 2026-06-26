@@ -207,7 +207,7 @@
     "protein": 1.0,
     "sodium": 0.0,
     "vegetarian": true,
-    "vegan": false
+    "vegan": true
   },
   "chickfila_breakfast_breads": {
     "item_id": "chickfila_breakfast_breads",
@@ -462,7 +462,7 @@
     "protein": 4.0,
     "sodium": 250.0,
     "vegetarian": true,
-    "vegan": false
+    "vegan": true
   },
   "chickfila_chick_fil_a_waffle_potato_fries": {
     "item_id": "chickfila_chick_fil_a_waffle_potato_fries",
@@ -477,7 +477,7 @@
     "protein": 5.0,
     "sodium": 240.0,
     "vegetarian": true,
-    "vegan": false
+    "vegan": true
   },
   "chickfila_mac_cheese": {
     "item_id": "chickfila_mac_cheese",
@@ -552,7 +552,7 @@
     "protein": 3.0,
     "sodium": 250.0,
     "vegetarian": true,
-    "vegan": false
+    "vegan": true
   },
   "chickfila_buddy_fruits_apple_sauce": {
     "item_id": "chickfila_buddy_fruits_apple_sauce",
@@ -567,7 +567,7 @@
     "protein": 0.0,
     "sodium": 0.0,
     "vegetarian": true,
-    "vegan": false
+    "vegan": true
   },
   "chickfila_chick_fil_a_sauce_flavored_waffle_potato_chips": {
     "item_id": "chickfila_chick_fil_a_sauce_flavored_waffle_potato_chips",
@@ -957,7 +957,7 @@
     "protein": 7.0,
     "sodium": 115.0,
     "vegetarian": true,
-    "vegan": true
+    "vegan": false
   },
   "chickfila_coca_cola": {
     "item_id": "chickfila_coca_cola",
@@ -1062,7 +1062,7 @@
     "protein": 6.0,
     "sodium": 140.0,
     "vegetarian": true,
-    "vegan": true
+    "vegan": false
   },
   "chickfila_peppermint_coffee": {
     "item_id": "chickfila_peppermint_coffee",
@@ -1077,7 +1077,7 @@
     "protein": 0.0,
     "sodium": 35.0,
     "vegetarian": true,
-    "vegan": true
+    "vegan": false
   },
   "chickfila_dasani_bottled_water": {
     "item_id": "chickfila_dasani_bottled_water",
@@ -1737,7 +1737,7 @@
     "protein": 1.0,
     "sodium": 180.0,
     "vegetarian": true,
-    "vegan": false
+    "vegan": true
   },
   "chickfila_grilled_chicken_bundle": {
     "item_id": "chickfila_grilled_chicken_bundle",

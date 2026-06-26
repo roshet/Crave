@@ -582,7 +582,7 @@
     "sugars": 3.0,
     "sodium": 0.0,
     "vegetarian": true,
-    "vegan": false
+    "vegan": true
   },
   {
     "item_id": 200692,
@@ -1227,7 +1227,7 @@
     "sugars": 39.0,
     "sodium": 40.0,
     "vegetarian": true,
-    "vegan": true
+    "vegan": false
   },
   {
     "item_id": 200155,
@@ -1242,7 +1242,7 @@
     "sugars": 42.0,
     "sodium": 35.0,
     "vegetarian": true,
-    "vegan": true
+    "vegan": false
   },
   {
     "item_id": 203957,
@@ -1377,7 +1377,7 @@
     "sugars": 45.0,
     "sodium": 170.0,
     "vegetarian": true,
-    "vegan": true
+    "vegan": false
   },
   {
     "item_id": 200609,

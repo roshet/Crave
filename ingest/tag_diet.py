@@ -50,6 +50,9 @@ NON_VEGAN_KEYWORDS = {
     "ranch", "yogurt", "parfait", "shake", "float", "latte", "cappuccino",
     "mocha", "frappe", "frosted", "queso", "honey", "custard", "icedream",
     "sundae", "mcflurry", "cheddar", "parmesan", "aioli", "alfredo",
+    # dairy-implying drink/dessert signals (review gate additions):
+    "dirty", "churro", "chiller", "matcha", "crema", "smoothie", "hot chocolate",
+    "frosty", "dream", "cinnabon",
 }
 
 # Categories whose items are vegan by default UNLESS a non-vegan keyword fires.
@@ -61,7 +64,36 @@ VEGAN_DEFAULT_CATEGORIES = {"drinks", "beverages"}
 # Explicit per-item vegan corrections, keyed on str(item_id). Populated during the
 # review gate (Step 8). Value is the FINAL vegan boolean. NEVER set True for a
 # non-vegetarian item (a test asserts the subset invariant).
-VEGAN_OVERRIDES: dict[str, bool] = {}
+VEGAN_OVERRIDES: dict[str, bool] = {
+    # --- mcdonalds ---
+    '200068': True,                                        # McDonald's | Apple Slices
+    # --- wendys ---
+    'Plain Baked Potato': True,                            # Wendy's | Plain Baked Potato
+    'Small Fries': True,                                   # Wendy's | Small Fries
+    'Medium Fries': True,                                  # Wendy's | Medium Fries
+    'Large Fries': True,                                   # Wendy's | Large Fries
+    # --- burgerking ---
+    '700016': True,                                        # Burger King | Small Fries
+    '700017': True,                                        # Burger King | Medium Fries
+    '700018': True,                                        # Burger King | Large Fries
+    '700024': True,                                        # Burger King | Hash Browns (Small)
+    # --- chickfila — True (plant-based) ---
+    'chickfila_chick_fil_a_waffle_potato_fries': True,     # Chick-fil-A | Chick-fil-A Waffle Potato Fries
+    'chickfila_original_flavor_waffle_potato_chips': True, # Chick-fil-A | Original Flavor Waffle Potato Chips
+    'chickfila_buddy_fruits_apple_sauce': True,            # Chick-fil-A | Buddy Fruits Apple Sauce
+    'chickfila_fruit_cup': True,                           # Chick-fil-A | Fruit Cup
+    'chickfila_kale_crunch_side': True,                    # Chick-fil-A | Kale Crunch Side
+    'chickfila_saltines': True,                            # Chick-fil-A | Saltines
+    # --- chickfila — False (milk-based coffees that leaked via drinks default) ---
+    'chickfila_iced_coffee': False,                        # Chick-fil-A | Iced Coffee
+    'chickfila_peppermint_iced_coffee': False,             # Chick-fil-A | Peppermint Iced Coffee
+    'chickfila_peppermint_coffee': False,                  # Chick-fil-A | Peppermint Coffee
+    # --- tacobell ---
+    '600134': True,                                        # Taco Bell | Black Beans
+    '600133': True,                                        # Taco Bell | Black Beans & Rice
+    '600138': True,                                        # Taco Bell | Cinnamon Twists
+    '600207': True,                                        # Taco Bell | Hash Brown
+}
 
 
 def _has_vegan_signal(item: dict) -> bool:
