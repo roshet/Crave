@@ -739,7 +739,13 @@ function App() {
             <div className="itemList">
               {loading && [0,1,2,3,4].map((i) => <SkeletonRow key={i} />)}
               {!loading && hasSearched && displayedResults.length === 0 && !error && (
-                <p className="emptyMsg">No items matched your criteria.</p>
+                diet !== "none" ? (
+                  <p className="emptyMsg">
+                    No {diet} items match this goal. Try a different goal (e.g. Low Fat) or Optimize for a {diet} meal.
+                  </p>
+                ) : (
+                  <p className="emptyMsg">No items matched your criteria.</p>
+                )
               )}
               {!loading && displayedResults.map((item) => {
                 const { emoji, gradient } = getThumbnail(item);

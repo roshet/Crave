@@ -325,9 +325,10 @@ def test_vegan_is_subset_of_vegetarian():
 
 
 def test_recommend_vegan_excludes_dairy_and_keeps_vegan():
-    resp = client.get("/recommend", params={"vegan": "true", "format": "human", "top_n": 50})
+    resp = client.get("/recommend", params={"vegan": "true", "goal": "low_fat", "format": "human", "top_n": 50})
     assert resp.status_code == 200
     results = resp.json()["results"]
+    assert results, "expected vegan results but got none"
     titles = [r["title"].lower() for r in results]
     # no obvious dairy/egg items survive the filter
     assert not any("cheese" in t or "shake" in t or "egg" in t for t in titles)
