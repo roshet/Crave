@@ -322,3 +322,47 @@ def test_vegan_is_subset_of_vegetarian():
         if it.get("vegan") and not it.get("vegetarian")
     ]
     assert violations == [], f"vegan-but-not-vegetarian items: {violations[:10]}"
+
+
+def test_recommend_vegan_excludes_dairy_and_keeps_vegan():
+    resp = client.get("/recommend", params={"vegan": "true", "format": "human", "top_n": 50})
+    assert resp.status_code == 200
+    results = resp.json()["results"]
+    titles = [r["title"].lower() for r in results]
+    # no obvious dairy/egg items survive the filter
+    assert not any("cheese" in t or "shake" in t or "egg" in t for t in titles)
+    # everything returned is vegan (and therefore vegetarian)
+    assert all(r.get("vegan") is True for r in results)
+    assert all(r.get("vegetarian") is True for r in results)
+
+
+def test_recommend_vegan_off_by_default_includes_non_vegan():
+    resp = client.get("/recommend", params={"format": "human", "top_n": 50})
+    results = resp.json()["results"]
+    assert any(r.get("vegan") is False for r in results)
+
+
+def test_optimize_meal_vegan_returns_all_vegan_meal():
+    resp = client.get("/optimize_meal", params={"vegan": "true", "restaurant": "all"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "meals" in body and body["meals"], "expected at least one vegan meal"
+    for meal in body["meals"]:
+        for item in meal["items"]:
+            assert item.get("vegan") is True
+
+
+def test_no_dairy_keyword_in_any_vegan_item():
+    """Regression tripwire: no vegan-tagged item name contains a dairy/egg term.
+    Mirrors the meat tripwire for the vegetarian filter."""
+    from api import ALL_ITEMS
+    dairy_terms = [
+        "cheese", "milk", "cream", "butter", "egg", "mayo", "ranch", "yogurt",
+        "parfait", "shake", "float", "latte", "queso", "honey", "custard",
+        "icedream", "sundae", "mcflurry", "cheddar", "parmesan",
+    ]
+    leaks = [
+        it.get("name") for it in ALL_ITEMS
+        if it.get("vegan") and any(term in (it.get("name") or "").lower() for term in dairy_terms)
+    ]
+    assert leaks == [], f"vegan items with a dairy/egg keyword: {leaks[:10]}"
