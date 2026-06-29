@@ -45,6 +45,7 @@ VEG_DEFAULT_CATEGORIES = {
 
 # Substrings (lowercased) that mark an otherwise-vegetarian item as NOT vegan:
 # dairy, egg, honey, and dairy-dessert/drink signals. Matched against full names.
+# Multi-word entries (e.g. "hot chocolate") are valid — matching uses `kw in name`.
 NON_VEGAN_KEYWORDS = {
     "cheese", "cheesy", "milk", "cream", "creamy", "butter", "egg", "mayo",
     "ranch", "yogurt", "parfait", "shake", "float", "latte", "cappuccino",
@@ -112,7 +113,9 @@ def _has_vegan_signal(item: dict) -> bool:
 def _is_vegan(item: dict) -> bool:
     item_id = str(item.get("item_id"))
     if item_id in VEGAN_OVERRIDES:
-        return VEGAN_OVERRIDES[item_id]
+        # Guard the subset invariant: a mistaken True override on a meat item
+        # must never produce vegan:true, vegetarian:false.
+        return VEGAN_OVERRIDES[item_id] and _is_vegetarian(item)
     # Subset invariant: must be vegetarian first.
     return _is_vegetarian(item) and _has_vegan_signal(item)
 
