@@ -222,7 +222,7 @@ function App() {
   const [restaurant, setRestaurant]   = useState("all");
   const [maxCalories, setMaxCalories] = useState(600);
   const [category, setCategory]       = useState("");
-  const [vegetarian, setVegetarian]   = useState(false);
+  const [diet, setDiet]               = useState("none"); // "none" | "vegetarian" | "vegan"
 
   // Navigation
   const [activeTab, setActiveTab] = useState("browse");
@@ -304,7 +304,7 @@ function App() {
   useEffect(() => {
     if (activeTab === "browse") fetchBrowse();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, goal, restaurant, maxCalories, category, vegetarian]);
+  }, [activeTab, goal, restaurant, maxCalories, category, diet]);
 
   // On first load, rehydrate a shared meal from the ?meal=<ids> URL param. Fetches the
   // full items by id, drops the user on the Meal Builder, then strips the param so the
@@ -434,7 +434,8 @@ function App() {
     try {
       let url = `${API_BASE_URL}/recommend?restaurant=${encodeURIComponent(restaurant)}&goal=${encodeURIComponent(goal)}&max_calories=${encodeURIComponent(maxCalories)}&top_n=20&format=human`;
       if (category) url += `&category=${encodeURIComponent(category)}`;
-      if (vegetarian) url += `&vegetarian=true`;
+      if (diet === "vegetarian") url += `&vegetarian=true`;
+      else if (diet === "vegan") url += `&vegan=true`;
       const res = await fetch(url, { signal: controller.signal });
       if (!res.ok) throw new Error(`API error (${res.status}): ${await res.text()}`);
       const data = await res.json();
@@ -457,7 +458,8 @@ function App() {
     const timer = setTimeout(() => controller.abort(), 15000);
     try {
       let url = `${API_BASE_URL}/optimize_meal?restaurant=${encodeURIComponent(restaurant)}&goal=${encodeURIComponent(goal)}&max_calories=${encodeURIComponent(maxCalories)}&format=human`;
-      if (vegetarian) url += `&vegetarian=true`;
+      if (diet === "vegetarian") url += `&vegetarian=true`;
+      else if (diet === "vegan") url += `&vegan=true`;
       const res = await fetch(url, { signal: controller.signal });
       if (!res.ok) throw new Error(`API error (${res.status}): ${await res.text()}`);
       const data = await res.json();
@@ -643,15 +645,11 @@ function App() {
             ))}
           </select>
         )}
-        <label className="vegToggle">
-          <input
-            type="checkbox"
-            checked={vegetarian}
-            onChange={(e) => setVegetarian(e.target.checked)}
-            aria-label="Vegetarian only"
-          />
-          <span>🌱 Vegetarian</span>
-        </label>
+        <select className="chipSelect" aria-label="Diet" value={diet} onChange={(e) => setDiet(e.target.value)}>
+          <option value="none">Any diet</option>
+          <option value="vegetarian">🌱 Vegetarian</option>
+          <option value="vegan">🥬 Vegan</option>
+        </select>
       </div>
     );
   }
@@ -763,7 +761,11 @@ function App() {
                     <div className="itemInfo">
                       <div className="itemName">
                         {item.title || item.name}
-                        {item.vegetarian && <span className="vegBadge" title="Vegetarian" aria-label="Vegetarian">🌱</span>}
+                        {item.vegan
+                          ? <span className="vegBadge" title="Vegan" aria-label="Vegan">🥬</span>
+                          : item.vegetarian
+                          ? <span className="vegBadge" title="Vegetarian" aria-label="Vegetarian">🌱</span>
+                          : null}
                       </div>
                       <div className="itemStats">
                         {item.calories} kcal · {item.protein}g protein · {item.sugars}g sugar
@@ -1131,7 +1133,11 @@ function App() {
               <div className="modalItemMeta">
                 <h2 className="modalItemName" id="modalItemName">
                   {modalItem.title || modalItem.name}
-                  {modalItem.vegetarian && <span className="vegBadge" title="Vegetarian" aria-label="Vegetarian">🌱</span>}
+                  {modalItem.vegan
+                    ? <span className="vegBadge" title="Vegan" aria-label="Vegan">🥬</span>
+                    : modalItem.vegetarian
+                    ? <span className="vegBadge" title="Vegetarian" aria-label="Vegetarian">🌱</span>
+                    : null}
                 </h2>
                 <p className="modalItemSub">{modalItem.restaurant} · {modalItem.category}</p>
               </div>
