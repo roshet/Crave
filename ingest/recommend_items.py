@@ -188,6 +188,7 @@ def humanize_items(items):
 
             "score": item.get("health_score"),
             "vegetarian": bool(item.get("vegetarian", False)),
+            "vegan": bool(item.get("vegan", False)),
         })
 
     return human

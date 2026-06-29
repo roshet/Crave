@@ -302,3 +302,68 @@ def test_optimize_meal_vegetarian_returns_all_veg_meal():
     for meal in body["meals"]:
         for item in meal["items"]:
             assert item.get("vegetarian") is True
+
+
+# --- vegan field invariants --------------------------------------------------
+
+def test_every_item_has_boolean_vegan_field():
+    """The vegan filter relies on every item carrying the tag; a dataset edit
+    that drops it would silently hide items. Guard the whole corpus."""
+    from api import ALL_ITEMS
+    missing = [it.get("name") for it in ALL_ITEMS if not isinstance(it.get("vegan"), bool)]
+    assert missing == [], f"items missing boolean 'vegan': {missing[:10]}"
+
+
+def test_vegan_is_subset_of_vegetarian():
+    """A vegan item must also be vegetarian. This is the core safety invariant."""
+    from api import ALL_ITEMS
+    violations = [
+        it.get("name") for it in ALL_ITEMS
+        if it.get("vegan") and not it.get("vegetarian")
+    ]
+    assert violations == [], f"vegan-but-not-vegetarian items: {violations[:10]}"
+
+
+def test_recommend_vegan_excludes_dairy_and_keeps_vegan():
+    resp = client.get("/recommend", params={"vegan": "true", "goal": "low_fat", "format": "human", "top_n": 50})
+    assert resp.status_code == 200
+    results = resp.json()["results"]
+    assert results, "expected vegan results but got none"
+    titles = [r["title"].lower() for r in results]
+    # no obvious dairy/egg items survive the filter
+    assert not any("cheese" in t or "shake" in t or "egg" in t for t in titles)
+    # everything returned is vegan (and therefore vegetarian)
+    assert all(r.get("vegan") is True for r in results)
+    assert all(r.get("vegetarian") is True for r in results)
+
+
+def test_recommend_vegan_off_by_default_includes_non_vegan():
+    resp = client.get("/recommend", params={"format": "human", "top_n": 50})
+    results = resp.json()["results"]
+    assert any(r.get("vegan") is False for r in results)
+
+
+def test_optimize_meal_vegan_returns_all_vegan_meal():
+    resp = client.get("/optimize_meal", params={"vegan": "true", "restaurant": "all"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "meals" in body and body["meals"], "expected at least one vegan meal"
+    for meal in body["meals"]:
+        for item in meal["items"]:
+            assert item.get("vegan") is True
+
+
+def test_no_dairy_keyword_in_any_vegan_item():
+    """Regression tripwire: no vegan-tagged item name contains a dairy/egg term.
+    Mirrors the meat tripwire for the vegetarian filter."""
+    from api import ALL_ITEMS
+    dairy_terms = [
+        "cheese", "milk", "cream", "butter", "egg", "mayo", "ranch", "yogurt",
+        "parfait", "shake", "float", "latte", "queso", "honey", "custard",
+        "icedream", "sundae", "mcflurry", "cheddar", "parmesan",
+    ]
+    leaks = [
+        it.get("name") for it in ALL_ITEMS
+        if it.get("vegan") and any(term in (it.get("name") or "").lower() for term in dairy_terms)
+    ]
+    assert leaks == [], f"vegan items with a dairy/egg keyword: {leaks[:10]}"
