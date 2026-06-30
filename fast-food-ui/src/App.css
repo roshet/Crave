@@ -753,6 +753,13 @@ body { margin: 0; }
   color: var(--text-secondary);
 }
 
+.optimizeSidesOnly {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: var(--accent, #2e7d32);
+  font-weight: 600;
+}
+
 .optimizeGoalChecks {
   display: flex;
   flex-wrap: wrap;

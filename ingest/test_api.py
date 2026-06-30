@@ -367,3 +367,29 @@ def test_no_dairy_keyword_in_any_vegan_item():
         if it.get("vegan") and any(term in (it.get("name") or "").lower() for term in dairy_terms)
     ]
     assert leaks == [], f"vegan items with a dairy/egg keyword: {leaks[:10]}"
+
+
+# --- entree-less (sides-only) optimizer meals --------------------------------
+
+def test_wendys_vegan_optimize_returns_sides_only_meal():
+    resp = client.get("/optimize_meal?restaurant=wendys&vegan=true&goal=low_fat")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body.get("meals"), "expected a sides-only meal, got: %r" % body
+    first = body["meals"][0]
+    assert first["entree_less"] is True
+    for item in first["items"]:
+        assert item["vegan"] is True
+
+
+def test_wendys_vegan_high_protein_still_no_meal():
+    resp = client.get("/optimize_meal?restaurant=wendys&vegan=true&goal=high_protein")
+    assert resp.status_code == 200
+    assert "message" in resp.json()  # honest: sides cannot reach 35g protein
+
+
+def test_normal_optimize_not_entree_less():
+    resp = client.get("/optimize_meal?restaurant=mcdonalds&goal=balanced")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["meals"][0]["entree_less"] is False
