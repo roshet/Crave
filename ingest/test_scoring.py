@@ -68,3 +68,42 @@ def test_imputed_sodium_is_data_derived():
     """api.py overwrites the default with the dataset median at import, so the value
     tracks the data rather than the 600.0 module default."""
     assert recommend_items.IMPUTED_SODIUM_MG > 0
+
+
+from recommend_items import build_optimal_meal
+
+
+def _entree_categories():
+    # Mirror the entree category set used by build_optimal_meal.
+    return {
+        "burgers", "entrees", "salads", "nuggets_strips", "breakfast",
+        "chicken", "chicken_fish", "wraps", "snack_wraps", "kid_s_meals",
+        "tacos", "burritos", "quesadillas", "nachos", "specialties",
+    }
+
+
+def test_wendys_vegan_builds_entree_less_meal():
+    """Wendy's has no vegan entree, so the optimizer must fall back to a sides-only meal."""
+    vegan = [it for it in api.wendys_items if it.get("vegan")]
+    result = build_optimal_meal(vegan, max_calories=800, goal="low_fat")
+    assert result is not None
+    assert result["meals"], "expected at least one sides-only meal"
+    first = result["meals"][0]
+    assert first["entree_less"] is True
+    # No item in the meal is an entree-category item.
+    cats = {(i.get("category") or "").lower() for i in first["items"]}
+    assert not (cats & _entree_categories())
+
+
+def test_entree_anchored_meal_not_flagged():
+    """A normal menu with entrees keeps the entree anchor and is not flagged entree_less."""
+    result = build_optimal_meal(api.mcdonalds_items, max_calories=800, goal="balanced")
+    assert result is not None
+    assert result["meals"][0]["entree_less"] is False
+
+
+def test_drinks_only_returns_none():
+    """No entree and no side (drinks only) cannot form a meal."""
+    drinks = [it for it in api.wendys_items
+              if (it.get("item_type") == "drink") or (it.get("category") == "drinks")]
+    assert build_optimal_meal(drinks, max_calories=800, goal="balanced") is None

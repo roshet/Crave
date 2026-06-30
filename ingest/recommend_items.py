@@ -280,7 +280,13 @@ def build_optimal_meal(
             entrees.append(item)
             continue
 
-    if not entrees:
+    if entrees:
+        anchors = entrees
+        entree_less = False
+    elif sides:
+        anchors = sides
+        entree_less = True
+    else:
         return None
 
     # Pre-compute health scores to avoid repeated calls inside the triple loop
@@ -289,12 +295,12 @@ def build_optimal_meal(
         for i in entrees + sides + drinks
     }
 
-    sides_list = sides if (allow_side and sides) else [None]
+    sides_list = [None] if entree_less else (sides if (allow_side and sides) else [None])
     drinks_list = drinks if (allow_drink and drinks) else [None]
 
     top_meals = []
 
-    for entree in entrees:
+    for entree in anchors:
         for side in sides_list:
             for drink in drinks_list:
                 meal_items = [entree]
@@ -345,6 +351,7 @@ def build_optimal_meal(
             "items": enriched,
             "total_score": round(score, 3),
             "total_calories": sum((i.get("calories") or 0) for i in enriched),
+            "entree_less": entree_less,
         })
 
     return {
