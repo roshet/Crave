@@ -299,6 +299,7 @@ function App() {
   const [optimizedMealResults, setOptimizedMealResults] = useState([]);
   const [optimizeLoading, setOptimizeLoading]           = useState(false);
   const [optimizeError, setOptimizeError]               = useState("");
+  const [optimizeNoMeal, setOptimizeNoMeal]             = useState(false);
 
   // Auto-fetch Browse when tab is active and filters change
   useEffect(() => {
@@ -453,6 +454,7 @@ function App() {
   async function optimizeMeal() {
     setOptimizeLoading(true);
     setOptimizeError("");
+    setOptimizeNoMeal(false);
     setOptimizedMealResults([]);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 15000);
@@ -465,6 +467,7 @@ function App() {
       const data = await res.json();
       if (!data?.meals?.length || !data.meals[0]?.items) {
         setOptimizeError(data.message || "No meal found.");
+        setOptimizeNoMeal(true);
         return;
       }
       setOptimizedMealResults(data.meals);
@@ -984,7 +987,7 @@ function App() {
               <div className="optimizeEmpty">
                 <p className="errorMsg">{optimizeError}</p>
                 <p className="optimizeHint">
-                  {diet !== "none"
+                  {optimizeNoMeal && diet !== "none"
                     ? `No ${diet} meal fits the ${goal.replace(/_/g, " ")} goal here` +
                       (goal === "high_protein"
                         ? ` — ${diet} options can't reach 35g protein.`
