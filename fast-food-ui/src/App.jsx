@@ -984,8 +984,13 @@ function App() {
               <div className="optimizeEmpty">
                 <p className="errorMsg">{optimizeError}</p>
                 <p className="optimizeHint">
-                  Try raising the calorie cap, switching the goal, or picking a different
-                  restaurant — some menus don&#39;t have a combo that fits every constraint.
+                  {diet !== "none"
+                    ? `No ${diet} meal fits the ${goal.replace(/_/g, " ")} goal here` +
+                      (goal === "high_protein"
+                        ? ` — ${diet} options can't reach 35g protein.`
+                        : ".") +
+                      " Try another goal or a different restaurant."
+                    : "Try raising the calorie cap, switching the goal, or picking a different restaurant — some menus don't have a combo that fits every constraint."}
                 </p>
               </div>
             )}
@@ -1005,6 +1010,12 @@ function App() {
                     <p className="optimizeItems">
                       {result.items.map((m) => m.title || m.name).join(", ")}
                     </p>
+                    {result.entree_less && (
+                      <p className="optimizeSidesOnly">
+                        🥬 Sides-only meal — no {diet !== "none" ? `${diet} ` : ""}entree{" "}
+                        {restaurant === "all" ? "available" : "at this restaurant"}
+                      </p>
+                    )}
                     <p className="optimizeStats">{result.total_calories} kcal total</p>
                     <div className="optimizeGoalChecks">
                       {checkMealGoal(result.items).map((check, ci) => (
