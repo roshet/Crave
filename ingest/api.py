@@ -275,6 +275,7 @@ def optimize_meal(
                     "items": humanize_items(m["items"]),
                     "total_score": m["total_score"],
                     "total_calories": m["total_calories"],
+                    "entree_less": m.get("entree_less", False),
                 }
                 for m in meal["meals"]
             ],
