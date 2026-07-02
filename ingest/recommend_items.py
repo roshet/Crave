@@ -198,7 +198,11 @@ def get_recommendations(
     max_calories = 600,
     top_n = 10,
     goal = "balanced",
-    category = None):
+    category = None,
+    min_protein = None,
+    max_sugar = None,
+    max_fat = None,
+    max_sodium = None):
 
     scored_items = []
     category_lower = category.lower() if category else None
@@ -222,6 +226,17 @@ def get_recommendations(
         if goal == "balanced" and protein < 8:
             continue
 
+        # Optional user macro filters (each None = unset). Item-level here; the meal
+        # optimizer applies the same bounds to meal totals.
+        if min_protein is not None and protein < min_protein:
+            continue
+        if max_sugar is not None and (item.get("sugars") or 0) > max_sugar:
+            continue
+        if max_fat is not None and (item.get("fat") or 0) > max_fat:
+            continue
+        if max_sodium is not None and (item.get("sodium") or 0) > max_sodium:
+            continue
+
         score = health_score(item, goal, max_calories)
         item_copy = item.copy()
         item_copy["health_score"] = score
@@ -238,6 +253,10 @@ def build_optimal_meal(
     allow_side=True,
     allow_drink=True,
     category_filter=None,
+    min_protein=None,
+    max_sugar=None,
+    max_fat=None,
+    max_sodium=None,
 ):
     """
     Build a meal: 1 entree + optional side + optional drink
@@ -316,6 +335,7 @@ def build_optimal_meal(
                 total_protein = sum((i.get("protein") or 0) for i in meal_items)
                 total_sugar = sum((i.get("sugars") or 0) for i in meal_items)
                 total_fat = sum((i.get("fat") or 0) for i in meal_items)
+                total_sodium = sum((i.get("sodium") or 0) for i in meal_items)
 
                 constraints = GOAL_CONSTRAINTS.get(goal, {})
 
@@ -326,6 +346,17 @@ def build_optimal_meal(
                     continue
 
                 if "max_fat" in constraints and total_fat > constraints["max_fat"]:
+                    continue
+
+                # Optional user macro filters on the meal total (each None = unset),
+                # stacked on top of the goal's built-in constraints above.
+                if min_protein is not None and total_protein < min_protein:
+                    continue
+                if max_sugar is not None and total_sugar > max_sugar:
+                    continue
+                if max_fat is not None and total_fat > max_fat:
+                    continue
+                if max_sodium is not None and total_sodium > max_sodium:
                     continue
 
                 total_score = sum(score_cache[id(i)] for i in meal_items)

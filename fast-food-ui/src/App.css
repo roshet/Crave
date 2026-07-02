@@ -126,6 +126,34 @@ body { margin: 0; }
   box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
 }
 
+/* ===== MORE (MACRO) FILTERS ===== */
+.moreFiltersToggle {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0 0 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.moreFiltersToggle:hover { opacity: 0.8; }
+
+.moreFiltersToggle:focus-visible {
+  outline: 2px solid var(--accent, #6366f1);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.moreFiltersPanel {
+  background: #f5f5f4;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-card);
+  padding: 0.85rem;
+  margin-bottom: 0.75rem;
+}
+
 /* ===== SEARCH BAR ===== */
 .searchBar {
   display: flex;
@@ -940,6 +968,7 @@ body { margin: 0; }
 [data-theme="dark"] .mealItem { background: #292524; }
 [data-theme="dark"] .btnOutline { border-color: #44403c; color: var(--text-primary); }
 [data-theme="dark"] .altCard { background: #1c1917; }
+[data-theme="dark"] .moreFiltersPanel { background: #1c1917; }
 [data-theme="dark"] .compareColHead,
 [data-theme="dark"] .compareCorner { background: #1c1917; }
 [data-theme="dark"] .addToCompareBtn { border-color: #44403c; color: var(--text-primary); }
