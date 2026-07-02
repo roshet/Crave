@@ -147,6 +147,10 @@ def recommend(
     format: str = Query("raw", pattern = "^(raw|human)$"),
     vegetarian: bool = Query(False),
     vegan: bool = Query(False),
+    min_protein: int | None = Query(None, ge=0),
+    max_sugar: int | None = Query(None, ge=0),
+    max_fat: int | None = Query(None, ge=0),
+    max_sodium: int | None = Query(None, ge=0),
 ):
     if restaurant == "mcdonalds":
         items = mcdonalds_items
@@ -180,7 +184,11 @@ def recommend(
         max_calories = max_calories,
         top_n = top_n,
         goal = goal,
-        category = category
+        category = category,
+        min_protein = min_protein,
+        max_sugar = max_sugar,
+        max_fat = max_fat,
+        max_sodium = max_sodium,
     )
 
     if format == "human":
@@ -223,6 +231,10 @@ def optimize_meal(
     format: str = Query("human", pattern="^(raw|human)$"),
     vegetarian: bool = Query(False),
     vegan: bool = Query(False),
+    min_protein: int | None = Query(None, ge=0),
+    max_sugar: int | None = Query(None, ge=0),
+    max_fat: int | None = Query(None, ge=0),
+    max_sodium: int | None = Query(None, ge=0),
 ):
     per_restaurant = {
         "mcdonalds": mcdonalds_items,
@@ -252,6 +264,10 @@ def optimize_meal(
             allow_side=allow_side,
             allow_drink=allow_drink,
             category_filter=category,
+            min_protein=min_protein,
+            max_sugar=max_sugar,
+            max_fat=max_fat,
+            max_sodium=max_sodium,
         )
 
     if restaurant == "all":

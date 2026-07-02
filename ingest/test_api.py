@@ -393,3 +393,48 @@ def test_normal_optimize_not_entree_less():
     assert resp.status_code == 200
     body = resp.json()
     assert body["meals"][0]["entree_less"] is False
+
+
+# ── Macro-range filters ──
+
+def test_recommend_min_protein_filters_items():
+    resp = client.get("/recommend", params={"min_protein": 30, "format": "human", "top_n": 50})
+    assert resp.status_code == 200
+    results = resp.json()["results"]
+    assert results, "expected some high-protein items"
+    assert all(r["protein"] >= 30 for r in results)
+
+
+def test_recommend_max_sugar_filters_items():
+    resp = client.get("/recommend", params={"max_sugar": 5, "goal": "low_sugar", "format": "human", "top_n": 50})
+    assert resp.status_code == 200
+    results = resp.json()["results"]
+    assert results
+    assert all(r["sugars"] <= 5 for r in results)
+
+
+def test_recommend_max_sodium_filters_items():
+    resp = client.get("/recommend", params={"max_sodium": 400, "format": "human", "top_n": 50})
+    assert resp.status_code == 200
+    results = resp.json()["results"]
+    assert results
+    assert all((r.get("sodium") or 0) <= 400 for r in results)
+
+
+def test_recommend_negative_macro_is_422():
+    resp = client.get("/recommend", params={"min_protein": -5})
+    assert resp.status_code == 422
+
+
+def test_optimize_min_protein_applies_to_meal_total():
+    resp = client.get("/optimize_meal", params={"restaurant": "mcdonalds", "min_protein": 40})
+    assert resp.status_code == 200
+    for meal in resp.json()["meals"]:
+        assert sum(i["protein"] for i in meal["items"]) >= 40
+
+
+def test_optimize_max_fat_applies_to_meal_total():
+    resp = client.get("/optimize_meal", params={"restaurant": "mcdonalds", "max_fat": 25})
+    assert resp.status_code == 200
+    for meal in resp.json()["meals"]:
+        assert sum(i["fat"] for i in meal["items"]) <= 25

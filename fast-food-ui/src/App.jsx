@@ -274,6 +274,10 @@ function App() {
   const [maxCalories, setMaxCalories] = useState(600);
   const [category, setCategory]       = useState("");
   const [diet, setDiet]               = useState("none"); // "none" | "vegetarian" | "vegan"
+  // Optional macro thresholds (empty string = no limit). Applied item-level in Browse,
+  // meal-level in Optimize. Shared across both tabs like the chips above.
+  const [macros, setMacros]           = useState({ minProtein: "", maxSugar: "", maxFat: "", maxSodium: "" });
+  const [showMoreFilters, setShowMoreFilters] = useState(false);
 
   // Navigation
   const [activeTab, setActiveTab] = useState("browse");
@@ -359,7 +363,8 @@ function App() {
   useEffect(() => {
     if (activeTab === "browse") fetchBrowse();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, goal, restaurant, maxCalories, category, diet]);
+  }, [activeTab, goal, restaurant, maxCalories, category, diet,
+      macros.minProtein, macros.maxSugar, macros.maxFat, macros.maxSodium]);
 
   // On first load, rehydrate a shared meal from the ?meal=<ids> URL param. Fetches the
   // full items by id, drops the user on the Meal Builder, then strips the param so the
@@ -511,6 +516,20 @@ function App() {
     }),
   [results, search]);
 
+  // Build the &min_protein=…&max_sugar=… suffix, emitting only the macros the user set.
+  function macroQuery() {
+    const map = {
+      min_protein: macros.minProtein,
+      max_sugar:   macros.maxSugar,
+      max_fat:     macros.maxFat,
+      max_sodium:  macros.maxSodium,
+    };
+    return Object.entries(map)
+      .filter(([, v]) => v !== "")
+      .map(([k, v]) => `&${k}=${encodeURIComponent(v)}`)
+      .join("");
+  }
+
   async function fetchBrowse() {
     setHasSearched(true);
     setLoading(true);
@@ -522,6 +541,7 @@ function App() {
       if (category) url += `&category=${encodeURIComponent(category)}`;
       if (diet === "vegetarian") url += `&vegetarian=true`;
       else if (diet === "vegan") url += `&vegan=true`;
+      url += macroQuery();
       const res = await fetch(url, { signal: controller.signal });
       if (!res.ok) throw new Error(`API error (${res.status}): ${await res.text()}`);
       const data = await res.json();
@@ -547,6 +567,7 @@ function App() {
       let url = `${API_BASE_URL}/optimize_meal?restaurant=${encodeURIComponent(restaurant)}&goal=${encodeURIComponent(goal)}&max_calories=${encodeURIComponent(maxCalories)}&format=human`;
       if (diet === "vegetarian") url += `&vegetarian=true`;
       else if (diet === "vegan") url += `&vegan=true`;
+      url += macroQuery();
       const res = await fetch(url, { signal: controller.signal });
       if (!res.ok) throw new Error(`API error (${res.status}): ${await res.text()}`);
       const data = await res.json();
@@ -630,6 +651,13 @@ function App() {
     setTargets((prev) => ({ ...prev, [key]: Number.isFinite(n) ? n : 0 }));
   }
 
+  // Macro filter inputs: keep "" for an empty field (= no limit), else clamp to a
+  // non-negative integer.
+  function setMacro(key, raw) {
+    const value = raw === "" ? "" : String(Math.max(0, Math.floor(Number(raw) || 0)));
+    setMacros((prev) => ({ ...prev, [key]: value }));
+  }
+
   // Save the current meal under a (optional) name; newest first.
   function saveMeal() {
     if (meal.length === 0) return;
@@ -700,8 +728,17 @@ function App() {
     restaurant === "tacobell"  ? TACOBELL_CATEGORIES :
     restaurant === "burgerking" ? BURGERKING_CATEGORIES : [];
 
+  const MACRO_FIELDS = [
+    { key: "minProtein", label: "Min protein", unit: "g" },
+    { key: "maxSugar",   label: "Max sugar",   unit: "g" },
+    { key: "maxFat",     label: "Max fat",     unit: "g" },
+    { key: "maxSodium",  label: "Max sodium",  unit: "mg" },
+  ];
+  const activeMacroCount = MACRO_FIELDS.filter((m) => macros[m.key] !== "").length;
+
   function FilterChips({ showCategory }) {
     return (
+      <>
       <div className="filterChips">
         <select className="chipSelect" aria-label="Restaurant" value={restaurant} onChange={(e) => { setRestaurant(e.target.value); setCategory(""); }}>
           <option value="mcdonalds">McDonald&#39;s</option>
@@ -739,6 +776,38 @@ function App() {
           <option value="vegan">🥬 Vegan</option>
         </select>
       </div>
+
+      <button
+        type="button"
+        className="moreFiltersToggle"
+        aria-expanded={showMoreFilters}
+        onClick={() => setShowMoreFilters((v) => !v)}
+      >
+        {showMoreFilters ? "⊖" : "⊕"} More filters
+        {!showMoreFilters && activeMacroCount > 0 ? ` (${activeMacroCount})` : ""}
+      </button>
+      {showMoreFilters && (
+        <div className="moreFiltersPanel">
+          <div className="targetInputs">
+            {MACRO_FIELDS.map((m) => (
+              <label key={m.key} className="targetInput">
+                <span className="targetInputLabel">{m.label} ({m.unit})</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  inputMode="numeric"
+                  placeholder="—"
+                  aria-label={`${m.label} in ${m.unit}`}
+                  value={macros[m.key]}
+                  onChange={(e) => setMacro(m.key, e.target.value)}
+                />
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+      </>
     );
   }
 
@@ -831,6 +900,10 @@ function App() {
                 diet !== "none" ? (
                   <p className="emptyMsg">
                     No {diet} items match this goal. Try a different goal (e.g. Low Fat) or Optimize for a {diet} meal.
+                  </p>
+                ) : activeMacroCount > 0 ? (
+                  <p className="emptyMsg">
+                    No items match your macro filters. Try relaxing them under “More filters.”
                   </p>
                 ) : (
                   <p className="emptyMsg">No items matched your criteria.</p>
