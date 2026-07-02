@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect, useRef, Fragment } from "react";
 import "./App.css";
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000").replace(/\/+$/, "");
@@ -144,6 +144,57 @@ function deltaStyle(delta, higherIsBetter) {
   if (higherIsBetter ? d < 0 : d > 0) return { color: "#b91c1c", fontWeight: 700 };
   return { color: "#64748b", fontWeight: 600 };
 }
+
+// Highlight the best/worst value across compare columns for one nutrient row. Reuses
+// deltaStyle's green/red/gray semantics but scoped to the column set rather than a
+// delta vs a base. All-equal (single column or a tie) gets no highlight.
+function bestWorstStyle(values, index, higherIsBetter) {
+  const nums = values.map((v) => Number(v ?? 0));
+  const max = Math.max(...nums);
+  const min = Math.min(...nums);
+  if (max === min) return { color: "#64748b", fontWeight: 600 };
+  const v = nums[index];
+  const best = higherIsBetter ? max : min;
+  const worst = higherIsBetter ? min : max;
+  if (v === best) return { color: "#047857", fontWeight: 700 };
+  if (v === worst) return { color: "#b91c1c", fontWeight: 700 };
+  return { color: "#64748b", fontWeight: 600 };
+}
+
+// A compare entry wraps either a single item or a full meal so the Compare table can
+// treat both uniformly (nutrition = sumNutrition(entry.items)). `srcKey` lets us dedup
+// single items against what's already staged; meals are snapshots and always add.
+let compareIdCounter = 0;
+function compareEntryFromItem(item) {
+  return {
+    id: `cmp-${compareIdCounter++}`,
+    kind: "item",
+    label: item.title || item.name || "Item",
+    srcKey: getItemKey(item),
+    items: [item],
+  };
+}
+function compareEntryFromMeal(items, label) {
+  return {
+    id: `cmp-${compareIdCounter++}`,
+    kind: "meal",
+    label: label || defaultMealName(items),
+    srcKey: null,
+    items,
+  };
+}
+
+// Nutrient rows shown in the Compare table. higherIsBetter drives best/worst coloring.
+const COMPARE_NUTRIENTS = [
+  { key: "calories", label: "Calories", unit: "",   higherIsBetter: false },
+  { key: "protein",  label: "Protein",  unit: "g",  higherIsBetter: true  },
+  { key: "sugars",   label: "Sugar",    unit: "g",  higherIsBetter: false },
+  { key: "fat",      label: "Fat",      unit: "g",  higherIsBetter: false },
+  { key: "carbs",    label: "Carbs",    unit: "g",  higherIsBetter: false },
+  { key: "sodium",   label: "Sodium",   unit: "mg", higherIsBetter: false },
+];
+
+const COMPARE_MAX = 3;
 
 // Single source of truth for summing a list of items' nutrition. Used everywhere a
 // meal total is needed (meal builder, alternative-meal deltas, optimizer goal checks)
@@ -295,6 +346,9 @@ function App() {
   const [shareSuccess, setShareSuccess]         = useState(false);
   const [logSuccess, setLogSuccess]             = useState(false);
 
+  // Compare — ephemeral set of up to COMPARE_MAX entries (items and/or meals)
+  const [compareItems, setCompareItems]         = useState([]);
+
   // Optimize
   const [optimizedMealResults, setOptimizedMealResults] = useState([]);
   const [optimizeLoading, setOptimizeLoading]           = useState(false);
@@ -397,6 +451,31 @@ function App() {
     setActiveTab("meal");
   }
 
+  const compareFull = compareItems.length >= COMPARE_MAX;
+
+  // True when this exact item is already staged as a compare column (used to disable
+  // its "Add to Compare" button). Meals aren't deduped — they're snapshots.
+  function isInCompare(item) {
+    const key = getItemKey(item);
+    return compareItems.some((e) => e.srcKey === key);
+  }
+
+  function addToCompare(entry) {
+    setCompareItems((prev) => {
+      if (prev.length >= COMPARE_MAX) return prev;
+      if (entry.srcKey && prev.some((e) => e.srcKey === entry.srcKey)) return prev;
+      return [...prev, entry];
+    });
+  }
+
+  function removeFromCompare(id) {
+    setCompareItems((prev) => prev.filter((e) => e.id !== id));
+  }
+
+  function clearCompare() {
+    setCompareItems([]);
+  }
+
   const mealTotals = useMemo(() => sumNutrition(meal), [meal]);
 
   const dailyTotals = useMemo(() => sumDailyLog(dailyLog.entries), [dailyLog]);
@@ -418,6 +497,12 @@ function App() {
       };
     });
   }, [alternativeMeals, mealTotals]);
+
+  // Per-column nutrition totals for the Compare table (one entry = one column).
+  const compareColumns = useMemo(
+    () => compareItems.map((e) => ({ ...e, totals: sumNutrition(e.items) })),
+    [compareItems]
+  );
 
   const displayedResults = useMemo(() =>
     results.filter((item) => {
@@ -702,6 +787,7 @@ function App() {
           { id: "meal",     label: meal.length > 0 ? `Meal Builder (${meal.length})` : "Meal Builder" },
           { id: "optimize", label: "Optimize" },
           { id: "today",    label: dailyLog.entries.length > 0 ? `Today (${dailyLog.entries.length})` : "Today" },
+          { id: "compare",  label: compareItems.length > 0 ? `Compare (${compareItems.length})` : "Compare" },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -863,6 +949,14 @@ function App() {
                   <button className="btn btnOutline" onClick={logMealToToday}>
                     {logSuccess ? "✓ Logged!" : "➕ Log to Today"}
                   </button>
+                  <button
+                    className="btn btnOutline"
+                    onClick={() => addToCompare(compareEntryFromMeal(meal))}
+                    disabled={compareFull}
+                    title={compareFull ? `Compare holds ${COMPARE_MAX}` : "Add this meal to Compare"}
+                  >
+                    {compareFull ? `Compare full (${COMPARE_MAX})` : "⚖️ Compare"}
+                  </button>
                   <button className="btn btnOutline" onClick={clearMeal}>Clear</button>
                 </div>
 
@@ -943,6 +1037,14 @@ function App() {
                           </span>
                         </div>
                         <button className="btn btnOutline btnSm" onClick={() => loadSavedMeal(m.id)}>Load</button>
+                        <button
+                          className="btn btnOutline btnSm"
+                          onClick={() => addToCompare(compareEntryFromMeal(m.items, m.name))}
+                          disabled={compareFull}
+                          title={compareFull ? `Compare holds ${COMPARE_MAX}` : "Add to Compare"}
+                        >
+                          Compare
+                        </button>
                         <button className="mealItemRemove" onClick={() => deleteSavedMeal(m.id)} aria-label={`Delete saved meal ${m.name}`}>✕</button>
                       </div>
                     );
@@ -1125,6 +1227,73 @@ function App() {
             </div>
           </div>
         )}
+
+        {/* ── COMPARE ── */}
+        {activeTab === "compare" && (
+          <div className="compareTab">
+            <p className="optimizeIntro">
+              Line up 2–{COMPARE_MAX} items or meals side by side. For each nutrient the
+              best value is green and the worst is red (more protein is better; less of
+              everything else is better).
+            </p>
+            {compareColumns.length === 0 ? (
+              <div className="optimizeEmpty">
+                <p>
+                  Nothing to compare yet. Add items from the Browse detail view, or add a
+                  meal from the Meal Builder or your saved meals.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="compareScroll">
+                  <div
+                    className="compareTable"
+                    style={{ gridTemplateColumns: `minmax(88px, auto) repeat(${compareColumns.length}, minmax(96px, 1fr))` }}
+                  >
+                    {/* Header row: nutrient label spacer + one head per column */}
+                    <div className="compareRowLabel compareCorner" />
+                    {compareColumns.map((col) => (
+                      <div key={col.id} className="compareColHead">
+                        <span className="compareColLabel">
+                          {col.kind === "meal" ? "🍽️ " : ""}{col.label}
+                        </span>
+                        <button
+                          className="compareRemove"
+                          onClick={() => removeFromCompare(col.id)}
+                          aria-label={`Remove ${col.label} from compare`}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+
+                    {/* One row per nutrient */}
+                    {COMPARE_NUTRIENTS.map((n) => {
+                      const values = compareColumns.map((c) => c.totals[n.key]);
+                      return (
+                        <Fragment key={n.key}>
+                          <div className="compareRowLabel">{n.label}</div>
+                          {compareColumns.map((col, i) => (
+                            <div
+                              key={col.id}
+                              className="compareCell"
+                              style={bestWorstStyle(values, i, n.higherIsBetter)}
+                            >
+                              {Number(values[i] ?? 0).toFixed(0)}{n.unit}
+                            </div>
+                          ))}
+                        </Fragment>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="actionRow">
+                  <button className="btn btnOutline" onClick={clearCompare}>Clear all</button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ── ITEM DETAIL MODAL ── */}
@@ -1198,6 +1367,17 @@ function App() {
               onClick={() => { addToMeal(modalItem); setModalItem(null); }}
             >
               {isInMeal(modalItem) ? "✓ Added" : "Add to Meal"}
+            </button>
+            <button
+              className="addToCompareBtn"
+              disabled={isInCompare(modalItem) || (compareFull && !isInCompare(modalItem))}
+              onClick={() => { addToCompare(compareEntryFromItem(modalItem)); setModalItem(null); }}
+            >
+              {isInCompare(modalItem)
+                ? "✓ In compare"
+                : compareFull
+                ? `Compare full (${COMPARE_MAX})`
+                : "⚖️ Add to Compare"}
             </button>
           </div>
         </div>
