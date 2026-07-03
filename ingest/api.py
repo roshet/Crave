@@ -151,6 +151,7 @@ def recommend(
     max_sugar: int | None = Query(None, ge=0),
     max_fat: int | None = Query(None, ge=0),
     max_sodium: int | None = Query(None, ge=0),
+    sort: str = Query("score", pattern = "^(score|calories|protein|sugars|fat|sodium)$"),
 ):
     if restaurant == "mcdonalds":
         items = mcdonalds_items
@@ -189,6 +190,7 @@ def recommend(
         max_sugar = max_sugar,
         max_fat = max_fat,
         max_sodium = max_sodium,
+        sort = sort,
     )
 
     if format == "human":
