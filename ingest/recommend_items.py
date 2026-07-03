@@ -202,7 +202,8 @@ def get_recommendations(
     min_protein = None,
     max_sugar = None,
     max_fat = None,
-    max_sodium = None):
+    max_sodium = None,
+    sort = "score"):
 
     scored_items = []
     category_lower = category.lower() if category else None
@@ -243,7 +244,15 @@ def get_recommendations(
         item_copy["reason"] = explain_item(item, goal)
         scored_items.append(item_copy)
 
-    scored_items.sort(key = lambda x: x["health_score"], reverse = True)
+    # Sort before the top_n slice so a nutrient sort surfaces the true best items for that
+    # field (not just a reordering of the top-by-score set). Direction is per-field: score
+    # and protein high→low; calories/sugars/fat/sodium low→high.
+    if sort == "score":
+        scored_items.sort(key = lambda x: x["health_score"], reverse = True)
+    else:
+        reverse = sort == "protein"
+        scored_items.sort(key = lambda x: x.get(sort) or 0, reverse = reverse)
+
     return scored_items[:top_n]
 
 def build_optimal_meal(

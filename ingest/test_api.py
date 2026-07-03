@@ -438,3 +438,38 @@ def test_optimize_max_fat_applies_to_meal_total():
     assert resp.status_code == 200
     for meal in resp.json()["meals"]:
         assert sum(i["fat"] for i in meal["items"]) <= 25
+
+
+# ── Browse sort controls ──
+
+def test_recommend_sort_calories_ascending():
+    resp = client.get("/recommend", params={"sort": "calories", "format": "human", "top_n": 50})
+    assert resp.status_code == 200
+    cals = [r["calories"] for r in resp.json()["results"]]
+    assert cals == sorted(cals)
+
+
+def test_recommend_sort_protein_descending():
+    resp = client.get("/recommend", params={"sort": "protein", "format": "human", "top_n": 50})
+    assert resp.status_code == 200
+    prot = [r["protein"] for r in resp.json()["results"]]
+    assert prot == sorted(prot, reverse=True)
+
+
+def test_recommend_sort_sugars_ascending():
+    resp = client.get("/recommend", params={"sort": "sugars", "format": "human", "top_n": 50})
+    assert resp.status_code == 200
+    sug = [r["sugars"] for r in resp.json()["results"]]
+    assert sug == sorted(sug)
+
+
+def test_recommend_default_sort_is_score_descending():
+    resp = client.get("/recommend", params={"top_n": 50})  # raw format keeps health_score
+    assert resp.status_code == 200
+    scores = [r["health_score"] for r in resp.json()["results"]]
+    assert scores == sorted(scores, reverse=True)
+
+
+def test_recommend_bad_sort_is_422():
+    resp = client.get("/recommend", params={"sort": "bogus"})
+    assert resp.status_code == 422

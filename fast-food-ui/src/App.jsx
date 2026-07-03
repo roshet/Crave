@@ -111,6 +111,17 @@ const GOAL_PRESETS = [
   { label: "Light Meal",  goal: "low_fat",      maxCalories: 400 },
 ];
 
+// Browse sort options. `value` matches the backend /recommend `sort` param; direction is
+// baked into each label (backend sorts score/protein desc, calories/sugars/fat/sodium asc).
+const SORT_OPTIONS = [
+  { value: "score",    label: "Best score" },
+  { value: "calories", label: "Fewest calories" },
+  { value: "protein",  label: "Most protein" },
+  { value: "sugars",   label: "Least sugar" },
+  { value: "fat",      label: "Least fat" },
+  { value: "sodium",   label: "Least sodium" },
+];
+
 function getThumbnail(item) {
   const name = item.title || item.name || "";
   for (const o of NAME_EMOJI_OVERRIDES) {
@@ -335,6 +346,7 @@ function App() {
   // Shared by Browse and Optimize since both use the same `goal`.
   const [scoreBounds, setScoreBounds] = useState(null);
   const [search, setSearch]           = useState("");
+  const [sort, setSort]               = useState("score"); // Browse-only ordering
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState("");
   const [hasSearched, setHasSearched] = useState(false);
@@ -363,7 +375,7 @@ function App() {
   useEffect(() => {
     if (activeTab === "browse") fetchBrowse();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, goal, restaurant, maxCalories, category, diet,
+  }, [activeTab, goal, restaurant, maxCalories, category, diet, sort,
       macros.minProtein, macros.maxSugar, macros.maxFat, macros.maxSodium]);
 
   // On first load, rehydrate a shared meal from the ?meal=<ids> URL param. Fetches the
@@ -541,6 +553,7 @@ function App() {
       if (category) url += `&category=${encodeURIComponent(category)}`;
       if (diet === "vegetarian") url += `&vegetarian=true`;
       else if (diet === "vegan") url += `&vegan=true`;
+      if (sort !== "score") url += `&sort=${encodeURIComponent(sort)}`;
       url += macroQuery();
       const res = await fetch(url, { signal: controller.signal });
       if (!res.ok) throw new Error(`API error (${res.status}): ${await res.text()}`);
@@ -886,6 +899,19 @@ function App() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
+            </div>
+            <div className="sortRow">
+              <span className="sortLabel">Sort by</span>
+              <select
+                className="chipSelect"
+                aria-label="Sort results"
+                value={sort}
+                onChange={(e) => setSort(e.target.value)}
+              >
+                {SORT_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
             </div>
             {error && <p className="errorMsg">{error}</p>}
             {!loading && !error && results.length > 0 && (
