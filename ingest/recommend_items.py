@@ -72,7 +72,11 @@ def score_bounds(goal="balanced"):
         "min": -term * (w["sugars"] + w["fat"] + w["carbs"] + w["sodium"] + w["calories"]),
     }
 
-def health_score(item, goal = "balanced", max_calories = 600):
+def _score_terms(item, goal = "balanced", max_calories = 600):
+    """Per-nutrient weighted terms behind health_score, in display order. The sum of
+    every term's "points" equals health_score, so the score and its explanation share a
+    single source of truth. Protein raises the score (points >= 0); the five penalty
+    terms lower it (points <= 0). "value" is the real gram/mg amount shown to the user."""
     w = GOAL_PROFILES.get(goal, GOAL_PROFILES["balanced"])
 
     protein = item.get("protein") or 0
@@ -85,24 +89,54 @@ def health_score(item, goal = "balanced", max_calories = 600):
     sodium = sodium_raw if sodium_raw is not None else IMPUTED_SODIUM_MG
     calories = item.get("calories") or 0
 
-    protein_score = saturate(protein, 30) * w["protein"]
+    return [
+        {"key": "protein",  "label": "Protein",  "value": protein,  "unit": "g",
+         "points": saturate(protein, 30) * w["protein"]},
+        {"key": "sugars",   "label": "Sugar",    "value": sugars,   "unit": "g",
+         "points": -saturate(sugars, 25) * w["sugars"]},
+        {"key": "fat",      "label": "Fat",      "value": fat,      "unit": "g",
+         "points": -saturate(fat, 40) * w["fat"]},
+        {"key": "carbs",    "label": "Carbs",    "value": carbs,    "unit": "g",
+         "points": -saturate(carbs, 60) * w["carbs"]},
+        {"key": "sodium",   "label": "Sodium",   "value": sodium,   "unit": "mg",
+         "points": -saturate(sodium, 2000) * w["sodium"]},
+        {"key": "calories", "label": "Calories", "value": calories, "unit": "",
+         "points": -saturate(calories, max_calories) * w["calories"]},
+    ]
 
-    sugar_penalty = saturate(sugars, 25) * w["sugars"]
-    fat_penalty = saturate(fat, 40) * w["fat"]
-    carb_penalty = saturate(carbs, 60) * w["carbs"]
-    sodium_penalty = saturate(sodium, 2000) * w["sodium"]
-    calorie_penalty = saturate(calories, max_calories) * w["calories"]
 
-    score = (
-        protein_score
-        - sugar_penalty
-        - fat_penalty
-        - carb_penalty
-        - sodium_penalty
-        - calorie_penalty
-    )
+def health_score(item, goal = "balanced", max_calories = 600):
+    return round(sum(t["points"] for t in _score_terms(item, goal, max_calories)), 3)
 
-    return round(score, 3)
+
+def score_breakdown(item, goal = "balanced", max_calories = 600):
+    """health_score's per-nutrient terms with value/points rounded for display. Powers
+    the "Why this score" contribution bars. Sum of points == health_score."""
+    return [
+        {**t, "value": round(t["value"], 1), "points": round(t["points"], 3)}
+        for t in _score_terms(item, goal, max_calories)
+    ]
+
+
+def meal_breakdown(meal_items, goal = "balanced", max_calories = 600):
+    """Element-wise sum of the per-nutrient terms across a meal's items. A meal's
+    total_score is the sum of its items' scores, so this sums to it per nutrient."""
+    totals = None
+    for item in meal_items:
+        for i, t in enumerate(_score_terms(item, goal, max_calories)):
+            if totals is None:
+                totals = []
+            if i == len(totals):
+                totals.append({k: t[k] for k in ("key", "label", "unit", "value", "points")})
+            else:
+                totals[i]["value"] += t["value"]
+                totals[i]["points"] += t["points"]
+    if not totals:
+        return []
+    return [
+        {**t, "value": round(t["value"], 1), "points": round(t["points"], 3)}
+        for t in totals
+    ]
 
 def explain_item(item, goal):
     protein = item.get("protein") or 0
@@ -187,6 +221,7 @@ def humanize_items(items):
             "sodium": float(item.get("sodium") or 0),
 
             "score": item.get("health_score"),
+            "breakdown": item.get("breakdown"),
             "vegetarian": bool(item.get("vegetarian", False)),
             "vegan": bool(item.get("vegan", False)),
         })
@@ -242,6 +277,7 @@ def get_recommendations(
         item_copy = item.copy()
         item_copy["health_score"] = score
         item_copy["reason"] = explain_item(item, goal)
+        item_copy["breakdown"] = score_breakdown(item, goal, max_calories)
         scored_items.append(item_copy)
 
     # Sort before the top_n slice so a nutrient sort surfaces the true best items for that
@@ -392,6 +428,7 @@ def build_optimal_meal(
             "total_score": round(score, 3),
             "total_calories": sum((i.get("calories") or 0) for i in enriched),
             "entree_less": entree_less,
+            "breakdown": meal_breakdown(meal_items, goal, max_calories),
         })
 
     return {

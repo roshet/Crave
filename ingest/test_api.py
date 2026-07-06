@@ -6,6 +6,7 @@ happy paths, input validation (400/422), the optimizer's meal assembly + hard
 constraints, and the /health probe.
 """
 
+import pytest
 from fastapi.testclient import TestClient
 
 from api import app
@@ -48,6 +49,21 @@ def test_recommend_human_format_normalizes_carbs():
         assert "carbohydrate" not in item
 
 
+def test_recommend_items_carry_score_breakdown():
+    """Each humanized item ships a `breakdown` powering the "Why this score" bars:
+    a 6-term list whose points sum to the item's raw score."""
+    resp = client.get("/recommend", params={"format": "human", "top_n": 5})
+    assert resp.status_code == 200
+    for item in resp.json()["results"]:
+        bd = item["breakdown"]
+        assert [t["key"] for t in bd] == [
+            "protein", "sugars", "fat", "carbs", "sodium", "calories"
+        ]
+        for t in bd:
+            assert {"key", "label", "value", "unit", "points"} <= t.keys()
+        assert sum(t["points"] for t in bd) == pytest.approx(item["score"], abs=0.01)
+
+
 def test_recommend_top_n_respected():
     resp = client.get("/recommend", params={"top_n": 3})
     assert resp.status_code == 200
@@ -88,6 +104,19 @@ def test_optimize_returns_meals_with_entree():
     for meal in meals:
         assert len(meal["items"]) >= 1  # at least an entree
         assert meal["total_calories"] <= 800  # default cap
+
+
+def test_optimize_meals_carry_score_breakdown():
+    """Each optimized meal ships a `breakdown` (per-nutrient contribution terms) whose
+    points sum to the meal's total_score, powering the meal-card explainer."""
+    resp = client.get("/optimize_meal", params={"restaurant": "mcdonalds"})
+    assert resp.status_code == 200
+    for meal in resp.json()["meals"]:
+        bd = meal["breakdown"]
+        assert [t["key"] for t in bd] == [
+            "protein", "sugars", "fat", "carbs", "sodium", "calories"
+        ]
+        assert sum(t["points"] for t in bd) == pytest.approx(meal["total_score"], abs=0.05)
 
 
 def test_optimize_high_protein_constraint_holds():

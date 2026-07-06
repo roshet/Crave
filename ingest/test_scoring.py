@@ -14,7 +14,13 @@ import pytest
 
 import api
 import recommend_items
-from recommend_items import health_score, saturate, score_bounds
+from recommend_items import (
+    health_score,
+    saturate,
+    score_bounds,
+    score_breakdown,
+    meal_breakdown,
+)
 
 GOALS = list(recommend_items.GOAL_PROFILES.keys())
 
@@ -107,3 +113,40 @@ def test_drinks_only_returns_none():
     drinks = [it for it in api.wendys_items
               if (it.get("item_type") == "drink") or (it.get("category") == "drinks")]
     assert build_optimal_meal(drinks, max_calories=800, goal="balanced") is None
+
+
+# ── Score breakdown ("Why this score") ──────────────────────────────────────
+
+BREAKDOWN_KEYS = ["protein", "sugars", "fat", "carbs", "sodium", "calories"]
+
+
+@pytest.mark.parametrize("goal", GOALS)
+def test_breakdown_points_sum_to_health_score(goal):
+    """The contribution bars must add up to the score they explain — the drift guard
+    that lets the frontend render the breakdown without knowing the weights. Tolerance
+    covers per-term display rounding (6 terms rounded to 3dp)."""
+    for item in api.ALL_ITEMS:
+        bd = score_breakdown(item, goal)
+        assert [t["key"] for t in bd] == BREAKDOWN_KEYS
+        total = sum(t["points"] for t in bd)
+        assert total == pytest.approx(health_score(item, goal), abs=0.01), (
+            f"{item.get('name')!r} breakdown {total} != score for goal {goal}"
+        )
+
+
+def test_breakdown_signs():
+    """Protein raises the score (points >= 0); the five penalties lower it (<= 0)."""
+    item = {"name": "t", "protein": 25, "sugars": 12, "fat": 18, "carbs": 40,
+            "sodium": 900, "calories": 550}
+    bd = {t["key"]: t for t in score_breakdown(item, "balanced")}
+    assert bd["protein"]["points"] >= 0
+    for key in ("sugars", "fat", "carbs", "sodium", "calories"):
+        assert bd[key]["points"] <= 0
+
+
+def test_meal_breakdown_sums_to_total_score():
+    """A meal's breakdown points sum to the meal's total_score (sum of item scores)."""
+    result = build_optimal_meal(api.mcdonalds_items, max_calories=800, goal="balanced")
+    meal = result["meals"][0]
+    total = sum(t["points"] for t in meal["breakdown"])
+    assert total == pytest.approx(meal["total_score"], abs=0.05)
