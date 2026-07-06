@@ -441,6 +441,91 @@ body { margin: 0; }
   font-weight: 600;
 }
 
+/* "Why this score" contribution bars (ScoreBreakdown in App.jsx). Each row is a
+   diverging bar: green grows right from the center axis (raised the score), red grows
+   left (lowered it), length ∝ the term's weighted impact. */
+.scoreBreakdown {
+  margin: 0.9rem 0 0.2rem;
+}
+
+.breakdownHead {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-secondary, #78716c);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.55rem;
+}
+
+.breakdownRow {
+  display: grid;
+  grid-template-columns: 4.5em 3.4em 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.breakdownLabel {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.breakdownValue {
+  font-size: 0.78rem;
+  color: var(--text-secondary, #78716c);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.breakdownBarTrack {
+  position: relative;
+  height: 12px;
+  border-radius: 6px;
+  background: #f1f0ef;
+}
+
+/* center axis */
+.breakdownBarTrack::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -1px;
+  bottom: -1px;
+  width: 1px;
+  background: #d6d3d1;
+}
+
+.breakdownBar {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  border-radius: 4px;
+  min-width: 2px;
+}
+
+.breakdownBar--up   { background: #22c55e; }
+.breakdownBar--down { background: #ef4444; }
+
+.breakdownNeutral {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #a8a29e;
+  transform: translate(-50%, -50%);
+}
+
+.breakdownLegend {
+  font-size: 0.72rem;
+  color: var(--text-secondary, #78716c);
+  margin-top: 0.5rem;
+}
+
+.breakdownLegendUp   { color: #16a34a; font-weight: 600; }
+.breakdownLegendDown { color: #dc2626; font-weight: 600; }
+
 .addToMealBtn {
   width: 100%;
   padding: 0.9rem;
@@ -977,6 +1062,13 @@ body { margin: 0; }
 [data-theme="dark"] .modalClose { background: rgba(255, 255, 255, 0.1); }
 [data-theme="dark"] .modalClose:hover { background: rgba(255, 255, 255, 0.18); }
 [data-theme="dark"] .summaryBadge { background: #14532d; color: #86efac; }
+[data-theme="dark"] .breakdownBarTrack { background: #1c1917; }
+[data-theme="dark"] .breakdownBarTrack::before { background: #44403c; }
+[data-theme="dark"] .breakdownBar--up   { background: #4ade80; }
+[data-theme="dark"] .breakdownBar--down { background: #f87171; }
+[data-theme="dark"] .breakdownNeutral { background: #57534e; }
+[data-theme="dark"] .breakdownLegendUp   { color: #4ade80; }
+[data-theme="dark"] .breakdownLegendDown { color: #f87171; }
 [data-theme="dark"] .addToMealBtn { background: #fafaf9; color: #1c1917; }
 [data-theme="dark"] .addToMealBtn--added { background: #44403c; color: #78716c; }
 [data-theme="dark"] .mealItem { background: #292524; }
