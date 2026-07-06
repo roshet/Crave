@@ -663,11 +663,29 @@ function App() {
     }
   }
 
-  // Build a shareable link encoding the current meal's item_ids, and copy it. Each id is
-  // URL-encoded (Wendy's ids contain spaces/apostrophes); commas separate them.
+  // Build a shareable link for the current meal and copy it. Each id is URL-encoded
+  // (Wendy's ids contain spaces/apostrophes); commas separate them. We prefer a short
+  // /m/<code> link (the /api/shorten Vercel function stores the ids in KV); on any failure
+  // — offline, store not provisioned, or local dev with no serverless functions — we fall
+  // back to the long ?meal= link, which the rehydration effect handles identically.
   async function shareMeal() {
     const ids = meal.map((m) => encodeURIComponent(getItemKey(m))).join(",");
-    const url = `${window.location.origin}/?meal=${ids}`;
+    const longUrl = `${window.location.origin}/?meal=${ids}`;
+    let url = longUrl;
+    try {
+      // /api/* is a Vercel function on the frontend origin, not the Render backend.
+      const resp = await fetch(`${window.location.origin}/api/shorten`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids }),
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.code) url = `${window.location.origin}/m/${data.code}`;
+      }
+    } catch {
+      /* keep longUrl */
+    }
     try {
       await navigator.clipboard.writeText(url);
       setShareSuccess(true);
