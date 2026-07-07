@@ -337,6 +337,71 @@ def test_score_meal_bad_goal_is_422():
     assert resp.status_code == 422
 
 
+# --- /search (menu-wide item search) -----------------------------------------
+
+def test_search_matches_by_name_and_carries_score_breakdown():
+    """A name search returns items whose title contains the query, each humanized with a
+    score + 6-term breakdown, plus score_bounds for the 0-100 mapping."""
+    resp = client.get("/search", params={"q": "baconator"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "score_bounds" in body
+    results = body["results"]
+    assert results, "expected at least one Baconator match"
+    for item in results:
+        assert "baconator" in item["title"].lower()
+        assert item["score"] is not None
+        assert [t["key"] for t in item["breakdown"]] == [
+            "protein", "sugars", "fat", "carbs", "sodium", "calories"
+        ]
+
+
+def test_search_bypasses_calorie_cap():
+    """Search must find items /recommend would hide behind its 600-cal cap — e.g. the
+    960-cal Baconator."""
+    titles = [i["title"] for i in client.get("/search", params={"q": "Baconator"}).json()["results"]]
+    assert "Baconator" in titles
+
+
+def test_search_bypasses_balanced_drink_drop():
+    """/recommend drops drinks under the balanced goal; search must still surface them so a
+    user can find a specific drink by name."""
+    resp = client.get("/search", params={"q": "coca", "goal": "balanced"})
+    assert resp.status_code == 200
+    titles = [i["title"].lower() for i in resp.json()["results"]]
+    assert any("coca-cola" in t for t in titles)
+
+
+def test_search_scopes_to_restaurant():
+    resp = client.get("/search", params={"q": "fries", "restaurant": "mcdonalds"})
+    assert resp.status_code == 200
+    results = resp.json()["results"]
+    assert results
+    assert all(i["restaurant"] == "mcdonalds" for i in results)
+
+
+def test_search_results_ranked_by_score_desc():
+    resp = client.get("/search", params={"q": "chicken"})
+    assert resp.status_code == 200
+    scores = [i["score"] for i in resp.json()["results"]]
+    assert scores == sorted(scores, reverse=True)
+
+
+def test_search_honors_vegetarian_filter():
+    resp = client.get("/search", params={"q": "fries", "vegetarian": "true"})
+    assert resp.status_code == 200
+    assert all(i["vegetarian"] for i in resp.json()["results"])
+
+
+def test_search_missing_q_is_422():
+    assert client.get("/search").status_code == 422
+
+
+def test_search_blank_q_is_400():
+    resp = client.get("/search", params={"q": "   "})
+    assert resp.status_code == 400
+
+
 # --- vegetarian field invariant ----------------------------------------------
 
 def test_every_item_has_boolean_vegetarian_field():

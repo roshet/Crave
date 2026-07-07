@@ -391,6 +391,9 @@ function App() {
   // Shared by Browse and Optimize since both use the same `goal`.
   const [scoreBounds, setScoreBounds] = useState(null);
   const [search, setSearch]           = useState("");
+  // Debounced copy of `search` — drives the server-side /search fetch so we don't fire a
+  // request per keystroke. Empty = normal /recommend browsing.
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [sort, setSort]               = useState("score"); // Browse-only ordering
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState("");
@@ -420,11 +423,17 @@ function App() {
   const [optimizeError, setOptimizeError]               = useState("");
   const [optimizeNoMeal, setOptimizeNoMeal]             = useState(false);
 
-  // Auto-fetch Browse when tab is active and filters change
+  // Debounce the search box so typing fires at most one /search request per pause.
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  // Auto-fetch Browse when tab is active and filters (or the debounced search) change
   useEffect(() => {
     if (activeTab === "browse") fetchBrowse();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, goal, restaurant, maxCalories, category, diet, sort,
+  }, [activeTab, goal, restaurant, maxCalories, category, diet, sort, debouncedSearch,
       macros.minProtein, macros.maxSugar, macros.maxFat, macros.maxSodium]);
 
   // Score the current hand-built meal via the backend (same engine the optimizer uses),
@@ -592,12 +601,9 @@ function App() {
     [compareItems]
   );
 
-  const displayedResults = useMemo(() =>
-    results.filter((item) => {
-      if (!search.trim()) return true;
-      return (item.title || item.name || "").toLowerCase().includes(search.trim().toLowerCase());
-    }),
-  [results, search]);
+  // Search is now server-side (/search), so `results` are already the matches — no client
+  // filtering. Kept as a named memo so the render + count sites stay unchanged.
+  const displayedResults = results;
 
   // Build the &min_protein=…&max_sugar=… suffix, emitting only the macros the user set.
   function macroQuery() {
@@ -620,12 +626,22 @@ function App() {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 15000);
     try {
-      let url = `${API_BASE_URL}/recommend?restaurant=${encodeURIComponent(restaurant)}&goal=${encodeURIComponent(goal)}&max_calories=${encodeURIComponent(maxCalories)}&top_n=20&format=human`;
-      if (category) url += `&category=${encodeURIComponent(category)}`;
-      if (diet === "vegetarian") url += `&vegetarian=true`;
-      else if (diet === "vegan") url += `&vegan=true`;
-      if (sort !== "score") url += `&sort=${encodeURIComponent(sort)}`;
-      url += macroQuery();
+      const q = debouncedSearch.trim();
+      let url;
+      if (q) {
+        // Menu-wide name search: honors restaurant + diet + goal only (search deliberately
+        // ignores the calorie/category/macro/sort chips so a searched item is never hidden).
+        url = `${API_BASE_URL}/search?q=${encodeURIComponent(q)}&restaurant=${encodeURIComponent(restaurant)}&goal=${encodeURIComponent(goal)}`;
+        if (diet === "vegetarian") url += `&vegetarian=true`;
+        else if (diet === "vegan") url += `&vegan=true`;
+      } else {
+        url = `${API_BASE_URL}/recommend?restaurant=${encodeURIComponent(restaurant)}&goal=${encodeURIComponent(goal)}&max_calories=${encodeURIComponent(maxCalories)}&top_n=20&format=human`;
+        if (category) url += `&category=${encodeURIComponent(category)}`;
+        if (diet === "vegetarian") url += `&vegetarian=true`;
+        else if (diet === "vegan") url += `&vegan=true`;
+        if (sort !== "score") url += `&sort=${encodeURIComponent(sort)}`;
+        url += macroQuery();
+      }
       const res = await fetch(url, { signal: controller.signal });
       if (!res.ok) throw new Error(`API error (${res.status}): ${await res.text()}`);
       const data = await res.json();
@@ -983,8 +999,8 @@ function App() {
               <input
                 className="searchInput"
                 type="text"
-                placeholder="Filter these results…"
-                aria-label="Filter the loaded results by name"
+                placeholder="Search all menu items…"
+                aria-label="Search all menu items by name"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -1005,14 +1021,19 @@ function App() {
             {error && <p className="errorMsg">{error}</p>}
             {!loading && !error && results.length > 0 && (
               <p className="resultCount">
-                Showing {displayedResults.length} of {results.length} items
-                {search.trim() ? " matching your filter" : " for these filters"}
+                {debouncedSearch.trim()
+                  ? `Showing ${results.length} result${results.length === 1 ? "" : "s"} for “${debouncedSearch.trim()}”`
+                  : `Showing ${results.length} items for these filters`}
               </p>
             )}
             <div className="itemList">
               {loading && [0,1,2,3,4].map((i) => <SkeletonRow key={i} />)}
               {!loading && hasSearched && displayedResults.length === 0 && !error && (
-                diet !== "none" ? (
+                debouncedSearch.trim() ? (
+                  <p className="emptyMsg">
+                    No menu items match “{debouncedSearch.trim()}”.
+                  </p>
+                ) : diet !== "none" ? (
                   <p className="emptyMsg">
                     No {diet} items match this goal. Try a different goal (e.g. Low Fat) or Optimize for a {diet} meal.
                   </p>
