@@ -10,7 +10,7 @@ from pathlib import Path
 import statistics
 
 import recommend_items
-from recommend_items import get_recommendations, humanize_items, build_optimal_meal, score_bounds
+from recommend_items import get_recommendations, humanize_items, build_optimal_meal, score_bounds, health_score, meal_breakdown
 
 app = FastAPI(title = "Fast Food Health Recommender")
 
@@ -220,6 +220,31 @@ def items(ids: str = Query(..., description="Comma-separated item_ids to fetch")
 
     matched = [ITEMS_BY_ID[i] for i in requested if i in ITEMS_BY_ID]
     return {"results": humanize_items(matched)}
+
+
+@app.get("/score_meal")
+def score_meal(
+    ids: str = Query(..., description="Comma-separated item_ids that make up the meal"),
+    goal: str = Query("balanced", pattern="^(balanced|high_protein|low_sugar|low_fat)$"),
+    max_calories: int = Query(600, ge=1),
+):
+    """Score a hand-built meal by its item_ids. Reuses the same engine the optimizer
+    uses — total_score is the sum of the items' health_scores and breakdown is the
+    element-wise sum of their per-nutrient terms — so a meal built here scores exactly as
+    it would in Optimize. Resolves ids exactly like /items (opaque string keys, unknown
+    ids silently skipped), so the score survives a since-deleted item."""
+    requested = [part.strip() for part in ids.split(",") if part.strip()]
+    if not requested:
+        raise HTTPException(status_code=400, detail="Query param 'ids' must not be empty.")
+
+    matched = [ITEMS_BY_ID[i] for i in requested if i in ITEMS_BY_ID]
+    total = round(sum(health_score(it, goal, max_calories) for it in matched), 3)
+    return {
+        "total_score": total,
+        "item_count": len(matched),
+        "breakdown": meal_breakdown(matched, goal, max_calories),
+        "score_bounds": score_bounds(goal),
+    }
 
 
 @app.get("/optimize_meal")

@@ -277,6 +277,66 @@ def test_items_missing_ids_param_is_422():
     assert resp.status_code == 422
 
 
+# --- /score_meal (hand-built meal scoring) -----------------------------------
+
+def test_score_meal_breakdown_sums_to_total_score():
+    """The meal breakdown powers the "Why this meal scores" bars; its points must sum to
+    the meal's total_score so the explanation can never drift from the number."""
+    resp = client.get("/score_meal", params={"ids": "200692,Dave's Single", "goal": "high_protein"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["item_count"] == 2
+    bd = body["breakdown"]
+    assert [t["key"] for t in bd] == [
+        "protein", "sugars", "fat", "carbs", "sodium", "calories"
+    ]
+    for t in bd:
+        assert {"key", "label", "value", "unit", "points"} <= t.keys()
+    # meal level compounds per-term display rounding, same tolerance as the meal-breakdown
+    # scoring tests
+    assert sum(t["points"] for t in bd) == pytest.approx(body["total_score"], abs=0.05)
+
+
+def test_score_meal_total_equals_sum_of_item_scores():
+    """A hand-built meal must score exactly as the optimizer would: total_score is the
+    sum of the items' individual health_scores (same goal + max_calories)."""
+    from api import ITEMS_BY_ID
+    from recommend_items import health_score
+    ids = ["200692", "Dave's Single"]
+    resp = client.get("/score_meal", params={"ids": ",".join(ids), "goal": "high_protein"})
+    assert resp.status_code == 200
+    expected = round(
+        sum(health_score(ITEMS_BY_ID[i], "high_protein", 600) for i in ids), 3
+    )
+    assert resp.json()["total_score"] == pytest.approx(expected, abs=0.001)
+
+
+def test_score_meal_resolves_mixed_ids_including_wendys_string():
+    """Wendy's ids are human names with spaces/apostrophes — must resolve as opaque
+    strings alongside int ids, exactly like /items."""
+    resp = client.get("/score_meal", params={"ids": "Dave's Single,600000"})
+    assert resp.status_code == 200
+    assert resp.json()["item_count"] == 2
+
+
+def test_score_meal_skips_unknown_ids():
+    """A meal referencing a since-deleted item still scores the rest (item_count reflects
+    only matched items)."""
+    resp = client.get("/score_meal", params={"ids": "Dave's Single,__nope__,600000"})
+    assert resp.status_code == 200
+    assert resp.json()["item_count"] == 2
+
+
+def test_score_meal_empty_ids_is_400():
+    resp = client.get("/score_meal", params={"ids": "  , "})
+    assert resp.status_code == 400
+
+
+def test_score_meal_bad_goal_is_422():
+    resp = client.get("/score_meal", params={"ids": "600000", "goal": "keto"})
+    assert resp.status_code == 422
+
+
 # --- vegetarian field invariant ----------------------------------------------
 
 def test_every_item_has_boolean_vegetarian_field():
