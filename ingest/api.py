@@ -10,7 +10,7 @@ from pathlib import Path
 import statistics
 
 import recommend_items
-from recommend_items import get_recommendations, humanize_items, build_optimal_meal, score_bounds, health_score, meal_breakdown
+from recommend_items import get_recommendations, humanize_items, build_optimal_meal, score_bounds, health_score, meal_breakdown, explain_item, score_breakdown
 
 app = FastAPI(title = "Fast Food Health Recommender")
 
@@ -205,6 +205,65 @@ def recommend(
         "summary": f"Top {len(results)} {goal.replace('_',' ')} items from {restaurant}"
                    + (f" in {category}" if category else ""),
         "results": results,
+        "score_bounds": score_bounds(goal),
+    }
+
+
+@app.get("/search")
+def search(
+    q: str = Query(..., min_length=1, description="Item name substring to search for"),
+    restaurant: str = Query("all", pattern="^(mcdonalds|chickfila|wendys|tacobell|burgerking|all)$"),
+    goal: str = Query("balanced", pattern="^(balanced|high_protein|low_sugar|low_fat)$"),
+    top_n: int = Query(30, ge=1, le=50),
+    vegetarian: bool = Query(False),
+    vegan: bool = Query(False),
+):
+    """Find any menu item by name substring, ranked by health_score for the goal.
+
+    Unlike /recommend, search does NOT apply the recommendation heuristics that hide items
+    (the calorie cap, the balanced drink-drop, the balanced protein floor) — the whole
+    point is that searching "Baconator" (960 cal) or "Coca-Cola" (a drink) actually returns
+    them. It DOES honor the explicit restaurant + diet filters, excludes sauces, and scores
+    by the selected goal. Same {results, score_bounds} shape Browse already renders."""
+    q_norm = q.strip().lower()
+    if not q_norm:
+        raise HTTPException(status_code=400, detail="Query param 'q' must not be blank.")
+
+    if restaurant == "mcdonalds":
+        items = mcdonalds_items
+    elif restaurant == "chickfila":
+        items = chickfila_items
+    elif restaurant == "wendys":
+        items = wendys_items
+    elif restaurant == "tacobell":
+        items = tacobell_items
+    elif restaurant == "burgerking":
+        items = burgerking_items
+    else:
+        items = ALL_ITEMS
+
+    if vegetarian:
+        items = [it for it in items if it.get("vegetarian")]
+    if vegan:
+        items = [it for it in items if it.get("vegan")]
+
+    matches = [
+        it for it in items
+        if it.get("item_type") != "sauce" and q_norm in (it.get("name") or "").lower()
+    ]
+
+    scored = []
+    for it in matches:
+        c = it.copy()
+        c["health_score"] = health_score(it, goal)
+        c["reason"] = explain_item(it, goal)
+        c["breakdown"] = score_breakdown(it, goal)
+        scored.append(c)
+    scored.sort(key=lambda x: x["health_score"], reverse=True)
+
+    return {
+        "query": q,
+        "results": humanize_items(scored[:top_n]),
         "score_bounds": score_bounds(goal),
     }
 
