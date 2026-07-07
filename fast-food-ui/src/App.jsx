@@ -406,6 +406,10 @@ function App() {
   const [copySuccess, setCopySuccess]           = useState(false);
   const [shareSuccess, setShareSuccess]         = useState(false);
   const [logSuccess, setLogSuccess]             = useState(false);
+  // Backend-computed score + breakdown for the hand-built meal ({ total_score,
+  // item_count, breakdown, score_bounds } or null). The backend owns the math so it
+  // stays in sync with the scoring weights (never reimplemented in JS).
+  const [mealScore, setMealScore]               = useState(null);
 
   // Compare — ephemeral set of up to COMPARE_MAX entries (items and/or meals)
   const [compareItems, setCompareItems]         = useState([]);
@@ -422,6 +426,28 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, goal, restaurant, maxCalories, category, diet, sort,
       macros.minProtein, macros.maxSugar, macros.maxFat, macros.maxSodium]);
+
+  // Score the current hand-built meal via the backend (same engine the optimizer uses),
+  // re-fetching whenever the meal, goal, or calorie cap changes. Fails quietly (clears
+  // the score) so the section simply hides offline / in local dev — never blocks the app.
+  useEffect(() => {
+    if (meal.length === 0) { setMealScore(null); return; }
+    const ids = meal.map((m) => encodeURIComponent(getItemKey(m))).join(",");
+    let cancelled = false;
+    (async () => {
+      try {
+        const resp = await fetch(
+          `${API_BASE_URL}/score_meal?ids=${ids}&goal=${encodeURIComponent(goal)}&max_calories=${encodeURIComponent(maxCalories)}`
+        );
+        if (!resp.ok) { if (!cancelled) setMealScore(null); return; }
+        const data = await resp.json();
+        if (!cancelled) setMealScore(data);
+      } catch {
+        if (!cancelled) setMealScore(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [meal, goal, maxCalories]);
 
   // On first load, rehydrate a shared meal from the ?meal=<ids> URL param. Fetches the
   // full items by id, drops the user on the Meal Builder, then strips the param so the
@@ -1100,6 +1126,23 @@ function App() {
                     );
                   })}
                 </div>
+
+                {mealScore && mealScore.item_count > 0 && (
+                  <div className="mealScoreCard">
+                    <div className="mealScoreHead">
+                      <span className="mealScoreLabel">Meal score</span>
+                      <span
+                        className="mealScoreValue"
+                        title={`Health score for ${goal.replace(/_/g, " ")} goal`}
+                        aria-label={`Meal health score ${normalizeScore(mealScore.total_score, mealScore.score_bounds, mealScore.item_count)} out of 100`}
+                      >
+                        {normalizeScore(mealScore.total_score, mealScore.score_bounds, mealScore.item_count)}
+                        <span className="mealScoreUnit">/100</span>
+                      </span>
+                    </div>
+                    <ScoreBreakdown breakdown={mealScore.breakdown} title="Why this meal scores…" />
+                  </div>
+                )}
 
                 <div className="actionRow">
                   <button className="btn btnDark" onClick={exportMeal}>

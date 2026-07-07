@@ -526,6 +526,42 @@ body { margin: 0; }
 .breakdownLegendUp   { color: #16a34a; font-weight: 600; }
 .breakdownLegendDown { color: #dc2626; font-weight: 600; }
 
+/* Score + "Why this meal scores" card in the Meal Builder. Uses design-system vars so
+   dark mode is inherited; the nested .scoreBreakdown carries its own dark overrides. */
+.mealScoreCard {
+  padding: 0.9rem 1rem 0.6rem;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+}
+
+.mealScoreHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.mealScoreLabel {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-secondary, #78716c);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.mealScoreValue {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.mealScoreUnit {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary, #78716c);
+}
+
 .addToMealBtn {
   width: 100%;
   padding: 0.9rem;
