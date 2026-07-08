@@ -128,6 +128,17 @@ export function defaultMealName(items) {
   return items.length > 1 ? `${first} +${items.length - 1} more` : first;
 }
 
+// Optional macro-threshold filters surfaced under "More filters" in the filter bar. Shared
+// between FilterChips (renders the inputs) and App (derives the active-count badge). Lives
+// here rather than in FilterChips.jsx so that component file can export only its component
+// (react-refresh/only-export-components).
+export const MACRO_FIELDS = [
+  { key: "minProtein", label: "Min protein", unit: "g" },
+  { key: "maxSugar",   label: "Max sugar",   unit: "g" },
+  { key: "maxFat",     label: "Max fat",     unit: "g" },
+  { key: "maxSodium",  label: "Max sodium",  unit: "mg" },
+];
+
 // Weekly history: totals of completed past days (today stays live in dailyLog). Kept to the
 // last 30 days so localStorage can't grow unbounded, though the UI only shows 7.
 export const HISTORY_KEY = "crave_history";
