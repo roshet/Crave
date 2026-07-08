@@ -1,5 +1,11 @@
 import { useMemo, useState, useEffect, useRef, Fragment } from "react";
 import "./App.css";
+import {
+  normalizeScore, getItemKey, getItemTags, formatDelta, deltaStyle, bestWorstStyle,
+  sumNutrition, today, lastNDates, weekdayLabel, sumDailyLog,
+  defaultMealName, mergeDay, loadHistory, weeklyAverages, loadDailyLog,
+  HISTORY_KEY, ZERO_TOTALS,
+} from "./helpers";
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000").replace(/\/+$/, "");
 
@@ -38,19 +44,6 @@ const NAME_EMOJI_OVERRIDES = [
   { test: /fish/i,    result: { emoji: "🐟", gradient: ["#cffafe", "#06b6d4"] } },
   { test: /\bbun\b/i, result: { emoji: "🍞", gradient: ["#fef3c7", "#d97706"] } },
 ];
-
-// Map a raw health_score onto a friendly 0–100 scale using the per-item min/max bounds
-// the backend ships with each response (see score_bounds() in recommend_items.py). The
-// backend owns these numbers so they can never drift out of sync with the scoring weights.
-// `bounds` is { min, max }; `itemCount` scales them for multi-item meal totals.
-function normalizeScore(rawScore, bounds, itemCount = 1) {
-  if (!bounds) return 0;
-  const minTotal = bounds.min * itemCount;
-  const maxTotal = bounds.max * itemCount;
-  if (maxTotal === minTotal) return 0;
-  const pct = ((Number(rawScore ?? 0) - minTotal) / (maxTotal - minTotal)) * 100;
-  return Math.max(0, Math.min(100, Math.round(pct)));
-}
 
 // Renders the "Why this score" contribution bars. `breakdown` is the array the backend
 // ships (score_breakdown / meal_breakdown): one entry per nutrient with
@@ -175,48 +168,6 @@ function getThumbnail(item) {
   return CATEGORY_EMOJI[(item.category || "").toLowerCase()] || DEFAULT_EMOJI;
 }
 
-function getItemKey(item) {
-  return item.item_id ?? item.id ?? `${item.restaurant}-${item.category}-${item.title || item.name}`;
-}
-
-function getItemTags(item) {
-  const tags = [];
-  if (Number(item.protein  ?? 0) >= 20) tags.push({ label: "high protein", type: "protein" });
-  if (Number(item.sugars   ?? 0) <= 5)  tags.push({ label: "low sugar",    type: "sugar-good" });
-  if (Number(item.fat      ?? 0) >= 20) tags.push({ label: "high fat",     type: "fat" });
-  else if (Number(item.fat ?? 0) <= 8)  tags.push({ label: "low fat",      type: "fat-good" });
-  if (Number(item.calories ?? 0) <= 200) tags.push({ label: "low cal",     type: "cal" });
-  return tags.slice(0, 3);
-}
-
-function formatDelta(n, unit = "") {
-  const v = Number(n ?? 0);
-  return `${v > 0 ? "+" : ""}${v.toFixed(0)}${unit}`;
-}
-
-function deltaStyle(delta, higherIsBetter) {
-  const d = Number(delta ?? 0);
-  if (higherIsBetter ? d > 0 : d < 0) return { color: "#047857", fontWeight: 700 };
-  if (higherIsBetter ? d < 0 : d > 0) return { color: "#b91c1c", fontWeight: 700 };
-  return { color: "#64748b", fontWeight: 600 };
-}
-
-// Highlight the best/worst value across compare columns for one nutrient row. Reuses
-// deltaStyle's green/red/gray semantics but scoped to the column set rather than a
-// delta vs a base. All-equal (single column or a tie) gets no highlight.
-function bestWorstStyle(values, index, higherIsBetter) {
-  const nums = values.map((v) => Number(v ?? 0));
-  const max = Math.max(...nums);
-  const min = Math.min(...nums);
-  if (max === min) return { color: "#64748b", fontWeight: 600 };
-  const v = nums[index];
-  const best = higherIsBetter ? max : min;
-  const worst = higherIsBetter ? min : max;
-  if (v === best) return { color: "#047857", fontWeight: 700 };
-  if (v === worst) return { color: "#b91c1c", fontWeight: 700 };
-  return { color: "#64748b", fontWeight: 600 };
-}
-
 // A compare entry wraps either a single item or a full meal so the Compare table can
 // treat both uniformly (nutrition = sumNutrition(entry.items)). `srcKey` lets us dedup
 // single items against what's already staged; meals are snapshots and always add.
@@ -252,77 +203,6 @@ const COMPARE_NUTRIENTS = [
 
 const COMPARE_MAX = 3;
 
-// Single source of truth for summing a list of items' nutrition. Used everywhere a
-// meal total is needed (meal builder, alternative-meal deltas, optimizer goal checks)
-// so the field set can never drift between call sites.
-function sumNutrition(items) {
-  return items.reduce(
-    (acc, item) => {
-      acc.calories += Number(item.calories ?? 0);
-      acc.protein  += Number(item.protein  ?? 0);
-      acc.sugars   += Number(item.sugars   ?? 0);
-      acc.fat      += Number(item.fat      ?? 0);
-      acc.carbs    += Number(item.carbs    ?? 0);
-      acc.sodium   += Number(item.sodium   ?? 0);
-      return acc;
-    },
-    { calories: 0, protein: 0, sugars: 0, fat: 0, carbs: 0, sodium: 0 }
-  );
-}
-
-// Local calendar date as YYYY-MM-DD. Hand-built from local getters (NOT toISOString, which
-// is UTC and would roll the date a few hours early/late for most timezones).
-function formatLocalDate(d) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
-// Local calendar date as YYYY-MM-DD — the key the daily log resets on.
-function today() {
-  return formatLocalDate(new Date());
-}
-
-// The last `n` local calendar dates ending today, oldest first. Used to lay out the weekly
-// history chart. Uses setDate arithmetic so month/DST boundaries are handled by Date itself.
-function lastNDates(n) {
-  const out = [];
-  for (let i = n - 1; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    out.push(formatLocalDate(d));
-  }
-  return out;
-}
-
-// Short weekday label (Mon/Tue/…) for a YYYY-MM-DD string, parsed in LOCAL time so the
-// weekday matches the calendar date (never shifted by a UTC parse of the bare string).
-const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-function weekdayLabel(dateStr) {
-  const [y, m, d] = dateStr.split("-").map(Number);
-  return WEEKDAYS[new Date(y, m - 1, d).getDay()];
-}
-
-// Sum the precomputed per-entry totals into a single day total. Reuses the same nutrient
-// keys as sumNutrition so the Today tab stays in lockstep with the Meal Builder.
-function sumDailyLog(entries) {
-  return entries.reduce(
-    (acc, e) => {
-      acc.calories += Number(e.totals?.calories ?? 0);
-      acc.protein  += Number(e.totals?.protein  ?? 0);
-      acc.sugars   += Number(e.totals?.sugars   ?? 0);
-      acc.fat      += Number(e.totals?.fat      ?? 0);
-      return acc;
-    },
-    { calories: 0, protein: 0, sugars: 0, fat: 0 }
-  );
-}
-
-// Auto-name a meal from its first item when the user doesn't type one.
-function defaultMealName(items) {
-  if (!items.length) return "Untitled meal";
-  const first = items[0].title || items[0].name || "Meal";
-  return items.length > 1 ? `${first} +${items.length - 1} more` : first;
-}
-
 const DEFAULT_TARGETS = { calories: 2000, protein: 100, sugars: 50, fat: 70 };
 
 // Nutrients tracked on the Today tab, with display metadata. Sodium/carbs exist in the data
@@ -333,82 +213,6 @@ const TARGET_NUTRIENTS = [
   { key: "sugars",   label: "Sugar",    unit: "g" },
   { key: "fat",      label: "Fat",      unit: "g" },
 ];
-
-// Weekly history: totals of completed past days (today stays live in dailyLog). Kept to the
-// last 30 days so localStorage can't grow unbounded, though the UI only shows 7.
-const HISTORY_KEY = "crave_history";
-const HISTORY_MAX_DAYS = 30;
-const ZERO_TOTALS = { calories: 0, protein: 0, sugars: 0, fat: 0 };
-
-// Add a day's totals to the history array (replacing any existing entry for that date),
-// sorted newest-first and pruned. Pure — the same helper backs both rollover sites.
-function mergeDay(history, dayLog) {
-  if (!dayLog || !Array.isArray(dayLog.entries) || dayLog.entries.length === 0) return history;
-  const totals = sumDailyLog(dayLog.entries);
-  const rest = history.filter((h) => h.date !== dayLog.date);
-  return [{ date: dayLog.date, totals }, ...rest]
-    .sort((a, b) => (a.date < b.date ? 1 : -1))
-    .slice(0, HISTORY_MAX_DAYS);
-}
-
-function loadHistory() {
-  try {
-    const raw = window.localStorage.getItem(HISTORY_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed)
-      ? parsed.filter((h) => h && typeof h.date === "string" && h.totals)
-      : [];
-  } catch {
-    return [];
-  }
-}
-
-// Per-nutrient average across a list of day totals (the 7 chart days). Divides by the full
-// list length so untracked days count as zero — a truthful weekly average.
-function weeklyAverages(dayTotalsList) {
-  if (!dayTotalsList.length) return { ...ZERO_TOTALS };
-  const sum = dayTotalsList.reduce(
-    (acc, t) => ({
-      calories: acc.calories + (t.calories || 0),
-      protein: acc.protein + (t.protein || 0),
-      sugars: acc.sugars + (t.sugars || 0),
-      fat: acc.fat + (t.fat || 0),
-    }),
-    { ...ZERO_TOTALS }
-  );
-  const n = dayTotalsList.length;
-  return {
-    calories: sum.calories / n,
-    protein: sum.protein / n,
-    sugars: sum.sugars / n,
-    fat: sum.fat / n,
-  };
-}
-
-// Read the persisted daily log, resetting to an empty day when the stored date isn't today.
-// A stale non-empty day is first archived into crave_history so it survives in the weekly
-// view. Runs before the `history` state initializer (declaration order), so loadHistory()
-// below sees the archived value.
-function loadDailyLog() {
-  const fresh = { date: today(), entries: [] };
-  try {
-    const raw = window.localStorage.getItem("crave_daily_log");
-    if (!raw) return fresh;
-    const parsed = JSON.parse(raw);
-    if (parsed?.date !== today() || !Array.isArray(parsed.entries)) {
-      if (parsed?.date && Array.isArray(parsed.entries) && parsed.entries.length) {
-        try {
-          window.localStorage.setItem(HISTORY_KEY, JSON.stringify(mergeDay(loadHistory(), parsed)));
-        } catch { /* history archival is best-effort */ }
-      }
-      return fresh;
-    }
-    return parsed;
-  } catch {
-    return fresh;
-  }
-}
 
 function App() {
   // Shared filter state (Browse + Optimize)
