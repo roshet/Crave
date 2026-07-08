@@ -4,8 +4,10 @@ import {
   normalizeScore, getItemKey, getItemTags, formatDelta, deltaStyle, bestWorstStyle,
   sumNutrition, today, lastNDates, weekdayLabel, sumDailyLog,
   defaultMealName, mergeDay, loadHistory, weeklyAverages, loadDailyLog,
-  HISTORY_KEY, ZERO_TOTALS,
+  HISTORY_KEY, ZERO_TOTALS, MACRO_FIELDS,
 } from "./helpers";
+import FilterChips from "./components/FilterChips";
+import SkeletonRow from "./components/SkeletonRow";
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000").replace(/\/+$/, "");
 
@@ -785,100 +787,15 @@ function App() {
     restaurant === "tacobell"  ? TACOBELL_CATEGORIES :
     restaurant === "burgerking" ? BURGERKING_CATEGORIES : [];
 
-  const MACRO_FIELDS = [
-    { key: "minProtein", label: "Min protein", unit: "g" },
-    { key: "maxSugar",   label: "Max sugar",   unit: "g" },
-    { key: "maxFat",     label: "Max fat",     unit: "g" },
-    { key: "maxSodium",  label: "Max sodium",  unit: "mg" },
-  ];
   const activeMacroCount = MACRO_FIELDS.filter((m) => macros[m.key] !== "").length;
 
-  function FilterChips({ showCategory }) {
-    return (
-      <>
-      <div className="filterChips">
-        <select className="chipSelect" aria-label="Restaurant" value={restaurant} onChange={(e) => { setRestaurant(e.target.value); setCategory(""); }}>
-          <option value="mcdonalds">McDonald&#39;s</option>
-          <option value="chickfila">Chick-fil-A</option>
-          <option value="wendys">Wendy&#39;s</option>
-          <option value="tacobell">Taco Bell</option>
-          <option value="burgerking">Burger King</option>
-          <option value="all">All</option>
-        </select>
-        <select className="chipSelect" aria-label="Nutrition goal" value={goal} onChange={(e) => setGoal(e.target.value)}>
-          <option value="balanced">Balanced</option>
-          <option value="high_protein">High Protein</option>
-          <option value="low_sugar">Low Sugar</option>
-          <option value="low_fat">Low Fat</option>
-        </select>
-        <select className="chipSelect" aria-label="Maximum calories" value={maxCalories} onChange={(e) => setMaxCalories(Number(e.target.value))}>
-          <option value={300}>300 cal</option>
-          <option value={400}>400 cal</option>
-          <option value={500}>500 cal</option>
-          <option value={600}>600 cal</option>
-          <option value={800}>800 cal</option>
-          <option value={1000}>1000 cal</option>
-        </select>
-        {showCategory && restaurant !== "all" && (
-          <select className="chipSelect" aria-label="Category" value={category} onChange={(e) => setCategory(e.target.value)}>
-            <option value="">All categories</option>
-            {currentCategories.map((c) => (
-              <option key={c.value} value={c.value}>{c.label}</option>
-            ))}
-          </select>
-        )}
-        <select className="chipSelect" aria-label="Diet" value={diet} onChange={(e) => setDiet(e.target.value)}>
-          <option value="none">Any diet</option>
-          <option value="vegetarian">🌱 Vegetarian</option>
-          <option value="vegan">🥬 Vegan</option>
-        </select>
-      </div>
-
-      <button
-        type="button"
-        className="moreFiltersToggle"
-        aria-expanded={showMoreFilters}
-        onClick={() => setShowMoreFilters((v) => !v)}
-      >
-        {showMoreFilters ? "⊖" : "⊕"} More filters
-        {!showMoreFilters && activeMacroCount > 0 ? ` (${activeMacroCount})` : ""}
-      </button>
-      {showMoreFilters && (
-        <div className="moreFiltersPanel">
-          <div className="targetInputs">
-            {MACRO_FIELDS.map((m) => (
-              <label key={m.key} className="targetInput">
-                <span className="targetInputLabel">{m.label} ({m.unit})</span>
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  inputMode="numeric"
-                  placeholder="—"
-                  aria-label={`${m.label} in ${m.unit}`}
-                  value={macros[m.key]}
-                  onChange={(e) => setMacro(m.key, e.target.value)}
-                />
-              </label>
-            ))}
-          </div>
-        </div>
-      )}
-      </>
-    );
-  }
-
-  function SkeletonRow() {
-    return (
-      <div className="itemRow skeletonRow">
-        <div className="skeletonThumb" />
-        <div className="skeletonInfo">
-          <div className="skeletonText" style={{ width: "55%" }} />
-          <div className="skeletonText" style={{ width: "40%" }} />
-        </div>
-      </div>
-    );
-  }
+  // Bundle the shared filter state + setters so FilterChips (now its own component) receives
+  // one prop instead of ~16.
+  const filters = {
+    goal, setGoal, restaurant, setRestaurant, maxCalories, setMaxCalories,
+    category, setCategory, diet, setDiet, macros, setMacro,
+    showMoreFilters, setShowMoreFilters, currentCategories, activeMacroCount,
+  };
 
   return (
     <div className="page">
@@ -932,7 +849,7 @@ function App() {
         {/* ── BROWSE ── */}
         {activeTab === "browse" && (
           <div className="browseTab">
-            <FilterChips showCategory={true} />
+            <FilterChips filters={filters} showCategory={true} />
             <div className="searchBar">
               <span className="searchIcon">🔍</span>
               <input
@@ -1228,7 +1145,7 @@ function App() {
               selected goal, and shows the top 3 meals. Adjust the filters or a preset below,
               then build.
             </p>
-            <FilterChips showCategory={false} />
+            <FilterChips filters={filters} showCategory={false} />
 
             <div className="presetGrid">
               {GOAL_PRESETS.map((p) => {
