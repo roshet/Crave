@@ -270,10 +270,35 @@ function sumNutrition(items) {
   );
 }
 
+// Local calendar date as YYYY-MM-DD. Hand-built from local getters (NOT toISOString, which
+// is UTC and would roll the date a few hours early/late for most timezones).
+function formatLocalDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 // Local calendar date as YYYY-MM-DD — the key the daily log resets on.
 function today() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  return formatLocalDate(new Date());
+}
+
+// The last `n` local calendar dates ending today, oldest first. Used to lay out the weekly
+// history chart. Uses setDate arithmetic so month/DST boundaries are handled by Date itself.
+function lastNDates(n) {
+  const out = [];
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    out.push(formatLocalDate(d));
+  }
+  return out;
+}
+
+// Short weekday label (Mon/Tue/…) for a YYYY-MM-DD string, parsed in LOCAL time so the
+// weekday matches the calendar date (never shifted by a UTC parse of the bare string).
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+function weekdayLabel(dateStr) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return WEEKDAYS[new Date(y, m - 1, d).getDay()];
 }
 
 // Sum the precomputed per-entry totals into a single day total. Reuses the same nutrient
@@ -309,14 +334,76 @@ const TARGET_NUTRIENTS = [
   { key: "fat",      label: "Fat",      unit: "g" },
 ];
 
+// Weekly history: totals of completed past days (today stays live in dailyLog). Kept to the
+// last 30 days so localStorage can't grow unbounded, though the UI only shows 7.
+const HISTORY_KEY = "crave_history";
+const HISTORY_MAX_DAYS = 30;
+const ZERO_TOTALS = { calories: 0, protein: 0, sugars: 0, fat: 0 };
+
+// Add a day's totals to the history array (replacing any existing entry for that date),
+// sorted newest-first and pruned. Pure — the same helper backs both rollover sites.
+function mergeDay(history, dayLog) {
+  if (!dayLog || !Array.isArray(dayLog.entries) || dayLog.entries.length === 0) return history;
+  const totals = sumDailyLog(dayLog.entries);
+  const rest = history.filter((h) => h.date !== dayLog.date);
+  return [{ date: dayLog.date, totals }, ...rest]
+    .sort((a, b) => (a.date < b.date ? 1 : -1))
+    .slice(0, HISTORY_MAX_DAYS);
+}
+
+function loadHistory() {
+  try {
+    const raw = window.localStorage.getItem(HISTORY_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed)
+      ? parsed.filter((h) => h && typeof h.date === "string" && h.totals)
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+// Per-nutrient average across a list of day totals (the 7 chart days). Divides by the full
+// list length so untracked days count as zero — a truthful weekly average.
+function weeklyAverages(dayTotalsList) {
+  if (!dayTotalsList.length) return { ...ZERO_TOTALS };
+  const sum = dayTotalsList.reduce(
+    (acc, t) => ({
+      calories: acc.calories + (t.calories || 0),
+      protein: acc.protein + (t.protein || 0),
+      sugars: acc.sugars + (t.sugars || 0),
+      fat: acc.fat + (t.fat || 0),
+    }),
+    { ...ZERO_TOTALS }
+  );
+  const n = dayTotalsList.length;
+  return {
+    calories: sum.calories / n,
+    protein: sum.protein / n,
+    sugars: sum.sugars / n,
+    fat: sum.fat / n,
+  };
+}
+
 // Read the persisted daily log, resetting to an empty day when the stored date isn't today.
+// A stale non-empty day is first archived into crave_history so it survives in the weekly
+// view. Runs before the `history` state initializer (declaration order), so loadHistory()
+// below sees the archived value.
 function loadDailyLog() {
   const fresh = { date: today(), entries: [] };
   try {
     const raw = window.localStorage.getItem("crave_daily_log");
     if (!raw) return fresh;
     const parsed = JSON.parse(raw);
-    if (parsed?.date !== today() || !Array.isArray(parsed.entries)) return fresh;
+    if (parsed?.date !== today() || !Array.isArray(parsed.entries)) {
+      if (parsed?.date && Array.isArray(parsed.entries) && parsed.entries.length) {
+        try {
+          window.localStorage.setItem(HISTORY_KEY, JSON.stringify(mergeDay(loadHistory(), parsed)));
+        } catch { /* history archival is best-effort */ }
+      }
+      return fresh;
+    }
     return parsed;
   } catch {
     return fresh;
@@ -369,6 +456,13 @@ function App() {
   useEffect(() => {
     window.localStorage.setItem("crave_daily_log", JSON.stringify(dailyLog));
   }, [dailyLog]);
+
+  // Weekly history: totals of completed past days (initialized AFTER dailyLog so it picks up
+  // any day loadDailyLog just archived). Powers the "This week" chart on the Today tab.
+  const [history, setHistory] = useState(loadHistory);
+  useEffect(() => {
+    window.localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+  }, [history]);
 
   // Saved meals — named meals the user keeps and reloads later. Persists across sessions.
   const [savedMeals, setSavedMeals] = useState(() => {
@@ -577,6 +671,41 @@ function App() {
 
   const dailyTotals = useMemo(() => sumDailyLog(dailyLog.entries), [dailyLog]);
 
+  // The last 7 calendar days for the "This week" chart: today reads the live totals; past
+  // days come from the archived history (missing days = zero). Includes per-day averages.
+  const weekSeries = useMemo(() => {
+    const dates = lastNDates(7);
+    const byDate = Object.fromEntries(history.map((h) => [h.date, h.totals]));
+    const t = today();
+    const days = dates.map((date) => ({
+      date,
+      isToday: date === t,
+      totals: date === t ? dailyTotals : (byDate[date] ?? ZERO_TOTALS),
+    }));
+    return { days, averages: weeklyAverages(days.map((d) => d.totals)) };
+  }, [history, dailyTotals]);
+
+  // Layout math for the weekly calories chart: bar heights + the target reference line, all
+  // as % of a common max (the taller of the target or the biggest day) so the line and bars
+  // share one scale. `over` marks days above the calorie target (redundant with the bar
+  // crossing the target line, so color isn't the sole signal).
+  const weekChart = useMemo(() => {
+    const calTarget = targets.calories || 0;
+    const maxCal = Math.max(calTarget, ...weekSeries.days.map((d) => d.totals.calories), 1);
+    const days = weekSeries.days.map((d) => ({
+      ...d,
+      label: weekdayLabel(d.date),
+      heightPct: (d.totals.calories / maxCal) * 100,
+      over: calTarget > 0 && d.totals.calories > calTarget,
+    }));
+    return {
+      days,
+      calTarget,
+      targetPct: maxCal > 0 ? (calTarget / maxCal) * 100 : 0,
+      allZero: weekSeries.days.every((d) => d.totals.calories === 0),
+    };
+  }, [weekSeries, targets.calories]);
+
   const alternativeMealsWithDeltas = useMemo(() => {
     const base = mealTotals;
     return alternativeMeals.map((m) => {
@@ -747,6 +876,12 @@ function App() {
       totals: sumNutrition(meal),
       loggedAt: Date.now(),
     };
+    // If the calendar day rolled over while the app was open, archive the stale day into the
+    // weekly history before it's reset (read the closure value so the setDailyLog updater
+    // stays pure).
+    if (dailyLog.date !== today() && dailyLog.entries.length) {
+      setHistory((h) => mergeDay(h, dailyLog));
+    }
     setDailyLog((prev) => {
       const base = prev.date === today() ? prev.entries : [];
       return { date: today(), entries: [...base, entry] };
@@ -1373,8 +1508,8 @@ function App() {
           <div className="todayTab">
             <p className="optimizeIntro">
               Set your daily targets, then use <strong>➕ Log to Today</strong> in the Meal
-              Builder to track meals against them. Totals persist on this device and reset each
-              calendar day.
+              Builder to track meals against them. Totals persist on this device; each day rolls
+              into your <strong>7-day history</strong> below.
             </p>
 
             <div className="targetEditor">
@@ -1452,6 +1587,65 @@ function App() {
                     <button className="mealItemRemove" onClick={() => removeLogEntry(e.id)} aria-label="Remove logged meal">✕</button>
                   </div>
                 ))
+              )}
+            </div>
+
+            <div className="weekHistory">
+              <h3 className="todaySectionTitle">This week</h3>
+              {weekChart.allZero ? (
+                <p className="weekEmptyHint">Log meals each day to see your weekly calorie trend.</p>
+              ) : (
+                <>
+                  <div
+                    className="weekChart"
+                    role="img"
+                    aria-label={
+                      `Daily calories over the last 7 days` +
+                      (weekChart.calTarget ? ` versus your ${weekChart.calTarget} kcal target` : "")
+                    }
+                  >
+                    {weekChart.calTarget > 0 && (
+                      <div className="weekTargetLine" style={{ bottom: `${weekChart.targetPct}%` }}>
+                        <span className="weekTargetLabel">Target {weekChart.calTarget}</span>
+                      </div>
+                    )}
+                    {weekChart.days.map((d) => (
+                      <div key={d.date} className="weekBarCell">
+                        <div
+                          className={
+                            "weekBar" +
+                            (d.over ? " weekBar--over" : "") +
+                            (d.isToday ? " weekBar--today" : "")
+                          }
+                          style={{ height: `${d.heightPct}%` }}
+                          title={`${d.label}: ${d.totals.calories.toFixed(0)} kcal`}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="weekDayRow">
+                    {weekChart.days.map((d) => (
+                      <span
+                        key={d.date}
+                        className={"weekDayLabel" + (d.isToday ? " weekDayLabel--today" : "")}
+                      >
+                        {d.label}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="weekAverages">
+                    <span className="weekAveragesLabel">7-day avg</span>
+                    {TARGET_NUTRIENTS.map((n) => {
+                      const avg = weekSeries.averages[n.key] || 0;
+                      const over = targets[n.key] > 0 && avg > targets[n.key];
+                      return (
+                        <span key={n.key} className={"weekAvgStat" + (over ? " weekAvgStat--over" : "")}>
+                          {avg.toFixed(0)}{n.unit} {n.label.toLowerCase()}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </>
               )}
             </div>
           </div>

@@ -1165,7 +1165,8 @@ body { margin: 0; }
 
 .targetEditor,
 .targetProgress,
-.loggedMeals {
+.loggedMeals,
+.weekHistory {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: var(--radius-card);
@@ -1224,6 +1225,91 @@ body { margin: 0; }
 }
 .targetBar--over .targetFill { background: #dc2626; }
 
+/* ===== WEEKLY HISTORY (Today tab) ===== */
+.weekEmptyHint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+/* The plot: 7 cells filling the full height so bar heights and the target line share ONE
+   calorie scale (labels live in a separate row below so they don't shrink the plot). */
+.weekChart {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.4rem;
+  height: 120px;
+  margin-top: 1rem;
+}
+
+.weekBarCell {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.weekBar {
+  width: 60%;
+  max-width: 26px;
+  min-height: 2px;
+  background: #16a34a;
+  border-radius: 4px 4px 0 0;
+  transition: height 0.2s ease;
+}
+.weekBar--over { background: #dc2626; }
+/* today's bar reads as "current" via a ring, not a different hue */
+.weekBar--today { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* dashed 2px reference line for the calorie target, drawn across the plot */
+.weekTargetLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 2px dashed var(--text-secondary);
+  opacity: 0.55;
+  pointer-events: none;
+}
+.weekTargetLabel {
+  position: absolute;
+  right: 0;
+  top: -1.05rem;
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* day labels, one flex cell per bar so they line up under the columns */
+.weekDayRow {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+}
+.weekDayLabel {
+  flex: 1;
+  text-align: center;
+  font-size: 0.66rem;
+  color: var(--text-secondary);
+}
+.weekDayLabel--today { color: var(--accent); font-weight: 700; }
+
+.weekAverages {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem 0.6rem;
+  margin-top: 0.85rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--card-border);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+.weekAveragesLabel { font-weight: 700; color: var(--text-primary); }
+.weekAvgStat { font-variant-numeric: tabular-nums; }
+.weekAvgStat--over { color: #b91c1c; font-weight: 600; }
+
 .loggedMealsHead {
   display: flex;
   justify-content: space-between;
@@ -1248,10 +1334,15 @@ body { margin: 0; }
 
 [data-theme="dark"] .targetEditor,
 [data-theme="dark"] .targetProgress,
-[data-theme="dark"] .loggedMeals { background: #292524; }
+[data-theme="dark"] .loggedMeals,
+[data-theme="dark"] .weekHistory { background: #292524; }
 [data-theme="dark"] .targetInput input { background: #1c1917; }
 [data-theme="dark"] .targetRemaining { color: #86efac; }
 [data-theme="dark"] .targetRemaining--over { color: #fca5a5; }
+/* brighter bar/line steps for the dark surface (not an automatic flip) */
+[data-theme="dark"] .weekBar { background: #22c55e; }
+[data-theme="dark"] .weekBar--over { background: #f87171; }
+[data-theme="dark"] .weekAvgStat--over { color: #fca5a5; }
 
 /* ===== SAVED MEALS ===== */
 .savedMeals {
