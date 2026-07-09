@@ -41,6 +41,10 @@ export function deltaStyle(delta, higherIsBetter) {
   return { color: "#64748b", fontWeight: 600 };
 }
 
+// Max number of columns the Compare tab holds. Shared by App (staging guards) and the
+// Compare tab (intro copy).
+export const COMPARE_MAX = 3;
+
 // Highlight the best/worst value across compare columns for one nutrient row. Reuses
 // deltaStyle's green/red/gray semantics but scoped to the column set rather than a
 // delta vs a base. All-equal (single column or a tie) gets no highlight.
