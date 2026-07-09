@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import "./App.css";
 import {
-  normalizeScore, getItemKey, getItemTags, formatDelta, deltaStyle,
+  normalizeScore, getItemKey, formatDelta, deltaStyle,
   sumNutrition, today, lastNDates, weekdayLabel, sumDailyLog,
   defaultMealName, mergeDay, loadHistory, weeklyAverages, loadDailyLog,
   HISTORY_KEY, ZERO_TOTALS, MACRO_FIELDS, COMPARE_MAX,
@@ -12,44 +12,10 @@ import CompareTab from "./tabs/CompareTab";
 import TodayTab from "./tabs/TodayTab";
 import ScoreBreakdown from "./components/ScoreBreakdown";
 import OptimizeTab from "./tabs/OptimizeTab";
+import { getThumbnail } from "./thumbnail";
+import BrowseTab from "./tabs/BrowseTab";
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000").replace(/\/+$/, "");
-
-const CATEGORY_EMOJI = {
-  burgers:        { emoji: "🍔", gradient: ["#dbeafe", "#3b82f6"] },
-  chicken:        { emoji: "🍗", gradient: ["#fde68a", "#f59e0b"] },
-  chicken_fish:   { emoji: "🍗", gradient: ["#fde68a", "#f59e0b"] },
-  nuggets_strips: { emoji: "🍗", gradient: ["#fde68a", "#f59e0b"] },
-  salads:         { emoji: "🥗", gradient: ["#bbf7d0", "#16a34a"] },
-  breakfast:      { emoji: "🥞", gradient: ["#fed7aa", "#f97316"] },
-  fries_sides:    { emoji: "🍟", gradient: ["#fef08a", "#eab308"] },
-  sides:          { emoji: "🥙", gradient: ["#e9d5ff", "#a855f7"] },
-  desserts:       { emoji: "🍦", gradient: ["#fce7f3", "#ec4899"] },
-  beverages:      { emoji: "🥤", gradient: ["#cffafe", "#06b6d4"] },
-  drinks:         { emoji: "🥤", gradient: ["#cffafe", "#06b6d4"] },
-  mccafe_coffees: { emoji: "☕", gradient: ["#d6d3d1", "#78716c"] },
-  entrees:        { emoji: "🍗", gradient: ["#fde68a", "#f59e0b"] },
-  proteins:       { emoji: "🍗", gradient: ["#fde68a", "#f59e0b"] },
-  wraps:          { emoji: "🌯", gradient: ["#fef9c3", "#ca8a04"] },
-  snack_wraps:    { emoji: "🌯", gradient: ["#fef9c3", "#ca8a04"] },
-  kid_s_meals:    { emoji: "🎉", gradient: ["#fce7f3", "#ec4899"] },
-  tacos:          { emoji: "🌮", gradient: ["#fed7aa", "#f97316"] },
-  burritos:       { emoji: "🌯", gradient: ["#fde68a", "#d97706"] },
-  quesadillas:    { emoji: "🫓", gradient: ["#fef9c3", "#ca8a04"] },
-  nachos:         { emoji: "🧀", gradient: ["#fef08a", "#eab308"] },
-  specialties:    { emoji: "🫔", gradient: ["#fecaca", "#ef4444"] },
-  sweets:         { emoji: "🍩", gradient: ["#fce7f3", "#ec4899"] },
-  catering:       { emoji: "🍱", gradient: ["#fde68a", "#d97706"] },
-  sauces:         { emoji: "🥫", gradient: ["#fecaca", "#ef4444"] },
-  dressings:      { emoji: "🫙", gradient: ["#d9f99d", "#65a30d"] },
-  buns:           { emoji: "🍞", gradient: ["#fef3c7", "#d97706"] },
-};
-const DEFAULT_EMOJI = { emoji: "🍽️", gradient: ["#f1f5f9", "#94a3b8"] };
-
-const NAME_EMOJI_OVERRIDES = [
-  { test: /fish/i,    result: { emoji: "🐟", gradient: ["#cffafe", "#06b6d4"] } },
-  { test: /\bbun\b/i, result: { emoji: "🍞", gradient: ["#fef3c7", "#d97706"] } },
-];
 
 const MCD_CATEGORIES = [
   { value: "burgers",        label: "Burgers" },
@@ -102,25 +68,6 @@ const BURGERKING_CATEGORIES = [
   { value: "desserts",  label: "Desserts" },
   { value: "drinks",    label: "Drinks" },
 ];
-
-// Browse sort options. `value` matches the backend /recommend `sort` param; direction is
-// baked into each label (backend sorts score/protein desc, calories/sugars/fat/sodium asc).
-const SORT_OPTIONS = [
-  { value: "score",    label: "Best score" },
-  { value: "calories", label: "Fewest calories" },
-  { value: "protein",  label: "Most protein" },
-  { value: "sugars",   label: "Least sugar" },
-  { value: "fat",      label: "Least fat" },
-  { value: "sodium",   label: "Least sodium" },
-];
-
-function getThumbnail(item) {
-  const name = item.title || item.name || "";
-  for (const o of NAME_EMOJI_OVERRIDES) {
-    if (o.test.test(name)) return o.result;
-  }
-  return CATEGORY_EMOJI[(item.category || "").toLowerCase()] || DEFAULT_EMOJI;
-}
 
 // A compare entry wraps either a single item or a full meal so the Compare table can
 // treat both uniformly (nutrition = sumNutrition(entry.items)). `srcKey` lets us dedup
@@ -770,108 +717,21 @@ function App() {
 
         {/* ── BROWSE ── */}
         {activeTab === "browse" && (
-          <div className="browseTab">
-            <FilterChips filters={filters} showCategory={true} />
-            <div className="searchBar">
-              <span className="searchIcon">🔍</span>
-              <input
-                className="searchInput"
-                type="text"
-                placeholder="Search all menu items…"
-                aria-label="Search all menu items by name"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            <div className="sortRow">
-              <span className="sortLabel">Sort by</span>
-              <select
-                className="chipSelect"
-                aria-label="Sort results"
-                value={sort}
-                onChange={(e) => setSort(e.target.value)}
-              >
-                {SORT_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
-            </div>
-            {error && <p className="errorMsg">{error}</p>}
-            {!loading && !error && results.length > 0 && (
-              <p className="resultCount">
-                {debouncedSearch.trim()
-                  ? `Showing ${results.length} result${results.length === 1 ? "" : "s"} for “${debouncedSearch.trim()}”`
-                  : `Showing ${results.length} items for these filters`}
-              </p>
-            )}
-            <div className="itemList">
-              {loading && [0,1,2,3,4].map((i) => <SkeletonRow key={i} />)}
-              {!loading && hasSearched && displayedResults.length === 0 && !error && (
-                debouncedSearch.trim() ? (
-                  <p className="emptyMsg">
-                    No menu items match “{debouncedSearch.trim()}”.
-                  </p>
-                ) : diet !== "none" ? (
-                  <p className="emptyMsg">
-                    No {diet} items match this goal. Try a different goal (e.g. Low Fat) or Optimize for a {diet} meal.
-                  </p>
-                ) : activeMacroCount > 0 ? (
-                  <p className="emptyMsg">
-                    No items match your macro filters. Try relaxing them under “More filters.”
-                  </p>
-                ) : (
-                  <p className="emptyMsg">No items matched your criteria.</p>
-                )
-              )}
-              {!loading && displayedResults.map((item) => {
-                const { emoji, gradient } = getThumbnail(item);
-                const tags = getItemTags(item);
-                return (
-                  <button
-                    key={getItemKey(item)}
-                    type="button"
-                    className="itemRow"
-                    onClick={() => setModalItem(item)}
-                    aria-label={`View details for ${item.title || item.name}`}
-                  >
-                    <div
-                      className="itemThumbnail"
-                      style={{ background: `linear-gradient(135deg, ${gradient[0]}, ${gradient[1]})` }}
-                    >
-                      {emoji}
-                    </div>
-                    <div className="itemInfo">
-                      <div className="itemName">
-                        {item.title || item.name}
-                        {item.vegan
-                          ? <span className="vegBadge" title="Vegan" aria-label="Vegan">🥬</span>
-                          : item.vegetarian
-                          ? <span className="vegBadge" title="Vegetarian" aria-label="Vegetarian">🌱</span>
-                          : null}
-                      </div>
-                      <div className="itemStats">
-                        {item.calories} kcal · {item.protein}g protein · {item.sugars}g sugar
-                      </div>
-                      {tags.length > 0 && (
-                        <div className="itemTags">
-                          {tags.map((tag) => (
-                            <span key={tag.label} className={`itemTag itemTag--${tag.type}`}>{tag.label}</span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <div
-                      className="itemScore"
-                      title={`Health score for ${goal.replace(/_/g," ")} goal`}
-                      aria-label={`Health score ${normalizeScore(item.score, scoreBounds)} out of 100`}
-                    >
-                      {normalizeScore(item.score, scoreBounds)}<span className="itemScoreUnit">/100</span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <BrowseTab
+            filters={filters}
+            search={search}
+            setSearch={setSearch}
+            sort={sort}
+            setSort={setSort}
+            error={error}
+            loading={loading}
+            results={results}
+            displayedResults={displayedResults}
+            debouncedSearch={debouncedSearch}
+            hasSearched={hasSearched}
+            scoreBounds={scoreBounds}
+            setModalItem={setModalItem}
+          />
         )}
 
         {/* ── MEAL BUILDER ── */}
