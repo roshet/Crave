@@ -10,6 +10,8 @@ import FilterChips from "./components/FilterChips";
 import SkeletonRow from "./components/SkeletonRow";
 import CompareTab from "./tabs/CompareTab";
 import TodayTab from "./tabs/TodayTab";
+import ScoreBreakdown from "./components/ScoreBreakdown";
+import OptimizeTab from "./tabs/OptimizeTab";
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000").replace(/\/+$/, "");
 
@@ -48,51 +50,6 @@ const NAME_EMOJI_OVERRIDES = [
   { test: /fish/i,    result: { emoji: "🐟", gradient: ["#cffafe", "#06b6d4"] } },
   { test: /\bbun\b/i, result: { emoji: "🍞", gradient: ["#fef3c7", "#d97706"] } },
 ];
-
-// Renders the "Why this score" contribution bars. `breakdown` is the array the backend
-// ships (score_breakdown / meal_breakdown): one entry per nutrient with
-// { key, label, value, unit, points }. Positive points raised the score (green bar
-// growing right from the center axis); negative lowered it (red bar growing left). Bar
-// length is relative to the biggest-magnitude term so the dominant driver reads at a
-// glance. The backend owns the math — this only visualizes what it sends.
-function ScoreBreakdown({ breakdown, title = "Why this score?" }) {
-  if (!breakdown || !breakdown.length) return null;
-  const maxMag = Math.max(...breakdown.map((t) => Math.abs(Number(t.points) || 0)), 0);
-  const EPS = 0.02; // below this a term didn't meaningfully move the score
-  return (
-    <div className="scoreBreakdown">
-      <div className="breakdownHead">{title}</div>
-      {breakdown.map((t) => {
-        const mag = Math.abs(Number(t.points) || 0);
-        const neutral = maxMag === 0 || mag < EPS;
-        const up = Number(t.points) > 0;
-        const width = neutral ? 0 : (mag / maxMag) * 50;
-        const valNum = Number(t.value);
-        const valLabel = Number.isInteger(valNum) ? valNum : valNum.toFixed(1);
-        return (
-          <div className="breakdownRow" key={t.key}>
-            <span className="breakdownLabel">{t.label}</span>
-            <span className="breakdownValue">{valLabel}{t.unit}</span>
-            <span className="breakdownBarTrack">
-              {neutral ? (
-                <span className="breakdownNeutral" />
-              ) : (
-                <span
-                  className={`breakdownBar breakdownBar--${up ? "up" : "down"}`}
-                  style={{ width: `${width}%`, [up ? "left" : "right"]: "50%" }}
-                />
-              )}
-            </span>
-          </div>
-        );
-      })}
-      <div className="breakdownLegend">
-        <span className="breakdownLegendUp">Green raises</span> ·{" "}
-        <span className="breakdownLegendDown">red lowers</span>
-      </div>
-    </div>
-  );
-}
 
 const MCD_CATEGORIES = [
   { value: "burgers",        label: "Burgers" },
@@ -144,13 +101,6 @@ const BURGERKING_CATEGORIES = [
   { value: "breakfast", label: "Breakfast" },
   { value: "desserts",  label: "Desserts" },
   { value: "drinks",    label: "Drinks" },
-];
-
-const GOAL_PRESETS = [
-  { label: "Weight Loss", goal: "balanced",     maxCalories: 500 },
-  { label: "Athlete",     goal: "high_protein", maxCalories: 800 },
-  { label: "Low Carb",    goal: "low_sugar",    maxCalories: 600 },
-  { label: "Light Meal",  goal: "low_fat",      maxCalories: 400 },
 ];
 
 // Browse sort options. `value` matches the backend /recommend `sort` param; direction is
@@ -752,16 +702,6 @@ function App() {
     return badges;
   }
 
-  function checkMealGoal(items) {
-    const t = sumNutrition(items);
-    const checks = [];
-    if (goal === "high_protein") checks.push(t.protein >= 35 ? "✓ High Protein" : "✗ Low Protein");
-    if (goal === "low_sugar")    checks.push(t.sugars  <= 20 ? "✓ Low Sugar"    : "✗ High Sugar");
-    if (goal === "low_fat")      checks.push(t.fat     <= 30 ? "✓ Low Fat"      : "✗ High Fat");
-    checks.push(t.calories <= maxCalories ? "✓ Within Calories" : "✗ Over Calories");
-    return checks;
-  }
-
   const currentCategories =
     restaurant === "mcdonalds" ? MCD_CATEGORIES :
     restaurant === "chickfila" ? CHICKFILA_CATEGORIES :
@@ -1121,89 +1061,16 @@ function App() {
 
         {/* ── OPTIMIZE ── */}
         {activeTab === "optimize" && (
-          <div className="optimizeTab">
-            <p className="optimizeIntro">
-              Picks the best entrée + side + drink combo under your calorie cap for the
-              selected goal, and shows the top 3 meals. Adjust the filters or a preset below,
-              then build.
-            </p>
-            <FilterChips filters={filters} showCategory={false} />
-
-            <div className="presetGrid">
-              {GOAL_PRESETS.map((p) => {
-                const isActive = goal === p.goal && maxCalories === p.maxCalories;
-                return (
-                  <button
-                    key={p.label}
-                    className={`presetCard${isActive ? " presetCardActive" : ""}`}
-                    onClick={() => { setGoal(p.goal); setMaxCalories(p.maxCalories); }}
-                  >
-                    <span className="presetCardLabel">{p.label}</span>
-                    <span className="presetCardMeta">{p.goal.replace(/_/g, " ")} · {p.maxCalories} cal</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            <button className="buildBtn" onClick={optimizeMeal} disabled={optimizeLoading}>
-              {optimizeLoading ? "Building..." : "⚡ Build Optimal Meal"}
-            </button>
-
-            {optimizeError && (
-              <div className="optimizeEmpty">
-                <p className="errorMsg">{optimizeError}</p>
-                <p className="optimizeHint">
-                  {optimizeNoMeal && diet !== "none"
-                    ? `No ${diet} meal fits the ${goal.replace(/_/g, " ")} goal here` +
-                      (goal === "high_protein"
-                        ? ` — ${diet} options can't reach 35g protein.`
-                        : ".") +
-                      " Try another goal or a different restaurant."
-                    : "Try raising the calorie cap, switching the goal, or picking a different restaurant — some menus don't have a combo that fits every constraint."}
-                </p>
-              </div>
-            )}
-
-            {optimizedMealResults.length > 0 && (
-              <div className="optimizeResults">
-                {optimizedMealResults.map((result, idx) => (
-                  <div key={idx} className="optimizeCard">
-                    <div className="optimizeCardHeader">
-                      <span className="optimizeRank">#{idx + 1}</span>
-                      <span
-                        className="optimizeScore"
-                        title={`Health score for ${goal.replace(/_/g," ")} goal`}
-                        aria-label={`Health score ${normalizeScore(result.total_score, scoreBounds, result.items.length)} out of 100`}
-                      >Score {normalizeScore(result.total_score, scoreBounds, result.items.length)}/100</span>
-                    </div>
-                    <p className="optimizeItems">
-                      {result.items.map((m) => m.title || m.name).join(", ")}
-                    </p>
-                    {result.entree_less && (
-                      <p className="optimizeSidesOnly">
-                        🥬 Sides-only meal — no {diet !== "none" ? `${diet} ` : ""}entree{" "}
-                        {restaurant === "all" ? "available" : "at this restaurant"}
-                      </p>
-                    )}
-                    <p className="optimizeStats">{result.total_calories} kcal total</p>
-                    <div className="optimizeGoalChecks">
-                      {checkMealGoal(result.items).map((check, ci) => (
-                        <span key={ci} className={`goalCheck ${check.startsWith("✓") ? "goalCheck--pass" : "goalCheck--fail"}`}>
-                          {check}
-                        </span>
-                      ))}
-                    </div>
-                    {result.breakdown && (
-                      <ScoreBreakdown breakdown={result.breakdown} title="Why this meal scores…" />
-                    )}
-                    <button className="btn btnDark" onClick={() => sendToMealBuilder(idx)}>
-                      Send to Meal Builder →
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <OptimizeTab
+            filters={filters}
+            optimizeMeal={optimizeMeal}
+            optimizeLoading={optimizeLoading}
+            optimizeError={optimizeError}
+            optimizeNoMeal={optimizeNoMeal}
+            optimizedMealResults={optimizedMealResults}
+            scoreBounds={scoreBounds}
+            sendToMealBuilder={sendToMealBuilder}
+          />
         )}
 
         {/* ── TODAY ── */}
