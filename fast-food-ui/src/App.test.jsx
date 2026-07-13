@@ -85,3 +85,30 @@ describe("App smoke — filters render on Browse", () => {
     expect(screen.getByLabelText("Diet")).toBeInTheDocument();
   });
 });
+
+describe("App smoke — item detail modal", () => {
+  const ITEM = {
+    item_id: 200463, title: "Big Mac", restaurant: "mcdonalds", category: "burgers",
+    calories: 590, protein: 25, sugars: 9, fat: 34, carbs: 46, sodium: 1050, score: 0.5,
+  };
+
+  // Guards the App→BrowseTab→ItemModal wiring: a row click must still open the dialog.
+  it("opens the dialog when a Browse row is clicked, and closes it again", async () => {
+    globalThis.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ results: [ITEM], score_bounds: { min: -6, max: 3 } }),
+      })
+    );
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: "View details for Big Mac" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Big Mac/ })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Close" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+});

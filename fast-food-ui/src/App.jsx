@@ -1,20 +1,17 @@
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import "./App.css";
 import {
-  normalizeScore, getItemKey,
+  getItemKey,
   sumNutrition, today, lastNDates, weekdayLabel, sumDailyLog,
   defaultMealName, mergeDay, loadHistory, weeklyAverages, loadDailyLog,
   HISTORY_KEY, ZERO_TOTALS, MACRO_FIELDS, COMPARE_MAX,
 } from "./helpers";
-import FilterChips from "./components/FilterChips";
-import SkeletonRow from "./components/SkeletonRow";
 import CompareTab from "./tabs/CompareTab";
 import TodayTab from "./tabs/TodayTab";
-import ScoreBreakdown from "./components/ScoreBreakdown";
 import OptimizeTab from "./tabs/OptimizeTab";
-import { getThumbnail } from "./thumbnail";
 import BrowseTab from "./tabs/BrowseTab";
 import MealBuilderTab from "./tabs/MealBuilderTab";
+import ItemModal from "./components/ItemModal";
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000").replace(/\/+$/, "");
 
@@ -179,9 +176,10 @@ function App() {
   const [error, setError]             = useState("");
   const [hasSearched, setHasSearched] = useState(false);
 
-  // Modal
+  // Modal — ItemModal owns its own focus trap; `closeModal` is memoized so that effect
+  // doesn't re-run (and steal focus) on every App render.
   const [modalItem, setModalItem] = useState(null);
-  const modalSheetRef = useRef(null);
+  const closeModal = useCallback(() => setModalItem(null), []);
 
   // Meal
   const [meal, setMeal]                         = useState([]);
@@ -261,45 +259,6 @@ function App() {
       }
     })();
   }, []);
-
-  // While the modal is open: Escape closes, focus is trapped within the sheet, and
-  // focus is restored to the element that opened it on close.
-  useEffect(() => {
-    if (!modalItem) return;
-    const previouslyFocused = document.activeElement;
-    const sheet = modalSheetRef.current;
-    const getFocusable = () => sheet
-      ? Array.from(sheet.querySelectorAll(
-          'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        ))
-      : [];
-
-    // Move focus into the dialog on open.
-    getFocusable()[0]?.focus();
-
-    const onKey = (e) => {
-      if (e.key === "Escape") { setModalItem(null); return; }
-      if (e.key !== "Tab") return;
-      const items = getFocusable();
-      if (!items.length) return;
-      const first = items[0];
-      const last = items[items.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      if (previouslyFocused && typeof previouslyFocused.focus === "function") {
-        previouslyFocused.focus();
-      }
-    };
-  }, [modalItem]);
 
   function isInMeal(item) {
     const key = getItemKey(item);
@@ -783,91 +742,18 @@ function App() {
 
       {/* ── ITEM DETAIL MODAL ── */}
       {modalItem && (
-        <div className="modalBackdrop" onClick={() => setModalItem(null)}>
-          <div
-            className="modalSheet"
-            ref={modalSheetRef}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="modalItemName"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="modalDragHandle" />
-            <button className="modalClose" aria-label="Close" onClick={() => setModalItem(null)}>✕</button>
-
-            <div className="modalItemHeader">
-              {(() => {
-                const { emoji, gradient } = getThumbnail(modalItem);
-                return (
-                  <div className="modalThumb" style={{ background: `linear-gradient(135deg, ${gradient[0]}, ${gradient[1]})` }}>
-                    {emoji}
-                  </div>
-                );
-              })()}
-              <div className="modalItemMeta">
-                <h2 className="modalItemName" id="modalItemName">
-                  {modalItem.title || modalItem.name}
-                  {modalItem.vegan
-                    ? <span className="vegBadge" title="Vegan" aria-label="Vegan">🥬</span>
-                    : modalItem.vegetarian
-                    ? <span className="vegBadge" title="Vegetarian" aria-label="Vegetarian">🌱</span>
-                    : null}
-                </h2>
-                <p className="modalItemSub">{modalItem.restaurant} · {modalItem.category}</p>
-              </div>
-              {typeof modalItem.score !== "undefined" && (
-                <span
-                  className="modalScoreBadge"
-                  title={`Health score for ${goal.replace(/_/g," ")} goal`}
-                  aria-label={`Health score ${normalizeScore(modalItem.score, scoreBounds)} out of 100`}
-                >
-                  {normalizeScore(modalItem.score, scoreBounds)}<span className="modalScoreUnit">/100</span>
-                </span>
-              )}
-            </div>
-
-            <div className="nutritionGrid">
-              {[
-                { label: "Calories", value: String(modalItem.calories), color: "#6366f1" },
-                { label: "Protein",  value: `${modalItem.protein}g`,    color: "#22c55e" },
-                { label: "Sugar",    value: `${modalItem.sugars}g`,     color: "#f59e0b" },
-                { label: "Fat",      value: `${modalItem.fat}g`,        color: "#ef4444" },
-                { label: "Carbs",    value: `${modalItem.carbs}g`,      color: "#6366f1" },
-                { label: "Sodium",   value: `${modalItem.sodium}mg`,    color: "#64748b" },
-              ].map((n) => (
-                <div key={n.label} className="nutritionTile">
-                  <span className="nutritionValue" style={{ color: n.color }}>{n.value}</span>
-                  <span className="nutritionLabel">{n.label}</span>
-                </div>
-              ))}
-            </div>
-
-            {modalItem.summary && (
-              <div className="summaryBadge">✓ {modalItem.summary}</div>
-            )}
-
-            {modalItem.breakdown && <ScoreBreakdown breakdown={modalItem.breakdown} />}
-
-            <button
-              className={`addToMealBtn${isInMeal(modalItem) ? " addToMealBtn--added" : ""}`}
-              disabled={isInMeal(modalItem)}
-              onClick={() => { addToMeal(modalItem); setModalItem(null); }}
-            >
-              {isInMeal(modalItem) ? "✓ Added" : "Add to Meal"}
-            </button>
-            <button
-              className="addToCompareBtn"
-              disabled={isInCompare(modalItem) || (compareFull && !isInCompare(modalItem))}
-              onClick={() => { addToCompare(compareEntryFromItem(modalItem)); setModalItem(null); }}
-            >
-              {isInCompare(modalItem)
-                ? "✓ In compare"
-                : compareFull
-                ? `Compare full (${COMPARE_MAX})`
-                : "⚖️ Add to Compare"}
-            </button>
-          </div>
-        </div>
+        <ItemModal
+          item={modalItem}
+          onClose={closeModal}
+          goal={goal}
+          scoreBounds={scoreBounds}
+          isInMeal={isInMeal}
+          addToMeal={addToMeal}
+          isInCompare={isInCompare}
+          addToCompare={addToCompare}
+          compareEntryFromItem={compareEntryFromItem}
+          compareFull={compareFull}
+        />
       )}
 
     </div>
