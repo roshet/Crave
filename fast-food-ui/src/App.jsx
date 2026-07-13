@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import "./App.css";
 import {
-  normalizeScore, getItemKey, getItemTags, formatDelta, deltaStyle,
+  normalizeScore, getItemKey,
   sumNutrition, today, lastNDates, weekdayLabel, sumDailyLog,
   defaultMealName, mergeDay, loadHistory, weeklyAverages, loadDailyLog,
   HISTORY_KEY, ZERO_TOTALS, MACRO_FIELDS, COMPARE_MAX,
@@ -10,89 +10,13 @@ import FilterChips from "./components/FilterChips";
 import SkeletonRow from "./components/SkeletonRow";
 import CompareTab from "./tabs/CompareTab";
 import TodayTab from "./tabs/TodayTab";
+import ScoreBreakdown from "./components/ScoreBreakdown";
+import OptimizeTab from "./tabs/OptimizeTab";
+import { getThumbnail } from "./thumbnail";
+import BrowseTab from "./tabs/BrowseTab";
+import MealBuilderTab from "./tabs/MealBuilderTab";
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000").replace(/\/+$/, "");
-
-const CATEGORY_EMOJI = {
-  burgers:        { emoji: "🍔", gradient: ["#dbeafe", "#3b82f6"] },
-  chicken:        { emoji: "🍗", gradient: ["#fde68a", "#f59e0b"] },
-  chicken_fish:   { emoji: "🍗", gradient: ["#fde68a", "#f59e0b"] },
-  nuggets_strips: { emoji: "🍗", gradient: ["#fde68a", "#f59e0b"] },
-  salads:         { emoji: "🥗", gradient: ["#bbf7d0", "#16a34a"] },
-  breakfast:      { emoji: "🥞", gradient: ["#fed7aa", "#f97316"] },
-  fries_sides:    { emoji: "🍟", gradient: ["#fef08a", "#eab308"] },
-  sides:          { emoji: "🥙", gradient: ["#e9d5ff", "#a855f7"] },
-  desserts:       { emoji: "🍦", gradient: ["#fce7f3", "#ec4899"] },
-  beverages:      { emoji: "🥤", gradient: ["#cffafe", "#06b6d4"] },
-  drinks:         { emoji: "🥤", gradient: ["#cffafe", "#06b6d4"] },
-  mccafe_coffees: { emoji: "☕", gradient: ["#d6d3d1", "#78716c"] },
-  entrees:        { emoji: "🍗", gradient: ["#fde68a", "#f59e0b"] },
-  proteins:       { emoji: "🍗", gradient: ["#fde68a", "#f59e0b"] },
-  wraps:          { emoji: "🌯", gradient: ["#fef9c3", "#ca8a04"] },
-  snack_wraps:    { emoji: "🌯", gradient: ["#fef9c3", "#ca8a04"] },
-  kid_s_meals:    { emoji: "🎉", gradient: ["#fce7f3", "#ec4899"] },
-  tacos:          { emoji: "🌮", gradient: ["#fed7aa", "#f97316"] },
-  burritos:       { emoji: "🌯", gradient: ["#fde68a", "#d97706"] },
-  quesadillas:    { emoji: "🫓", gradient: ["#fef9c3", "#ca8a04"] },
-  nachos:         { emoji: "🧀", gradient: ["#fef08a", "#eab308"] },
-  specialties:    { emoji: "🫔", gradient: ["#fecaca", "#ef4444"] },
-  sweets:         { emoji: "🍩", gradient: ["#fce7f3", "#ec4899"] },
-  catering:       { emoji: "🍱", gradient: ["#fde68a", "#d97706"] },
-  sauces:         { emoji: "🥫", gradient: ["#fecaca", "#ef4444"] },
-  dressings:      { emoji: "🫙", gradient: ["#d9f99d", "#65a30d"] },
-  buns:           { emoji: "🍞", gradient: ["#fef3c7", "#d97706"] },
-};
-const DEFAULT_EMOJI = { emoji: "🍽️", gradient: ["#f1f5f9", "#94a3b8"] };
-
-const NAME_EMOJI_OVERRIDES = [
-  { test: /fish/i,    result: { emoji: "🐟", gradient: ["#cffafe", "#06b6d4"] } },
-  { test: /\bbun\b/i, result: { emoji: "🍞", gradient: ["#fef3c7", "#d97706"] } },
-];
-
-// Renders the "Why this score" contribution bars. `breakdown` is the array the backend
-// ships (score_breakdown / meal_breakdown): one entry per nutrient with
-// { key, label, value, unit, points }. Positive points raised the score (green bar
-// growing right from the center axis); negative lowered it (red bar growing left). Bar
-// length is relative to the biggest-magnitude term so the dominant driver reads at a
-// glance. The backend owns the math — this only visualizes what it sends.
-function ScoreBreakdown({ breakdown, title = "Why this score?" }) {
-  if (!breakdown || !breakdown.length) return null;
-  const maxMag = Math.max(...breakdown.map((t) => Math.abs(Number(t.points) || 0)), 0);
-  const EPS = 0.02; // below this a term didn't meaningfully move the score
-  return (
-    <div className="scoreBreakdown">
-      <div className="breakdownHead">{title}</div>
-      {breakdown.map((t) => {
-        const mag = Math.abs(Number(t.points) || 0);
-        const neutral = maxMag === 0 || mag < EPS;
-        const up = Number(t.points) > 0;
-        const width = neutral ? 0 : (mag / maxMag) * 50;
-        const valNum = Number(t.value);
-        const valLabel = Number.isInteger(valNum) ? valNum : valNum.toFixed(1);
-        return (
-          <div className="breakdownRow" key={t.key}>
-            <span className="breakdownLabel">{t.label}</span>
-            <span className="breakdownValue">{valLabel}{t.unit}</span>
-            <span className="breakdownBarTrack">
-              {neutral ? (
-                <span className="breakdownNeutral" />
-              ) : (
-                <span
-                  className={`breakdownBar breakdownBar--${up ? "up" : "down"}`}
-                  style={{ width: `${width}%`, [up ? "left" : "right"]: "50%" }}
-                />
-              )}
-            </span>
-          </div>
-        );
-      })}
-      <div className="breakdownLegend">
-        <span className="breakdownLegendUp">Green raises</span> ·{" "}
-        <span className="breakdownLegendDown">red lowers</span>
-      </div>
-    </div>
-  );
-}
 
 const MCD_CATEGORIES = [
   { value: "burgers",        label: "Burgers" },
@@ -145,32 +69,6 @@ const BURGERKING_CATEGORIES = [
   { value: "desserts",  label: "Desserts" },
   { value: "drinks",    label: "Drinks" },
 ];
-
-const GOAL_PRESETS = [
-  { label: "Weight Loss", goal: "balanced",     maxCalories: 500 },
-  { label: "Athlete",     goal: "high_protein", maxCalories: 800 },
-  { label: "Low Carb",    goal: "low_sugar",    maxCalories: 600 },
-  { label: "Light Meal",  goal: "low_fat",      maxCalories: 400 },
-];
-
-// Browse sort options. `value` matches the backend /recommend `sort` param; direction is
-// baked into each label (backend sorts score/protein desc, calories/sugars/fat/sodium asc).
-const SORT_OPTIONS = [
-  { value: "score",    label: "Best score" },
-  { value: "calories", label: "Fewest calories" },
-  { value: "protein",  label: "Most protein" },
-  { value: "sugars",   label: "Least sugar" },
-  { value: "fat",      label: "Least fat" },
-  { value: "sodium",   label: "Least sodium" },
-];
-
-function getThumbnail(item) {
-  const name = item.title || item.name || "";
-  for (const o of NAME_EMOJI_OVERRIDES) {
-    if (o.test.test(name)) return o.result;
-  }
-  return CATEGORY_EMOJI[(item.category || "").toLowerCase()] || DEFAULT_EMOJI;
-}
 
 // A compare entry wraps either a single item or a full meal so the Compare table can
 // treat both uniformly (nutrition = sumNutrition(entry.items)). `srcKey` lets us dedup
@@ -727,41 +625,6 @@ function App() {
     setSavedMeals((prev) => prev.filter((m) => m.id !== id));
   }
 
-  function getGoalBadges() {
-    const badges = [];
-    if (goal === "high_protein") {
-      badges.push(mealTotals.protein >= 35
-        ? { text: "✓ Meets High Protein Target", type: "success" }
-        : { text: "✗ Below 35g Protein Target",  type: "failure" });
-    }
-    if (goal === "low_sugar") {
-      badges.push(mealTotals.sugars <= 20
-        ? { text: "✓ Within Low Sugar Target", type: "success" }
-        : { text: "✗ Exceeds 20g Sugar Limit",  type: "failure" });
-    }
-    if (goal === "low_fat") {
-      badges.push(mealTotals.fat <= 30
-        ? { text: "✓ Within Low Fat Target", type: "success" }
-        : { text: "✗ Exceeds 30g Fat Limit",  type: "failure" });
-    }
-    if (meal.length > 0) {
-      badges.push(mealTotals.calories > maxCalories
-        ? { text: `✗ Over limit by ${(mealTotals.calories - maxCalories).toFixed(0)} cal`, type: "failure" }
-        : { text: `✓ Within ${maxCalories} cal limit`, type: "success" });
-    }
-    return badges;
-  }
-
-  function checkMealGoal(items) {
-    const t = sumNutrition(items);
-    const checks = [];
-    if (goal === "high_protein") checks.push(t.protein >= 35 ? "✓ High Protein" : "✗ Low Protein");
-    if (goal === "low_sugar")    checks.push(t.sugars  <= 20 ? "✓ Low Sugar"    : "✗ High Sugar");
-    if (goal === "low_fat")      checks.push(t.fat     <= 30 ? "✓ Low Fat"      : "✗ High Fat");
-    checks.push(t.calories <= maxCalories ? "✓ Within Calories" : "✗ Over Calories");
-    return checks;
-  }
-
   const currentCategories =
     restaurant === "mcdonalds" ? MCD_CATEGORIES :
     restaurant === "chickfila" ? CHICKFILA_CATEGORIES :
@@ -830,380 +693,68 @@ function App() {
 
         {/* ── BROWSE ── */}
         {activeTab === "browse" && (
-          <div className="browseTab">
-            <FilterChips filters={filters} showCategory={true} />
-            <div className="searchBar">
-              <span className="searchIcon">🔍</span>
-              <input
-                className="searchInput"
-                type="text"
-                placeholder="Search all menu items…"
-                aria-label="Search all menu items by name"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            <div className="sortRow">
-              <span className="sortLabel">Sort by</span>
-              <select
-                className="chipSelect"
-                aria-label="Sort results"
-                value={sort}
-                onChange={(e) => setSort(e.target.value)}
-              >
-                {SORT_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
-            </div>
-            {error && <p className="errorMsg">{error}</p>}
-            {!loading && !error && results.length > 0 && (
-              <p className="resultCount">
-                {debouncedSearch.trim()
-                  ? `Showing ${results.length} result${results.length === 1 ? "" : "s"} for “${debouncedSearch.trim()}”`
-                  : `Showing ${results.length} items for these filters`}
-              </p>
-            )}
-            <div className="itemList">
-              {loading && [0,1,2,3,4].map((i) => <SkeletonRow key={i} />)}
-              {!loading && hasSearched && displayedResults.length === 0 && !error && (
-                debouncedSearch.trim() ? (
-                  <p className="emptyMsg">
-                    No menu items match “{debouncedSearch.trim()}”.
-                  </p>
-                ) : diet !== "none" ? (
-                  <p className="emptyMsg">
-                    No {diet} items match this goal. Try a different goal (e.g. Low Fat) or Optimize for a {diet} meal.
-                  </p>
-                ) : activeMacroCount > 0 ? (
-                  <p className="emptyMsg">
-                    No items match your macro filters. Try relaxing them under “More filters.”
-                  </p>
-                ) : (
-                  <p className="emptyMsg">No items matched your criteria.</p>
-                )
-              )}
-              {!loading && displayedResults.map((item) => {
-                const { emoji, gradient } = getThumbnail(item);
-                const tags = getItemTags(item);
-                return (
-                  <button
-                    key={getItemKey(item)}
-                    type="button"
-                    className="itemRow"
-                    onClick={() => setModalItem(item)}
-                    aria-label={`View details for ${item.title || item.name}`}
-                  >
-                    <div
-                      className="itemThumbnail"
-                      style={{ background: `linear-gradient(135deg, ${gradient[0]}, ${gradient[1]})` }}
-                    >
-                      {emoji}
-                    </div>
-                    <div className="itemInfo">
-                      <div className="itemName">
-                        {item.title || item.name}
-                        {item.vegan
-                          ? <span className="vegBadge" title="Vegan" aria-label="Vegan">🥬</span>
-                          : item.vegetarian
-                          ? <span className="vegBadge" title="Vegetarian" aria-label="Vegetarian">🌱</span>
-                          : null}
-                      </div>
-                      <div className="itemStats">
-                        {item.calories} kcal · {item.protein}g protein · {item.sugars}g sugar
-                      </div>
-                      {tags.length > 0 && (
-                        <div className="itemTags">
-                          {tags.map((tag) => (
-                            <span key={tag.label} className={`itemTag itemTag--${tag.type}`}>{tag.label}</span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <div
-                      className="itemScore"
-                      title={`Health score for ${goal.replace(/_/g," ")} goal`}
-                      aria-label={`Health score ${normalizeScore(item.score, scoreBounds)} out of 100`}
-                    >
-                      {normalizeScore(item.score, scoreBounds)}<span className="itemScoreUnit">/100</span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <BrowseTab
+            filters={filters}
+            search={search}
+            setSearch={setSearch}
+            sort={sort}
+            setSort={setSort}
+            error={error}
+            loading={loading}
+            results={results}
+            displayedResults={displayedResults}
+            debouncedSearch={debouncedSearch}
+            hasSearched={hasSearched}
+            scoreBounds={scoreBounds}
+            setModalItem={setModalItem}
+          />
         )}
 
         {/* ── MEAL BUILDER ── */}
         {activeTab === "meal" && (
-          <div className="mealTab">
-            <div className="macroRingsCard">
-              {[
-                { label: "Calories", value: mealTotals.calories.toFixed(0), unit: "kcal", color: "#6366f1" },
-                { label: "Protein",  value: mealTotals.protein.toFixed(0),  unit: "g",    color: "#22c55e" },
-                { label: "Sugar",    value: mealTotals.sugars.toFixed(0),   unit: "g",    color: "#f59e0b" },
-                { label: "Fat",      value: mealTotals.fat.toFixed(0),      unit: "g",    color: "#ef4444" },
-              ].map((ring) => (
-                <div key={ring.label} className="macroRing">
-                  <div className="ringCircle" style={{ borderColor: meal.length > 0 ? ring.color : undefined }}>
-                    <span className="ringValueNum" style={{ color: meal.length > 0 ? ring.color : undefined }}>{ring.value}</span>
-                    <span className="ringValueUnit" style={{ color: meal.length > 0 ? ring.color : undefined }}>{ring.unit}</span>
-                  </div>
-                  <span className="ringLabel">{ring.label}</span>
-                </div>
-              ))}
-            </div>
-
-            {meal.length > 0 && (
-              <div className="goalBadges">
-                {getGoalBadges().map((b, i) => (
-                  <span key={i} className={`goalBadge goalBadge--${b.type}`}>{b.text}</span>
-                ))}
-              </div>
-            )}
-
-            {meal.length === 0 ? (
-              <div className="emptyState">
-                <p>Add items from Browse to build your meal.</p>
-              </div>
-            ) : (
-              <>
-                <div className="mealList">
-                  {meal.map((item) => {
-                    const { emoji, gradient } = getThumbnail(item);
-                    return (
-                      <div key={getItemKey(item)} className="mealItem">
-                        <div
-                          className="itemThumbnail itemThumbnail--sm"
-                          style={{ background: `linear-gradient(135deg, ${gradient[0]}, ${gradient[1]})` }}
-                        >
-                          {emoji}
-                        </div>
-                        <span className="mealItemName">{item.title || item.name}</span>
-                        <button className="mealItemRemove" onClick={() => removeFromMeal(item)} aria-label="Remove">✕</button>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {mealScore && mealScore.item_count > 0 && (
-                  <div className="mealScoreCard">
-                    <div className="mealScoreHead">
-                      <span className="mealScoreLabel">Meal score</span>
-                      <span
-                        className="mealScoreValue"
-                        title={`Health score for ${goal.replace(/_/g, " ")} goal`}
-                        aria-label={`Meal health score ${normalizeScore(mealScore.total_score, mealScore.score_bounds, mealScore.item_count)} out of 100`}
-                      >
-                        {normalizeScore(mealScore.total_score, mealScore.score_bounds, mealScore.item_count)}
-                        <span className="mealScoreUnit">/100</span>
-                      </span>
-                    </div>
-                    <ScoreBreakdown breakdown={mealScore.breakdown} title="Why this meal scores…" />
-                  </div>
-                )}
-
-                <div className="actionRow">
-                  <button className="btn btnDark" onClick={exportMeal}>
-                    {copySuccess ? "✓ Copied!" : "Copy Summary"}
-                  </button>
-                  <button className="btn btnOutline" onClick={shareMeal}>
-                    {shareSuccess ? "✓ Link copied!" : "🔗 Share Meal"}
-                  </button>
-                  <button className="btn btnOutline" onClick={logMealToToday}>
-                    {logSuccess ? "✓ Logged!" : "➕ Log to Today"}
-                  </button>
-                  <button
-                    className="btn btnOutline"
-                    onClick={() => addToCompare(compareEntryFromMeal(meal))}
-                    disabled={compareFull}
-                    title={compareFull ? `Compare holds ${COMPARE_MAX}` : "Add this meal to Compare"}
-                  >
-                    {compareFull ? `Compare full (${COMPARE_MAX})` : "⚖️ Compare"}
-                  </button>
-                  <button className="btn btnOutline" onClick={clearMeal}>Clear</button>
-                </div>
-
-                {alternativeMeals.length > 0 && (
-                  <div className="altSection">
-                    <h4 className="altSectionTitle">Alternative Meals</h4>
-                    {alternativeMealsWithDeltas.map((mealOption, idx) => (
-                      <div key={idx} className="altCard">
-                        <p className="altCardItems">
-                          {mealOption.items.map((m) => m.title || m.name).join(", ")}
-                        </p>
-                        <p className="altCardStats">
-                          {mealOption.total_calories} kcal · Score: {normalizeScore(mealOption.total_score, scoreBounds, mealOption.items.length)}/100
-                        </p>
-                        <div className="deltaRow">
-                          <strong>Δ vs current:</strong>{" "}
-                          <span style={deltaStyle(mealOption.deltas.calories, false)}>Cal {formatDelta(mealOption.deltas.calories)}</span>
-                          {" · "}
-                          <span style={deltaStyle(mealOption.deltas.protein, true)}>Protein {formatDelta(mealOption.deltas.protein, "g")}</span>
-                          {" · "}
-                          <span style={deltaStyle(mealOption.deltas.sugars, false)}>Sugar {formatDelta(mealOption.deltas.sugars, "g")}</span>
-                          {" · "}
-                          <span style={deltaStyle(mealOption.deltas.fat, false)}>Fat {formatDelta(mealOption.deltas.fat, "g")}</span>
-                        </div>
-                        <button
-                          className="btn btnOutline btnSm"
-                          onClick={() => {
-                            setMeal(mealOption.items);
-                            setAlternativeMeals((prev) => prev.filter((_, j) => j !== idx));
-                          }}
-                        >
-                          Select This Meal
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-
-            <section className="savedMeals">
-              <h3 className="todaySectionTitle">Saved meals</h3>
-              <div className="savedMealSaveRow">
-                <input
-                  className="savedMealNameInput"
-                  type="text"
-                  placeholder="Name this meal (optional)…"
-                  aria-label="Name for the saved meal"
-                  value={mealName}
-                  onChange={(e) => setMealName(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter" && meal.length > 0) saveMeal(); }}
-                  disabled={meal.length === 0}
-                />
-                <button
-                  className="btn btnDark btnSm"
-                  onClick={saveMeal}
-                  disabled={meal.length === 0}
-                >
-                  {saveSuccess ? "✓ Saved!" : "💾 Save meal"}
-                </button>
-              </div>
-              {meal.length === 0 && savedMeals.length === 0 && (
-                <p className="savedMealsHint">Build a meal above, then save it here to reuse later.</p>
-              )}
-
-              {savedMeals.length === 0 ? (
-                meal.length > 0 && <p className="savedMealsHint">No saved meals yet.</p>
-              ) : (
-                <div className="savedMealList">
-                  {savedMeals.map((m) => {
-                    const t = sumNutrition(m.items);
-                    return (
-                      <div key={m.id} className="savedMealRow">
-                        <div className="savedMealInfo">
-                          <span className="savedMealName">{m.name}</span>
-                          <span className="savedMealStats">
-                            {m.items.length} item{m.items.length === 1 ? "" : "s"} · {t.calories.toFixed(0)} kcal
-                          </span>
-                        </div>
-                        <button className="btn btnOutline btnSm" onClick={() => loadSavedMeal(m.id)}>Load</button>
-                        <button
-                          className="btn btnOutline btnSm"
-                          onClick={() => addToCompare(compareEntryFromMeal(m.items, m.name))}
-                          disabled={compareFull}
-                          title={compareFull ? `Compare holds ${COMPARE_MAX}` : "Add to Compare"}
-                        >
-                          Compare
-                        </button>
-                        <button className="mealItemRemove" onClick={() => deleteSavedMeal(m.id)} aria-label={`Delete saved meal ${m.name}`}>✕</button>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </section>
-          </div>
+          <MealBuilderTab
+            meal={meal}
+            mealTotals={mealTotals}
+            mealScore={mealScore}
+            goal={goal}
+            maxCalories={maxCalories}
+            scoreBounds={scoreBounds}
+            removeFromMeal={removeFromMeal}
+            exportMeal={exportMeal}
+            copySuccess={copySuccess}
+            shareMeal={shareMeal}
+            shareSuccess={shareSuccess}
+            logMealToToday={logMealToToday}
+            logSuccess={logSuccess}
+            addToCompare={addToCompare}
+            compareEntryFromMeal={compareEntryFromMeal}
+            compareFull={compareFull}
+            clearMeal={clearMeal}
+            alternativeMealsWithDeltas={alternativeMealsWithDeltas}
+            setMeal={setMeal}
+            setAlternativeMeals={setAlternativeMeals}
+            savedMeals={savedMeals}
+            mealName={mealName}
+            setMealName={setMealName}
+            saveMeal={saveMeal}
+            saveSuccess={saveSuccess}
+            loadSavedMeal={loadSavedMeal}
+            deleteSavedMeal={deleteSavedMeal}
+          />
         )}
 
         {/* ── OPTIMIZE ── */}
         {activeTab === "optimize" && (
-          <div className="optimizeTab">
-            <p className="optimizeIntro">
-              Picks the best entrée + side + drink combo under your calorie cap for the
-              selected goal, and shows the top 3 meals. Adjust the filters or a preset below,
-              then build.
-            </p>
-            <FilterChips filters={filters} showCategory={false} />
-
-            <div className="presetGrid">
-              {GOAL_PRESETS.map((p) => {
-                const isActive = goal === p.goal && maxCalories === p.maxCalories;
-                return (
-                  <button
-                    key={p.label}
-                    className={`presetCard${isActive ? " presetCardActive" : ""}`}
-                    onClick={() => { setGoal(p.goal); setMaxCalories(p.maxCalories); }}
-                  >
-                    <span className="presetCardLabel">{p.label}</span>
-                    <span className="presetCardMeta">{p.goal.replace(/_/g, " ")} · {p.maxCalories} cal</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            <button className="buildBtn" onClick={optimizeMeal} disabled={optimizeLoading}>
-              {optimizeLoading ? "Building..." : "⚡ Build Optimal Meal"}
-            </button>
-
-            {optimizeError && (
-              <div className="optimizeEmpty">
-                <p className="errorMsg">{optimizeError}</p>
-                <p className="optimizeHint">
-                  {optimizeNoMeal && diet !== "none"
-                    ? `No ${diet} meal fits the ${goal.replace(/_/g, " ")} goal here` +
-                      (goal === "high_protein"
-                        ? ` — ${diet} options can't reach 35g protein.`
-                        : ".") +
-                      " Try another goal or a different restaurant."
-                    : "Try raising the calorie cap, switching the goal, or picking a different restaurant — some menus don't have a combo that fits every constraint."}
-                </p>
-              </div>
-            )}
-
-            {optimizedMealResults.length > 0 && (
-              <div className="optimizeResults">
-                {optimizedMealResults.map((result, idx) => (
-                  <div key={idx} className="optimizeCard">
-                    <div className="optimizeCardHeader">
-                      <span className="optimizeRank">#{idx + 1}</span>
-                      <span
-                        className="optimizeScore"
-                        title={`Health score for ${goal.replace(/_/g," ")} goal`}
-                        aria-label={`Health score ${normalizeScore(result.total_score, scoreBounds, result.items.length)} out of 100`}
-                      >Score {normalizeScore(result.total_score, scoreBounds, result.items.length)}/100</span>
-                    </div>
-                    <p className="optimizeItems">
-                      {result.items.map((m) => m.title || m.name).join(", ")}
-                    </p>
-                    {result.entree_less && (
-                      <p className="optimizeSidesOnly">
-                        🥬 Sides-only meal — no {diet !== "none" ? `${diet} ` : ""}entree{" "}
-                        {restaurant === "all" ? "available" : "at this restaurant"}
-                      </p>
-                    )}
-                    <p className="optimizeStats">{result.total_calories} kcal total</p>
-                    <div className="optimizeGoalChecks">
-                      {checkMealGoal(result.items).map((check, ci) => (
-                        <span key={ci} className={`goalCheck ${check.startsWith("✓") ? "goalCheck--pass" : "goalCheck--fail"}`}>
-                          {check}
-                        </span>
-                      ))}
-                    </div>
-                    {result.breakdown && (
-                      <ScoreBreakdown breakdown={result.breakdown} title="Why this meal scores…" />
-                    )}
-                    <button className="btn btnDark" onClick={() => sendToMealBuilder(idx)}>
-                      Send to Meal Builder →
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <OptimizeTab
+            filters={filters}
+            optimizeMeal={optimizeMeal}
+            optimizeLoading={optimizeLoading}
+            optimizeError={optimizeError}
+            optimizeNoMeal={optimizeNoMeal}
+            optimizedMealResults={optimizedMealResults}
+            scoreBounds={scoreBounds}
+            sendToMealBuilder={sendToMealBuilder}
+          />
         )}
 
         {/* ── TODAY ── */}
