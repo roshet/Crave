@@ -236,22 +236,50 @@ function App() {
     return () => { cancelled = true; };
   }, [meal, goal, maxCalories]);
 
-  // On first load, rehydrate a shared meal from the ?meal=<ids> URL param. Fetches the
-  // full items by id, drops the user on the Meal Builder, then strips the param so the
-  // address bar stays clean (the meal lives in state; Share regenerates a fresh link).
-  // Fails quietly — a link to since-deleted items should never break the app.
+  // On first load, rehydrate a shared meal from the URL. Two link shapes:
+  //   /m/<code>       — a short link. Middleware serves the SPA in place (URL stays /m/<code>);
+  //                     we resolve the code to ids via /api/resolve, load the meal, and LEAVE
+  //                     the URL so it remains a copyable/bookmarkable permalink.
+  //   /?meal=<ids>    — the long fallback link. We load the meal, then strip the param so the
+  //                     address bar stays clean (the meal lives in state; Share regenerates it).
+  // Both fail quietly — a link to since-deleted items should never break the app.
   useEffect(() => {
+    // Fetch the full items for a ?meal= payload and drop the user on the Meal Builder.
+    // Returns true if a meal was loaded.
+    async function loadMealFromIds(ids) {
+      const resp = await fetch(`${API_BASE_URL}/items?ids=${encodeURIComponent(ids)}`);
+      if (!resp.ok) return false;
+      const data = await resp.json();
+      if (!data.results?.length) return false;
+      setMeal(data.results);
+      setActiveTab("meal");
+      return true;
+    }
+
+    const shortMatch = window.location.pathname.match(/^\/m\/([^/]+)\/?$/);
+    if (shortMatch) {
+      (async () => {
+        try {
+          // /api/* is a Vercel function on the frontend origin, not the Render backend.
+          const resp = await fetch(`${window.location.origin}/api/resolve?code=${encodeURIComponent(shortMatch[1])}`);
+          if (resp.ok) {
+            const { ids } = await resp.json();
+            if (ids && await loadMealFromIds(ids)) return; // keep /m/<code> in the bar
+          }
+        } catch {
+          /* fall through to the reset below */
+        }
+        // Dead/unknown code, KV down, or offline — don't leave a bogus /m/<code> lingering.
+        window.history.replaceState({}, "", "/");
+      })();
+      return;
+    }
+
     const raw = new URLSearchParams(window.location.search).get("meal");
     if (!raw) return;
     (async () => {
       try {
-        const resp = await fetch(`${API_BASE_URL}/items?ids=${encodeURIComponent(raw)}`);
-        if (!resp.ok) return;
-        const data = await resp.json();
-        if (data.results?.length) {
-          setMeal(data.results);
-          setActiveTab("meal");
-        }
+        await loadMealFromIds(raw);
       } catch {
         /* ignore — leave Meal Builder empty */
       } finally {

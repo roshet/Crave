@@ -17,6 +17,7 @@ function mockFetch() {
 
 beforeEach(() => {
   localStorage.clear();
+  window.history.replaceState({}, "", "/"); // reset URL between tests (mount effect reads it)
   globalThis.fetch = mockFetch();
 });
 
@@ -83,6 +84,47 @@ describe("App smoke — filters render on Browse", () => {
     expect(screen.getByLabelText("Nutrition goal")).toBeInTheDocument();
     expect(screen.getByLabelText("Maximum calories")).toBeInTheDocument();
     expect(screen.getByLabelText("Diet")).toBeInTheDocument();
+  });
+});
+
+describe("App — short-link permalink (/m/<code>)", () => {
+  const ITEM = {
+    item_id: 200463, title: "Big Mac", restaurant: "mcdonalds", category: "burgers",
+    calories: 590, protein: 25, sugars: 9, fat: 34, carbs: 46, sodium: 1050, score: 0.5,
+  };
+
+  // Routes fetch by URL: /api/resolve → resolveResp, /items → the item, everything else empty.
+  function routedFetch(resolveResp) {
+    return vi.fn((url) => {
+      if (String(url).includes("/api/resolve")) return Promise.resolve(resolveResp);
+      if (String(url).includes("/items")) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ results: [ITEM] }) });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ results: [], meals: [], score_bounds: { min: -6, max: 3 } }),
+      });
+    });
+  }
+
+  it("resolves the code, loads the meal, and keeps /m/<code> in the address bar", async () => {
+    window.history.replaceState({}, "", "/m/abc123");
+    globalThis.fetch = routedFetch({ ok: true, json: () => Promise.resolve({ ids: "200463" }) });
+    render(<App />);
+
+    // Lands on Meal Builder with the resolved item, and the URL is NOT stripped.
+    expect(await screen.findByText("Big Mac")).toBeInTheDocument();
+    expect(window.location.pathname).toBe("/m/abc123");
+  });
+
+  it("resets to / when the code is unknown (resolve 404)", async () => {
+    window.history.replaceState({}, "", "/m/deadcode");
+    globalThis.fetch = routedFetch({ ok: false, status: 404, json: () => Promise.resolve({ error: "Unknown code." }) });
+    render(<App />);
+
+    // The Browse default tab still renders; the bogus short path is cleared.
+    expect(await screen.findByRole("tab", { name: "Browse" })).toBeInTheDocument();
+    await vi.waitFor(() => expect(window.location.pathname).toBe("/"));
   });
 });
 

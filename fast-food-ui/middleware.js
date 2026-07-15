@@ -46,19 +46,22 @@ export default async function middleware(request) {
   const url = new URL(request.url);
   const ua = request.headers.get("user-agent") || "";
 
-  // Short link: /m/<code> — resolve the code, then defer to the existing flows.
+  // Short link: /m/<code>.
   const shortMatch = url.pathname.match(/^\/m\/([^/]+)\/?$/);
   if (shortMatch) {
-    const ids = await lookupMeal(decodeURIComponent(shortMatch[1]));
-    if (!ids) return redirect("/", url.origin);
-    // `ids` is already the exact ?meal= payload (per-id encoded, literal commas) — used
-    // verbatim, exactly as the client builds the long link. Re-encoding would corrupt it.
+    // Bots: resolve now and reuse the OG function so the short link renders a rich card in
+    // chats. `ids` is already the exact ?meal= payload (per-id encoded, literal commas) —
+    // used verbatim, exactly as the client builds the long link. Re-encoding would corrupt it.
     if (BOT_RE.test(ua)) {
-      // Reuse the OG function unchanged so the short link renders a rich card in chats.
+      const ids = await lookupMeal(decodeURIComponent(shortMatch[1]));
+      if (!ids) return redirect("/", url.origin);
       return rewrite(new URL(`/api/share?meal=${ids}`, url.origin));
     }
-    // Humans: hand to the SPA's ?meal= rehydration (it fetches items + cleans the URL).
-    return redirect(`/?meal=${ids}`, url.origin);
+    // Humans: serve the SPA in place so the browser URL stays /m/<code> (a copyable,
+    // bookmarkable permalink). The SPA reads the code from the path, calls /api/resolve, and
+    // loads the meal. A rewrite (unlike a redirect) keeps the visible URL, and middleware does
+    // not re-run on the rewritten target, so there's no loop.
+    return rewrite(new URL("/index.html", url.origin));
   }
 
   // Homepage: divert crawlers of a ?meal= link to the OG meta-tag function.
