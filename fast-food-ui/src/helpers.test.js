@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import {
   normalizeScore, sumNutrition, sumDailyLog, mergeDay, loadHistory, loadDailyLog,
   weeklyAverages, lastNDates, formatLocalDate, weekdayLabel, today,
-  getItemKey, deltaStyle, bestWorstStyle, defaultMealName, formatDelta,
+  getItemKey, deltaStyle, bestWorstStyle, defaultMealName, formatDelta, mergeLibrary,
   HISTORY_KEY, ZERO_TOTALS,
 } from "./helpers";
 
@@ -172,6 +172,49 @@ describe("defaultMealName & formatDelta", () => {
     expect(formatDelta(12.4, "g")).toBe("+12g");
     expect(formatDelta(-3)).toBe("-3");
     expect(formatDelta(0)).toBe("0");
+  });
+});
+
+describe("mergeLibrary", () => {
+  const meal = (name, ids) => ({ id: `id-${name}`, name, items: ids.map((x) => ({ item_id: x })), savedAt: 1 });
+
+  it("appends incoming meals to the existing library", () => {
+    const existing = [meal("A", [1])];
+    const incoming = [meal("B", [2, 3])];
+    const merged = mergeLibrary(existing, incoming);
+    expect(merged.map((m) => m.name)).toEqual(["A", "B"]);
+  });
+
+  it("skips an exact duplicate (same name + same ordered ids)", () => {
+    const existing = [meal("Lunch", [1, 2])];
+    const incoming = [meal("Lunch", [1, 2])]; // different object id, same signature
+    expect(mergeLibrary(existing, incoming)).toHaveLength(1);
+  });
+
+  it("keeps a same-name meal whose items differ", () => {
+    const existing = [meal("Lunch", [1, 2])];
+    const incoming = [meal("Lunch", [1, 3])];
+    expect(mergeLibrary(existing, incoming)).toHaveLength(2);
+  });
+
+  it("treats a reordered id-set as distinct (order is part of the signature)", () => {
+    const existing = [meal("Lunch", [1, 2])];
+    const incoming = [meal("Lunch", [2, 1])];
+    expect(mergeLibrary(existing, incoming)).toHaveLength(2);
+  });
+
+  it("does not mutate the input arrays", () => {
+    const existing = [meal("A", [1])];
+    const incoming = [meal("B", [2])];
+    mergeLibrary(existing, incoming);
+    expect(existing).toHaveLength(1);
+    expect(incoming).toHaveLength(1);
+  });
+
+  it("tolerates null/empty arguments", () => {
+    expect(mergeLibrary(null, null)).toEqual([]);
+    expect(mergeLibrary([meal("A", [1])], null)).toHaveLength(1);
+    expect(mergeLibrary(null, [meal("B", [2])])).toHaveLength(1);
   });
 });
 

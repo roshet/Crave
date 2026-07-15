@@ -3,7 +3,7 @@ import "./App.css";
 import {
   getItemKey,
   sumNutrition, today, lastNDates, weekdayLabel, sumDailyLog,
-  defaultMealName, mergeDay, loadHistory, weeklyAverages, loadDailyLog,
+  defaultMealName, mergeDay, loadHistory, weeklyAverages, loadDailyLog, mergeLibrary,
   HISTORY_KEY, ZERO_TOTALS, MACRO_FIELDS, COMPARE_MAX,
 } from "./helpers";
 import CompareTab from "./tabs/CompareTab";
@@ -161,6 +161,10 @@ function App() {
   }, [savedMeals]);
   const [mealName, setMealName]       = useState("");
   const [saveSuccess, setSaveSuccess] = useState(false);
+  // Library sync (export/import the whole saved-meals library via a short code).
+  const [libraryCode, setLibraryCode]                 = useState("");
+  const [libraryShareSuccess, setLibraryShareSuccess] = useState(false);
+  const [importError, setImportError]                 = useState("");
 
   // Browse
   const [results, setResults]         = useState([]);
@@ -612,6 +616,75 @@ function App() {
     setSavedMeals((prev) => prev.filter((m) => m.id !== id));
   }
 
+  // Export the whole saved-meals library to a short code and copy it. We send ids only (not the
+  // full item snapshots) — the same choice as the meal short links — so the stored blob is small
+  // and nutrition re-resolves fresh on import. POSTs to /api/library, a Vercel function on the
+  // frontend origin (NOT API_BASE_URL/Render). Fails quietly if the store is unavailable.
+  async function exportLibrary() {
+    if (savedMeals.length === 0) return;
+    setImportError("");
+    const library = savedMeals.map((m) => ({
+      name: m.name,
+      ids: m.items.map((it) => String(getItemKey(it))),
+    }));
+    try {
+      const resp = await fetch(`${window.location.origin}/api/library`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ library }),
+      });
+      if (!resp.ok) throw new Error("store");
+      const data = await resp.json();
+      if (!data.code) throw new Error("store");
+      setLibraryCode(data.code);
+      try {
+        await navigator.clipboard.writeText(data.code);
+        setLibraryShareSuccess(true);
+        setTimeout(() => setLibraryShareSuccess(false), 2000);
+      } catch { /* code is still shown on screen to copy manually */ }
+    } catch {
+      setImportError("Couldn't share your library — the sync store is unavailable right now.");
+    }
+  }
+
+  // Import a library by code: fetch the { name, ids } list, re-resolve every id through /items
+  // (one request for the union of ids), rebuild each saved meal with fresh item data, and
+  // merge-append into the existing library (dedup handled by mergeLibrary). Fails quietly.
+  async function importLibrary(code) {
+    const trimmed = (code || "").trim();
+    if (!trimmed) return;
+    setImportError("");
+    try {
+      const resp = await fetch(`${window.location.origin}/api/library?code=${encodeURIComponent(trimmed)}`);
+      if (resp.status === 404) { setImportError("No library found for that code."); return; }
+      if (!resp.ok) throw new Error("store");
+      const { library } = await resp.json();
+      if (!Array.isArray(library) || library.length === 0) { setImportError("That library is empty."); return; }
+
+      const unionIds = [...new Set(library.flatMap((m) => m.ids.map(String)))];
+      const itemsResp = await fetch(
+        `${API_BASE_URL}/items?ids=${unionIds.map((id) => encodeURIComponent(id)).join(",")}`
+      );
+      if (!itemsResp.ok) throw new Error("items");
+      const itemsData = await itemsResp.json();
+      const byId = new Map((itemsData.results || []).map((it) => [String(getItemKey(it)), it]));
+
+      const rebuilt = library
+        .map((m) => ({
+          id: (crypto.randomUUID?.() ?? String(Date.now() + Math.random())),
+          name: m.name || defaultMealName(m.ids.map((id) => byId.get(String(id))).filter(Boolean)),
+          items: m.ids.map((id) => byId.get(String(id))).filter(Boolean),
+          savedAt: Date.now(),
+        }))
+        .filter((m) => m.items.length > 0);
+
+      if (rebuilt.length === 0) { setImportError("Those saved meals are no longer on the menu."); return; }
+      setSavedMeals((prev) => mergeLibrary(prev, rebuilt));
+    } catch {
+      setImportError("Couldn't restore that library — the sync store is unavailable right now.");
+    }
+  }
+
   const currentCategories =
     restaurant === "mcdonalds" ? MCD_CATEGORIES :
     restaurant === "chickfila" ? CHICKFILA_CATEGORIES :
@@ -727,6 +800,11 @@ function App() {
             saveSuccess={saveSuccess}
             loadSavedMeal={loadSavedMeal}
             deleteSavedMeal={deleteSavedMeal}
+            exportLibrary={exportLibrary}
+            libraryCode={libraryCode}
+            libraryShareSuccess={libraryShareSuccess}
+            importLibrary={importLibrary}
+            importError={importError}
           />
         )}
 
