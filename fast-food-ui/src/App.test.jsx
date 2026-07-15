@@ -152,7 +152,27 @@ describe("App — saved-meals library sync", () => {
     await gotoMealBuilder(user);
 
     await user.click(screen.getByRole("button", { name: /Share library/ }));
-    expect(await screen.findByText(/Library code:/)).toHaveTextContent("LIB1234");
+    // Surfaces the /?lib=<code> deep link (and the bare code for manual entry).
+    expect(await screen.findByText(/Library link copied/)).toHaveTextContent("LIB1234");
+  });
+
+  it("auto-imports a shared library from a ?lib= deep link and strips the param", async () => {
+    window.history.replaceState({}, "", "/?lib=LIB1234");
+    globalThis.fetch = vi.fn((url) => {
+      const s = String(url);
+      if (s.includes("/api/library")) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ library: [{ name: "Shared Meal", ids: ["200463"] }] }) });
+      }
+      if (s.includes("/items")) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ results: [ITEM] }) });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ results: [], meals: [], score_bounds: { min: -6, max: 3 } }) });
+    });
+    render(<App />);
+
+    // Lands on Meal Builder with the imported meal, and the ?lib= param is stripped.
+    expect(await screen.findByText("Shared Meal")).toBeInTheDocument();
+    await vi.waitFor(() => expect(window.location.search).toBe(""));
   });
 
   it("imports a library by code and merges it into saved meals", async () => {
