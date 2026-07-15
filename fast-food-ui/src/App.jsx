@@ -2,9 +2,9 @@ import { useMemo, useState, useEffect, useCallback } from "react";
 import "./App.css";
 import {
   getItemKey,
-  sumNutrition, today, lastNDates, weekdayLabel, sumDailyLog,
+  sumNutrition, today, lastNDates, sumDailyLog,
   defaultMealName, mergeDay, loadHistory, weeklyAverages, loadDailyLog, mergeLibrary,
-  HISTORY_KEY, ZERO_TOTALS, MACRO_FIELDS, COMPARE_MAX,
+  weekChartData, HISTORY_KEY, ZERO_TOTALS, MACRO_FIELDS, COMPARE_MAX,
 } from "./helpers";
 import CompareTab from "./tabs/CompareTab";
 import TodayTab from "./tabs/TodayTab";
@@ -146,6 +146,8 @@ function App() {
   useEffect(() => {
     window.localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
   }, [history]);
+  // Which nutrient the "This week" chart plots (calories | protein | sugars | fat).
+  const [weekMetric, setWeekMetric] = useState("calories");
 
   // Saved meals — named meals the user keeps and reloads later. Persists across sessions.
   const [savedMeals, setSavedMeals] = useState(() => {
@@ -378,26 +380,11 @@ function App() {
     return { days, averages: weeklyAverages(days.map((d) => d.totals)) };
   }, [history, dailyTotals]);
 
-  // Layout math for the weekly calories chart: bar heights + the target reference line, all
-  // as % of a common max (the taller of the target or the biggest day) so the line and bars
-  // share one scale. `over` marks days above the calorie target (redundant with the bar
-  // crossing the target line, so color isn't the sole signal).
-  const weekChart = useMemo(() => {
-    const calTarget = targets.calories || 0;
-    const maxCal = Math.max(calTarget, ...weekSeries.days.map((d) => d.totals.calories), 1);
-    const days = weekSeries.days.map((d) => ({
-      ...d,
-      label: weekdayLabel(d.date),
-      heightPct: (d.totals.calories / maxCal) * 100,
-      over: calTarget > 0 && d.totals.calories > calTarget,
-    }));
-    return {
-      days,
-      calTarget,
-      targetPct: maxCal > 0 ? (calTarget / maxCal) * 100 : 0,
-      allZero: weekSeries.days.every((d) => d.totals.calories === 0),
-    };
-  }, [weekSeries, targets.calories]);
+  // Layout math for the weekly chart, for the currently-selected nutrient. See weekChartData.
+  const weekChart = useMemo(
+    () => weekChartData(weekSeries.days, targets[weekMetric] || 0, weekMetric),
+    [weekSeries, targets, weekMetric]
+  );
 
   const alternativeMealsWithDeltas = useMemo(() => {
     const base = mealTotals;
@@ -850,6 +837,8 @@ function App() {
             resetDay={resetDay}
             weekChart={weekChart}
             weekSeries={weekSeries}
+            weekMetric={weekMetric}
+            setWeekMetric={setWeekMetric}
           />
         )}
 

@@ -11,7 +11,11 @@ const TARGET_NUTRIENTS = [
 // All state and the derived week memos live in App and are passed in as props.
 export default function TodayTab({
   targets, updateTarget, dailyTotals, dailyLog, removeLogEntry, resetDay, weekChart, weekSeries,
+  weekMetric, setWeekMetric,
 }) {
+  const metric = TARGET_NUTRIENTS.find((n) => n.key === weekMetric) ?? TARGET_NUTRIENTS[0];
+  // Calories read as "kcal"; the other three tracked nutrients are all grams.
+  const chartUnit = weekMetric === "calories" ? "kcal" : "g";
   return (
     <div className="todayTab">
       <p className="optimizeIntro">
@@ -100,21 +104,34 @@ export default function TodayTab({
 
       <div className="weekHistory">
         <h3 className="todaySectionTitle">This week</h3>
+        <div className="weekMetricTabs" role="group" aria-label="Choose which nutrient to chart">
+          {TARGET_NUTRIENTS.map((n) => (
+            <button
+              key={n.key}
+              type="button"
+              className={"weekMetricBtn" + (n.key === weekMetric ? " weekMetricBtn--active" : "")}
+              aria-pressed={n.key === weekMetric}
+              onClick={() => setWeekMetric(n.key)}
+            >
+              {n.label}
+            </button>
+          ))}
+        </div>
         {weekChart.allZero ? (
-          <p className="weekEmptyHint">Log meals each day to see your weekly calorie trend.</p>
+          <p className="weekEmptyHint">Log meals each day to see your weekly {metric.label.toLowerCase()} trend.</p>
         ) : (
           <>
             <div
               className="weekChart"
               role="img"
               aria-label={
-                `Daily calories over the last 7 days` +
-                (weekChart.calTarget ? ` versus your ${weekChart.calTarget} kcal target` : "")
+                `Daily ${metric.label.toLowerCase()} over the last 7 days` +
+                (weekChart.metricTarget ? ` versus your ${weekChart.metricTarget} ${chartUnit} target` : "")
               }
             >
-              {weekChart.calTarget > 0 && (
+              {weekChart.metricTarget > 0 && (
                 <div className="weekTargetLine" style={{ bottom: `${weekChart.targetPct}%` }}>
-                  <span className="weekTargetLabel">Target {weekChart.calTarget}</span>
+                  <span className="weekTargetLabel">Target {weekChart.metricTarget} {chartUnit}</span>
                 </div>
               )}
               {weekChart.days.map((d) => (
@@ -126,7 +143,7 @@ export default function TodayTab({
                       (d.isToday ? " weekBar--today" : "")
                     }
                     style={{ height: `${d.heightPct}%` }}
-                    title={`${d.label}: ${d.totals.calories.toFixed(0)} kcal`}
+                    title={`${d.label}: ${d.value.toFixed(0)} ${chartUnit}`}
                   />
                 </div>
               ))}

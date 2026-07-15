@@ -1174,6 +1174,33 @@ body { margin: 0; }
   margin-bottom: 1rem;
 }
 
+/* Nutrient selector for the "This week" chart. */
+.weekMetricTabs {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.85rem;
+}
+.weekMetricBtn {
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.weekMetricBtn--active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+.weekMetricBtn:focus-visible {
+  outline: 2px solid var(--accent, #6366f1);
+  outline-offset: 1px;
+}
+
 .targetInputs {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

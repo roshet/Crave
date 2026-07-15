@@ -57,6 +57,16 @@ describe("App smoke — tabs and navigation", () => {
     expect(screen.getByRole("heading", { name: "This week" })).toBeInTheDocument();
   });
 
+  it("switches which nutrient the weekly chart tracks", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole("tab", { name: "Today" }));
+    // No data logged in the test → empty-state hint reflects the selected nutrient.
+    expect(await screen.findByText(/weekly calories trend/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Protein", pressed: false }));
+    expect(await screen.findByText(/weekly protein trend/)).toBeInTheDocument();
+  });
+
   it("switches to Compare and shows its intro", async () => {
     const user = userEvent.setup();
     render(<App />);
