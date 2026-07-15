@@ -128,6 +128,72 @@ describe("App — short-link permalink (/m/<code>)", () => {
   });
 });
 
+describe("App — saved-meals library sync", () => {
+  const ITEM = {
+    item_id: 200463, title: "Big Mac", restaurant: "mcdonalds", category: "burgers",
+    calories: 590, protein: 25, sugars: 9, fat: 34, carbs: 46, sodium: 1050, score: 0.5,
+  };
+  const SAVED = { id: "s1", name: "My Lunch", items: [ITEM], savedAt: 1 };
+
+  async function gotoMealBuilder(user) {
+    await user.click(screen.getByRole("tab", { name: /Meal Builder/ }));
+  }
+
+  it("exports the library and surfaces a code", async () => {
+    localStorage.setItem("crave_saved_meals", JSON.stringify([SAVED]));
+    globalThis.fetch = vi.fn((url, opts) => {
+      if (String(url).includes("/api/library") && opts?.method === "POST") {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ code: "LIB1234" }) });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ results: [], meals: [], score_bounds: { min: -6, max: 3 } }) });
+    });
+    const user = userEvent.setup();
+    render(<App />);
+    await gotoMealBuilder(user);
+
+    await user.click(screen.getByRole("button", { name: /Share library/ }));
+    expect(await screen.findByText(/Library code:/)).toHaveTextContent("LIB1234");
+  });
+
+  it("imports a library by code and merges it into saved meals", async () => {
+    globalThis.fetch = vi.fn((url) => {
+      const s = String(url);
+      if (s.includes("/api/library")) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ library: [{ name: "Shared Meal", ids: ["200463"] }] }) });
+      }
+      if (s.includes("/items")) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ results: [ITEM] }) });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ results: [], meals: [], score_bounds: { min: -6, max: 3 } }) });
+    });
+    const user = userEvent.setup();
+    render(<App />);
+    await gotoMealBuilder(user);
+
+    await user.type(screen.getByLabelText("Library code to restore"), "LIB1234");
+    await user.click(screen.getByRole("button", { name: /Restore/ }));
+    expect(await screen.findByText("Shared Meal")).toBeInTheDocument();
+  });
+
+  it("shows a clean message for an unknown code and keeps the local library", async () => {
+    localStorage.setItem("crave_saved_meals", JSON.stringify([SAVED]));
+    globalThis.fetch = vi.fn((url) => {
+      if (String(url).includes("/api/library")) {
+        return Promise.resolve({ ok: false, status: 404, json: () => Promise.resolve({ error: "Unknown code." }) });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ results: [], meals: [], score_bounds: { min: -6, max: 3 } }) });
+    });
+    const user = userEvent.setup();
+    render(<App />);
+    await gotoMealBuilder(user);
+
+    await user.type(screen.getByLabelText("Library code to restore"), "nope");
+    await user.click(screen.getByRole("button", { name: /Restore/ }));
+    expect(await screen.findByText(/No library found for that code/)).toBeInTheDocument();
+    expect(screen.getByText("My Lunch")).toBeInTheDocument(); // existing library untouched
+  });
+});
+
 describe("App smoke — item detail modal", () => {
   const ITEM = {
     item_id: 200463, title: "Big Mac", restaurant: "mcdonalds", category: "burgers",

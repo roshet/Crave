@@ -1,3 +1,4 @@
+import { useState } from "react";
 import ScoreBreakdown from "../components/ScoreBreakdown";
 import { getThumbnail } from "../thumbnail";
 import { getItemKey, normalizeScore, sumNutrition, deltaStyle, formatDelta, COMPARE_MAX } from "../helpers";
@@ -10,7 +11,10 @@ export default function MealBuilderTab({
   logMealToToday, logSuccess, addToCompare, compareEntryFromMeal, compareFull, clearMeal,
   alternativeMealsWithDeltas, setMeal, setAlternativeMeals,
   savedMeals, mealName, setMealName, saveMeal, saveSuccess, loadSavedMeal, deleteSavedMeal,
+  exportLibrary, libraryCode, libraryShareSuccess, importLibrary, importError,
 }) {
+  // Local-only: the code being typed into the Restore box (submitted via importLibrary).
+  const [importCode, setImportCode] = useState("");
   function getGoalBadges() {
     const badges = [];
     if (goal === "high_protein") {
@@ -164,6 +168,42 @@ export default function MealBuilderTab({
 
       <section className="savedMeals">
         <h3 className="todaySectionTitle">Saved meals</h3>
+
+        <div className="librarySync">
+          <div className="librarySyncRow">
+            <button
+              className="btn btnOutline btnSm"
+              onClick={exportLibrary}
+              disabled={savedMeals.length === 0}
+              title={savedMeals.length === 0 ? "Save a meal first" : "Get a code to move these meals to another device"}
+            >
+              {libraryShareSuccess ? "✓ Code copied!" : "⬆️ Share library"}
+            </button>
+            <input
+              className="libraryCodeInput"
+              type="text"
+              placeholder="Enter a code…"
+              aria-label="Library code to restore"
+              value={importCode}
+              onChange={(e) => setImportCode(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && importCode.trim()) { importLibrary(importCode); setImportCode(""); } }}
+            />
+            <button
+              className="btn btnOutline btnSm"
+              onClick={() => { importLibrary(importCode); setImportCode(""); }}
+              disabled={!importCode.trim()}
+            >
+              ⬇️ Restore
+            </button>
+          </div>
+          {libraryCode && (
+            <p className="librarySyncCode">
+              Library code: <strong>{libraryCode}</strong> — enter this on another device to restore your saved meals.
+            </p>
+          )}
+          {importError && <p className="librarySyncError">{importError}</p>}
+        </div>
+
         <div className="savedMealSaveRow">
           <input
             className="savedMealNameInput"

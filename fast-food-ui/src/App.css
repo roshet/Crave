@@ -1394,6 +1394,42 @@ body { margin: 0; }
 
 [data-theme="dark"] .savedMealNameInput { background: #1c1917; }
 
+/* Library sync: export the saved-meals library to a code / restore from one. */
+.librarySync {
+  margin-bottom: 0.9rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--card-border);
+}
+.librarySyncRow {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.libraryCodeInput {
+  flex: 1;
+  min-width: 7rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-input);
+  background: var(--card-bg);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+.librarySyncCode {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin: 0.5rem 0 0;
+}
+.librarySyncError {
+  color: #b91c1c;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin: 0.5rem 0 0;
+}
+[data-theme="dark"] .libraryCodeInput { background: #1c1917; }
+[data-theme="dark"] .librarySyncError { color: #fca5a5; }
+
 .vegBadge {
   margin-left: 0.4rem;
   font-size: 0.9em;
