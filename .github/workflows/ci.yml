@@ -12,8 +12,8 @@ jobs:
       run:
         working-directory: ingest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - name: Install dependencies
@@ -29,10 +29,10 @@ jobs:
       run:
         working-directory: fast-food-ui
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: "20"
+          node-version: "22"
           cache: npm
           cache-dependency-path: fast-food-ui/package-lock.json
       - name: Install dependencies
