@@ -177,7 +177,7 @@ export default function MealBuilderTab({
               disabled={savedMeals.length === 0}
               title={savedMeals.length === 0 ? "Save a meal first" : "Get a code to move these meals to another device"}
             >
-              {libraryShareSuccess ? "✓ Code copied!" : "⬆️ Share library"}
+              {libraryShareSuccess ? "✓ Link copied!" : "⬆️ Share library"}
             </button>
             <input
               className="libraryCodeInput"
@@ -198,7 +198,8 @@ export default function MealBuilderTab({
           </div>
           {libraryCode && (
             <p className="librarySyncCode">
-              Library code: <strong>{libraryCode}</strong> — enter this on another device to restore your saved meals.
+              Library link copied: <strong>{window.location.origin}/?lib={libraryCode}</strong> — open it on another
+              device to import. Or enter code <strong>{libraryCode}</strong> in the box above.
             </p>
           )}
           {importError && <p className="librarySyncError">{importError}</p>}

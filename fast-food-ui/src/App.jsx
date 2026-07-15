@@ -279,6 +279,22 @@ function App() {
       return;
     }
 
+    // /?lib=<code> — a shared saved-meals library. Import it (fetch + re-resolve ids + merge,
+    // all in importLibrary), drop the user on the Meal Builder, then strip the param. Re-opening
+    // is harmless: mergeLibrary dedups. Failures surface quietly via importError.
+    const lib = new URLSearchParams(window.location.search).get("lib");
+    if (lib) {
+      (async () => {
+        try {
+          await importLibrary(lib);
+          setActiveTab("meal");
+        } finally {
+          window.history.replaceState({}, "", window.location.pathname);
+        }
+      })();
+      return;
+    }
+
     const raw = new URLSearchParams(window.location.search).get("meal");
     if (!raw) return;
     (async () => {
@@ -616,10 +632,11 @@ function App() {
     setSavedMeals((prev) => prev.filter((m) => m.id !== id));
   }
 
-  // Export the whole saved-meals library to a short code and copy it. We send ids only (not the
-  // full item snapshots) — the same choice as the meal short links — so the stored blob is small
-  // and nutrition re-resolves fresh on import. POSTs to /api/library, a Vercel function on the
-  // frontend origin (NOT API_BASE_URL/Render). Fails quietly if the store is unavailable.
+  // Export the whole saved-meals library to a short code and copy a /?lib=<code> deep link. We
+  // send ids only (not the full item snapshots) — the same choice as the meal short links — so
+  // the stored blob is small and nutrition re-resolves fresh on import. POSTs to /api/library, a
+  // Vercel function on the frontend origin (NOT API_BASE_URL/Render). Fails quietly if the store
+  // is unavailable. The bare code is still surfaced for manual entry.
   async function exportLibrary() {
     if (savedMeals.length === 0) return;
     setImportError("");
@@ -638,10 +655,10 @@ function App() {
       if (!data.code) throw new Error("store");
       setLibraryCode(data.code);
       try {
-        await navigator.clipboard.writeText(data.code);
+        await navigator.clipboard.writeText(`${window.location.origin}/?lib=${data.code}`);
         setLibraryShareSuccess(true);
         setTimeout(() => setLibraryShareSuccess(false), 2000);
-      } catch { /* code is still shown on screen to copy manually */ }
+      } catch { /* link/code is still shown on screen to copy manually */ }
     } catch {
       setImportError("Couldn't share your library — the sync store is unavailable right now.");
     }

@@ -1420,6 +1420,7 @@ body { margin: 0; }
   font-size: 0.82rem;
   color: var(--text-secondary);
   margin: 0.5rem 0 0;
+  word-break: break-all;
 }
 .librarySyncError {
   color: #b91c1c;
