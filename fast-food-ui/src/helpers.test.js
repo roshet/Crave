@@ -3,7 +3,7 @@ import {
   normalizeScore, sumNutrition, sumDailyLog, mergeDay, loadHistory, loadDailyLog,
   weeklyAverages, lastNDates, formatLocalDate, weekdayLabel, today,
   getItemKey, deltaStyle, bestWorstStyle, defaultMealName, formatDelta, mergeLibrary,
-  HISTORY_KEY, ZERO_TOTALS,
+  weekChartData, HISTORY_KEY, ZERO_TOTALS,
 } from "./helpers";
 
 describe("normalizeScore", () => {
@@ -215,6 +215,50 @@ describe("mergeLibrary", () => {
     expect(mergeLibrary(null, null)).toEqual([]);
     expect(mergeLibrary([meal("A", [1])], null)).toHaveLength(1);
     expect(mergeLibrary(null, [meal("B", [2])])).toHaveLength(1);
+  });
+});
+
+describe("weekChartData", () => {
+  // 3 days with distinct calorie/protein profiles so metric selection is observable.
+  const days = [
+    { date: "2026-07-13", isToday: false, totals: { calories: 500, protein: 40, sugars: 0, fat: 0 } },
+    { date: "2026-07-14", isToday: false, totals: { calories: 1000, protein: 20, sugars: 0, fat: 0 } },
+    { date: "2026-07-15", isToday: true,  totals: { calories: 0, protein: 0, sugars: 0, fat: 0 } },
+  ];
+
+  it("plots the selected nutrient (protein differs from calories)", () => {
+    const cal = weekChartData(days, 2000, "calories");
+    const pro = weekChartData(days, 100, "protein");
+    expect(cal.days.map((d) => d.value)).toEqual([500, 1000, 0]);
+    expect(pro.days.map((d) => d.value)).toEqual([40, 20, 0]);
+  });
+
+  it("scales heights to the max of (target, biggest day)", () => {
+    // calories: max(2000, 500, 1000) = 2000 -> 1000 is 50%, 500 is 25%
+    const cal = weekChartData(days, 2000, "calories");
+    expect(cal.days[1].heightPct).toBeCloseTo(50, 6);
+    expect(cal.days[0].heightPct).toBeCloseTo(25, 6);
+    // when the biggest day exceeds the target, it drives the max: max(0, 500, 1000) = 1000
+    const noTarget = weekChartData(days, 0, "calories");
+    expect(noTarget.days[1].heightPct).toBeCloseTo(100, 6);
+  });
+
+  it("flags days over the target and computes the target line position", () => {
+    const cal = weekChartData(days, 800, "calories"); // max = max(800,500,1000)=1000
+    expect(cal.days.map((d) => d.over)).toEqual([false, true, false]); // 1000 > 800
+    expect(cal.metricTarget).toBe(800);
+    expect(cal.targetPct).toBeCloseTo(80, 6); // 800/1000
+  });
+
+  it("reports allZero only when every day's metric is 0", () => {
+    expect(weekChartData(days, 100, "fat").allZero).toBe(true);   // all fat = 0
+    expect(weekChartData(days, 100, "protein").allZero).toBe(false);
+  });
+
+  it("carries through date/isToday and a weekday label", () => {
+    const cal = weekChartData(days, 2000, "calories");
+    expect(cal.days[2].isToday).toBe(true);
+    expect(["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]).toContain(cal.days[0].label);
   });
 });
 
